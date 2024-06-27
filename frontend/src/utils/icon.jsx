@@ -1,4 +1,4 @@
-import { HiOutlineUsers } from 'react-icons/hi';
+import { HiOutlineUsers, } from 'react-icons/hi';
 
 
 const icons ={

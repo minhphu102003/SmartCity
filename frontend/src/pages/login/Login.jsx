@@ -3,7 +3,7 @@ import { useContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import AuthContext from "../../context/authProvider";
 import MethodContext from "../../context/methodProvider";
-import {Link, Navigate , useLocation, useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import * as authServices from '../../services/auth';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faEye, faEyeSlash} from "@fortawesome/free-solid-svg-icons";
@@ -19,7 +19,7 @@ const LogIn = () =>{
 
 
     useEffect(() =>{
-        if(location.state?.toastMessage != ''){
+        if(location.state?.toastMessage !== ''){
             notify(location.state?.toastMessage, location.state?.statusMessage);
             navigate(location.pathname, {replace: true,state: {}});
         }
