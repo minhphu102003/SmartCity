@@ -1,7 +1,12 @@
-import { HiOutlineUsers, } from 'react-icons/hi';
 
+import { HiOutlineSearch, HiOutlineEmojiHappy, HiOutlineHome, HiOutlineCamera, HiOutlineOfficeBuilding } from 'react-icons/hi';
 
-const icons ={
-    HiOutlineUsers
-}
+const icons = {
+  HiOutlineSearch,
+  HiOutlineEmojiHappy,
+  HiOutlineHome,
+  HiOutlineCamera,
+  HiOutlineOfficeBuilding,
+};
+
 export default icons;
