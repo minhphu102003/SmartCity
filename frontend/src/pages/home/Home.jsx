@@ -1,12 +1,12 @@
 import React from "react";
-import { useContext, useEffect, useState } from "react";
+import Map from "../../components/map/Map";
 
-const Home = ()=>{
+const Home = () => {
     return (
-        <div>
-            Home
+        <div className="w-full h-full">
+            <Map />
         </div>
-    )
-}
+    );
+};
 
 export default Home;

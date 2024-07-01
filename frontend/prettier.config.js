@@ -1,5 +1,10 @@
 module.exports = {
     plugins: ['prettier-plugin-tailwindcss'],
+    zIndex: {
+        '50': '50',
+        '40': '40',
+        '30': '30',
+      },
     tailwindConfig: 'tailwind.config.js',
     semi: true,               // Thêm dấu chấm phẩy ở cuối mỗi câu lệnh
     singleQuote: true,        // Sử dụng dấu nháy đơn thay vì dấu nháy kép

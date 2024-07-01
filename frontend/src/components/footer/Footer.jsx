@@ -3,7 +3,7 @@ import React, { useDebugValue } from "react";
 
 const Footer = ()=>{
     return (
-        <footer>
+        <footer className="absolute">
             <div>Footer</div>
         </footer>
     )

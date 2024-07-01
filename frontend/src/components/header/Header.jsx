@@ -57,7 +57,7 @@ const Header = () => {
   };
 
   return (
-    <header className="absolute top-0 left-0 w-full p-4 bg-white shadow-md z-50 flex items-center justify-between">
+    <header className=" ml-20 w-[calc(100%-5rem)] absolute top-0 left-0 w-full p-4 bg-transparent z-50 flex items-center justify-between">
       <div className="flex items-center">
         <div className="flex items-center bg-gray-100 p-2 rounded-full shadow-md w-[300px]">
           <input
@@ -108,7 +108,7 @@ const Header = () => {
           >
             <Link
                   to="/login"
-                  className="mr-2 rounded-lg px-4 py-2 text-sm font-bold text-gray-800 transition-all hover:bg-gray-300 hover:text-primaryColor lg:px-5 lg:py-2.5 "
+                  className="mr-2 rounded-lg px-4 py-2 text-sm font-bold bg-gray-100 mr-10 text-gray-800 transition-all hover:bg-gray-300 hover:text-primaryColor lg:px-5 lg:py-2.5 "
                 >
                   Đăng Nhập
                 </Link>
