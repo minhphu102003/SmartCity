@@ -57,7 +57,7 @@ const Header = () => {
   };
 
   return (
-    <header className=" ml-20 w-[calc(100%-5rem)] absolute top-0 left-0 w-full p-4 bg-transparent z-50 flex items-center justify-between">
+    <header className=" ml-20 w-[calc(100%-5rem)] absolute top-0 left-0  p-4 bg-transparent z-50 flex items-center justify-between">
       <div className="flex items-center">
         <div className="flex items-center bg-gray-100 p-2 rounded-full shadow-md w-[300px]">
           <input

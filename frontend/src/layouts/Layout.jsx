@@ -6,7 +6,7 @@ import SideBar from "../components/sideBar/siderBar.jsx";
 const Layout = ({ children }) => {
     return (
         <div className="flex flex-col h-screen relative">
-            <Header className="fixed w-full top-0 left-0 z-40" />
+            <Header className="fixed ml-20 w-[calc(100%-10rem)] top-0 left-0 z-40" />
             <SideBar className="fixed top-0 left-0 z-50" />
             <div className="flex flex-1 pt-16">
                 <main className="flex-1 overflow-auto ml-20">
