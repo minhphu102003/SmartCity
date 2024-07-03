@@ -3,6 +3,9 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 
+
+import v1Routes from "./api/v1/index.js";
+
 const app = express();
 
 
@@ -20,7 +23,8 @@ app.use(cors({
 }));
 
 // routes
-
+// Use the routes from v1
+app.use("/v1", v1Routes);
 
 export default app;
 

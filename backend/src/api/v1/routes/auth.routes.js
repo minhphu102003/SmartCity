@@ -1,6 +1,6 @@
 import {Router} from "express";
-import { signUpHandler, signinHandler, logoutHandler  } from "../controller/auth.controller";
-import { checkExistingRole, checkExistingUser } from "../middlewares/veriFySignUp";
+import { signUpHandler, signinHandler, logoutHandler  } from "../controller/auth.controller.js";
+import { checkExistingRole, checkExistingUser } from "../middlewares/veriFySignUp.js";
 
 
 const router = Router();
@@ -14,7 +14,7 @@ router.use((req, res, next) => {
     next();
   });
   
-  router.post("/signup", [checkExistingUser, checkExistingRole], signupHandler);
+  router.post("/signup", [checkExistingUser, checkExistingRole], signUpHandler);
   router.post("/signin", signinHandler);
   router.get("/logout", logoutHandler);
   export default router;

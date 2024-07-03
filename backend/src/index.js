@@ -1,5 +1,7 @@
 import app from "./app.js"
 import {config} from "dotenv";
+import "./config/database.config.js";
+import "./config/initialSetup.js";
 
 config();
 
