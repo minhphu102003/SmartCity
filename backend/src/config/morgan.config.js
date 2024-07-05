@@ -1,6 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import morgan from 'morgan';
+
+// Get the directory path of the current module file
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Đường dẫn tới thư mục logs từ thư mục gốc của dự án
 const logsDirectory = path.join(__dirname, '..', 'api', 'v1', 'logs');

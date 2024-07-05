@@ -1,2 +1,5 @@
 /node_modules
 .env
+
+/src/api/v1/logs/access.log
+

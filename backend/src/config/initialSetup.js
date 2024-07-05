@@ -19,6 +19,7 @@ export const createRoles = async() => {
             new Role({name: "admin"}).save(),
         ]);
         console.log(values);
+        await createAdmin();
     }
     catch(error){
         console.error(error);
@@ -47,4 +48,3 @@ export const createAdmin  = async() => {
 }
 
 createRoles();
-createAdmin();
