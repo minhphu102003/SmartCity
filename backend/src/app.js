@@ -24,7 +24,7 @@ app.use(cors({
 
 // routes
 // Use the routes from v1
-app.use("/v1", v1Routes);
+app.use("/api/v1", v1Routes);
 
 export default app;
 
