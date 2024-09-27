@@ -44,6 +44,8 @@ export const signUpHandler = async(req, res ) =>{
 
 export const signinHandler = async (req, res) => {
     try {
+
+      // ? Kiểm tra điều kiện tham số đầy đủ trước khi thực hiện request 
       // Request body email can be an email or username
       const userFound = await User.findOne({ email: req.body.email }).populate(
         "roles"
@@ -63,7 +65,7 @@ export const signinHandler = async (req, res) => {
           message: "Invalid Password",
         });
         
-      const token = jwt.sign({ id: userFound._id }, SECRET, {
+      const token = jwt.sign({ id: userFound._id }, process.env.SECRET, {
         expiresIn: 86400, // 24 hours
       });
   
