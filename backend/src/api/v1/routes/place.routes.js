@@ -1,5 +1,7 @@
 import {Router} from "express";
-import { searchNearest } from "../controller/place.controller.js";
+import {  nearestValidator, addPlaceValidator, updatePlaceValidator, deletePlaceValidator } from '../validations/place.validator.js';
+import { handleValidationErrors } from "../validations/result.validator.js";
+import { searchNearest, createPlace, updatePlace, deletePlace } from "../controller/place.controller.js";
 
 
 const router = Router();
@@ -13,14 +15,15 @@ router.use((req, res, next) => {
     next();
 });
 
-router.get("/nearest", searchNearest);
+router.get("/nearest", nearestValidator,handleValidationErrors, searchNearest);
+// viết api tạo một place mới 
+router.post("/addPlace",addPlaceValidator,handleValidationErrors, createPlace);
+
+router.put("/updatePlace/:id", updatePlaceValidator,handleValidationErrors, updatePlace);
+
+router.delete("/deletePlace/:id", deletePlaceValidator,handleValidationErrors, deletePlace);
 
 export default router;
 
-// đối với place 
-// đầu tiên ta sẽ tìm kiếm places theo loại
-// ? 1 : Nhà hàng
-// ? 2 : Khách sạn 
-// ? 3 : Điểm tham quan 
-// ? 4 : Bảo tàng 
+
 
