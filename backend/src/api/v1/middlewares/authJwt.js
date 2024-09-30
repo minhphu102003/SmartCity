@@ -3,28 +3,31 @@ import User from "../models/user.js";
 import Role from "../models/role.js";
 
 
-export const veriFyToken  = async(req, res, next)=>{
-    let token = req.header["x-access-token"];
+export const veriFyToken  = async(req, res, next) => {
+  let token = req.headers["x-access-token"]; // Chỉnh sửa từ `req.header` thành `req.headers`
 
-    if(!token){
-        return res.status(403).json({message: "No token provided"});
-    }
+  if(!token) {
+      return res.status(403).json({ message: "No token provided" });
+  }
 
-    try{
-        const decoded = jwt.verify(token,process.env.SECRET);
-        req.userId = decoded.id;
+  try {
+      const decoded = jwt.verify(token, process.env.SECRET); // Giải mã token
+      req.userId = decoded.id; // Gán `userId` vào request
 
-        const user = await User.findById(req.userId, {password: 0});
-        
-        let orgToken = user.tokens.filter(t =>  t.token === token);
-        if(orgToken.lenght == 0){
-            return res.status(401).json({message : "Token is died"});
-        }
-        if (!user) return res.status(404).json({ message: "No user found" });
+      const user = await User.findById(req.userId, { password: 0 }); // Tìm user dựa trên ID, ẩn password
 
-    }catch(err){
-        return res.status(401).json({message: "Unauthorized!"});
-    }
+      if (!user) return res.status(404).json({ message: "No user found" });
+
+      // Kiểm tra xem token có nằm trong danh sách token của user không
+      let orgToken = user.tokens.filter(t => t.token === token);
+      if (orgToken.length == 0) {
+          return res.status(401).json({ message: "Token is expired or invalid" });
+      }
+
+      next(); // Tiếp tục xử lý request nếu mọi thứ đều ổn
+  } catch (err) {
+      return res.status(401).json({ message: "Unauthorized!" });
+  }
 }
 
 
@@ -45,4 +48,4 @@ export const isAdmin = async (req, res, next) => {
       console.log(error);
       return res.status(500).send({ message: error });
     }
-  };
+};
