@@ -1,14 +1,16 @@
 import user from "../models/user.js";
 import Role from "../models/role.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
 
 export const getProfile = async (req, res, next) => {
     try {
         const id = req.userId; // Lấy ID từ token đã được giải mã
+        const {userId} = req.params;
+
+        const findId = id || userId;
 
         //? ẩn đi những thông tin nhạy cảm 
-        const findUser = await user.findOne({ _id: id }).select('-_id -password -tokens -roles -createdAt -updatedAt');
+        const findUser = await user.findOne({ _id: findId }).select('-_id -password -tokens -roles -createdAt -updatedAt');
 
         if (!findUser) {
             return res.status(404).json({
@@ -29,48 +31,51 @@ export const getProfile = async (req, res, next) => {
     }
 }
 
-// ! Cần ẩn những thông tin nhạy cảm trước khi trả đữ liệu về người dùng 
-export const createUser = async (req, res, next) =>{
-    try{
-        const {
-            username,
-            email,
-            password,
-            roles
-        } = req.body;
+export const createUser = async (req, res, next) => {
+    try {
+        const { username, email, password, roles } = req.body;
 
         const newUser = new user({
             username,
             email,
             password
         });
-        if(roles){
-            const foundRoles = await Role.find({ name : {$in:roles}});
-            newUser.roles = foundRoles.map((role)=> role._id);
-        }
-        else{
+
+        if (roles) {
+            const foundRoles = await Role.find({ name: { $in: roles } });
+            newUser.roles = foundRoles.map((role) => role._id);
+        } else {
             const role = await Role.findOne({ name: "user" });
             newUser.roles = [role._id];
         }
+
         const savedUser = await newUser.save();
 
         const token = jwt.sign({ id: savedUser._id }, process.env.SECRET, {
             expiresIn: 86400,
         });
-        
-        newUser.tokens = [{ token, signedAt: Date.now().toString() }];
 
+        newUser.tokens = [{ token, signedAt: Date.now().toString() }];
         await newUser.save();
 
-        return res.status(200).json({success: true, data: savedUser });
+        // Chuyển dữ liệu về dạng thuần và xóa các trường nhạy cảm
+        const userResponse = savedUser.toObject();
+        delete userResponse.password;
+        delete userResponse.tokens;
+        delete userResponse.roles;
+        delete userResponse._id;
+        delete userResponse.createdAt;
+        delete userResponse.updatedAt;
 
-    }catch(err){
+        return res.status(200).json({ success: true, data: userResponse });
+    } catch (err) {
         return res.status(500).json({
             success: false,
             message: err.message
-        })
+        });
     }
-}
+};
+
 
 // ? Thiếu nếu user tự cập nhật thì không thể cho role lên admin
 //  Thông tin trả về nên xóa các trường nhạy cảm
@@ -129,6 +134,7 @@ export const deleteUser = async (req, res, next) => {
 
         // Tìm người dùng theo userId
         const userFound = await user.findById(userId);
+        
 
         // Kiểm tra nếu không tìm thấy người dùng
         if (!userFound) {
@@ -137,6 +143,15 @@ export const deleteUser = async (req, res, next) => {
                 message: "User not found"
             });
         }
+
+        const userResponse = userFound.toObject();
+
+        delete userResponse.password;
+        delete userResponse.tokens;
+        delete userResponse.roles;
+        delete userResponse._id;
+        delete userResponse.createdAt;
+        delete userResponse.updatedAt;
 
         // Xóa người dùng
         await user.findByIdAndDelete(userId);
