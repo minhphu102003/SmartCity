@@ -39,10 +39,22 @@ const placeSchema = new mongoose.Schema(
       default: true, // Giá trị mặc định
     },
     timeOpen: {
-      type: String, // Có thể dùng String hoặc một định dạng thời gian khác
+      type: String,
+      validate: {
+        validator: function (v) {
+          return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v); // Validate HH:mm format
+        },
+        message: props => `${props.value} is not a valid time format!`,
+      }, // Có thể dùng String hoặc một định dạng thời gian khác
     },
     timeClose: {
-      type: String, // Có thể dùng String hoặc một định dạng thời gian khác
+      type: String,
+      validate: {
+        validator: function (v) {
+          return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v); // Validate HH:mm format
+        },
+        message: props => `${props.value} is not a valid time format!`,
+      }, // Có thể dùng String hoặc một định dạng thời gian khác
     },
   },
   {

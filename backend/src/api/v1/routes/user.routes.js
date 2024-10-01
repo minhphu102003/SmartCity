@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { veriFyToken,isAdmin } from '../middlewares/authJwt.js';
 import { getProfile, createUser, updateUser, deleteUser } from "../controller/user.controller.js";
-import { validateById, validateWithToken, validateCreateUser,validateUpdateUser } from "../validations/user.validator.js";
+import { validateCreateUser,validateUpdateUser } from "../validations/user.validator.js";
 import { handleValidationErrors } from "../validations/result.validator.js";
+import { validateById, validateWithToken} from "../validations/commonField.validator.js";
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.use((req, res, next) => {
 router.get('/get-profile',[validateWithToken, handleValidationErrors], veriFyToken, getProfile);
 
 // Những thông tin người dùng có thể public cho người dùng khác có thể xem
-router.get('/get-profile/:userId', [validateById, handleValidationErrors], getProfile);
+router.get('/get-profile/:Id', [validateById, handleValidationErrors], getProfile);
 
 // ? với phân quyền admin có thể tạo người dùng hoặc thêm role cho người dùng
 // ? Test xong ok
@@ -32,10 +33,10 @@ router.put('/update', [validateWithToken,validateUpdateUser, handleValidationErr
 
 // Admin có thể cập nhật thông tin của bất kỳ người dùng nào
 // ? Test xong 
-router.put('/update/:userId', [validateById, validateUpdateUser, handleValidationErrors, veriFyToken, isAdmin], updateUser);
+router.put('/update/:Id', [validateById, validateUpdateUser, handleValidationErrors, veriFyToken, isAdmin], updateUser);
 
 // Admin có thể xóa user
 // ? Test xong
-router.delete('/delete/:userId', [validateById, handleValidationErrors, veriFyToken, isAdmin], deleteUser);
+router.delete('/delete/:Id', [validateById, handleValidationErrors, veriFyToken, isAdmin], deleteUser);
 
 export default router;

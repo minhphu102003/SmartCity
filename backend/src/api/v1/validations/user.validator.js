@@ -1,19 +1,7 @@
-import { body, check, header, param } from "express-validator";
+import { body, param } from "express-validator";
 import User from '../models/user.js';
 import {ROLES} from '../models/role.js';
 
-export const validateById = [
-    param('userId')
-        .isMongoId()
-        .withMessage('Invalid userId format')
-        .exists({ checkNull: true, checkFalsy: true })
-];
-
-export const validateWithToken = [
-    header('x-access-token')
-        .notEmpty()
-        .withMessage('Token is required')
-];
 
 export const validateCreateUser = [
     body('username')

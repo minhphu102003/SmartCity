@@ -1,7 +1,9 @@
 import {Router} from "express";
-import {  nearestValidator, addPlaceValidator, updatePlaceValidator, deletePlaceValidator } from '../validations/place.validator.js';
+import {  nearestValidator, addPlaceValidator, updatePlaceValidator } from '../validations/place.validator.js';
 import { handleValidationErrors } from "../validations/result.validator.js";
 import { searchNearest, createPlace, updatePlace, deletePlace } from "../controller/place.controller.js";
+import { veriFyToken, isAdmin } from "../middlewares/authJwt.js";
+import { validateById, validateWithToken } from "../validations/commonField.validator.js";
 
 
 const router = Router();
@@ -15,13 +17,20 @@ router.use((req, res, next) => {
     next();
 });
 
-router.get("/nearest", nearestValidator,handleValidationErrors, searchNearest);
+// ! Thiếu lấy danh sách các địa điểm mà có phân trang
+
+// ? test ok 
+router.get("/nearest", [nearestValidator, handleValidationErrors], searchNearest);
 // viết api tạo một place mới 
-router.post("/addPlace",addPlaceValidator,handleValidationErrors, createPlace);
 
-router.put("/updatePlace/:id", updatePlaceValidator,handleValidationErrors, updatePlace);
+// ? Test ok 
+router.post("/add",[validateWithToken, addPlaceValidator, handleValidationErrors, veriFyToken, isAdmin], createPlace);
 
-router.delete("/deletePlace/:id", deletePlaceValidator,handleValidationErrors, deletePlace);
+// ? Test ok
+router.put("/update/:Id", [validateById, validateWithToken,updatePlaceValidator,handleValidationErrors, veriFyToken, isAdmin], updatePlace);
+
+// ? Test ok 
+router.delete("/delete/:Id", [validateById, validateWithToken, handleValidationErrors, veriFyToken, isAdmin], deletePlace);
 
 export default router;
 

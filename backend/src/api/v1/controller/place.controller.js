@@ -1,6 +1,7 @@
 import Place from '../models/place.js';
 import { calculateDistance } from '../services/distance.js';
 
+// ! Thiếu thêm limit
 export const searchNearest = async (req, res, next) =>{
     try{
         const {latitude, longitude, radius = 500, type = 1} = req.query;
@@ -95,7 +96,7 @@ export const createPlace = async (req, res, next) => {
 
 export const updatePlace = async (req, res, next) => {
     try {
-        const { id } = req.params; // Lấy ID của place từ URL
+        const { Id } = req.params; // Lấy ID của place từ URL
         const {
             type,
             name,
@@ -108,7 +109,7 @@ export const updatePlace = async (req, res, next) => {
         } = req.body;
 
         // Kiểm tra xem place có tồn tại không
-        const place = await Place.findById(id);
+        const place = await Place.findById(Id);
         if (!place) {
             return res.status(404).json({
                 success: false,
@@ -141,13 +142,13 @@ export const updatePlace = async (req, res, next) => {
     }
 };
 
-
+// !  Thiếu gửi thông tin place xóa về client 
 export const deletePlace = async (req, res, next) => {
     try {
-        const { id } = req.params; // Lấy ID của place từ URL
+        const { Id } = req.params; // Lấy ID của place từ URL
 
         // Kiểm tra xem place có tồn tại không
-        const place = await Place.findById(id);
+        const place = await Place.findById(Id);
         if (!place) {
             return res.status(404).json({
                 success: false,
@@ -156,7 +157,7 @@ export const deletePlace = async (req, res, next) => {
         }
 
         // Xóa place
-        await Place.findByIdAndDelete(id);
+        await Place.findByIdAndDelete(Id);
 
         return res.status(200).json({
             success: true,

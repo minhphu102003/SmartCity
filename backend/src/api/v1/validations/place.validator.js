@@ -58,12 +58,6 @@ export const addPlaceValidator = [
 ];
 
 export const updatePlaceValidator = [
-    param("id")
-        .notEmpty()
-        .withMessage("ID is required")
-        .bail()
-        .isMongoId()
-        .withMessage("Invalid ID format"),
     body("type")
         .optional()
         .isInt()
@@ -91,17 +85,13 @@ export const updatePlaceValidator = [
         .withMessage("Status must be a boolean value"),
     body("timeOpen")
         .optional()
-        .trim(),
+        .trim()
+        .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+        .withMessage("Time Open must be in HH:mm format"),
     body("timeClose")
         .optional()
-        .trim(),
+        .trim()
+        .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+        .withMessage("Time Open must be in HH:mm format"),
 ];
 
-export const deletePlaceValidator = [
-    param("id")
-        .notEmpty()
-        .withMessage("ID is required")
-        .bail()
-        .isMongoId()
-        .withMessage("Invalid ID format"),
-];
