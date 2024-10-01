@@ -3,7 +3,7 @@ import User from '../models/user.js';
 import {ROLES} from '../models/role.js';
 
 export const validateById = [
-    check('userId', 'Invalid userId format')
+    param('userId')
         .isMongoId()
         .withMessage('Invalid userId format')
         .exists({ checkNull: true, checkFalsy: true })
@@ -93,18 +93,6 @@ export const validateUpdateUser = [
             }
             return true;
         }),
-    
-    // Handle validation errors
-    (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                success: false,
-                errors: errors.array(),
-            });
-        }
-        next();
-    },
 ];
 
 
