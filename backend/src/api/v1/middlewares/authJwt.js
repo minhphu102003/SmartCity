@@ -13,7 +13,6 @@ export const veriFyToken  = async(req, res, next) => {
   try {
       const decoded = jwt.verify(token, process.env.SECRET); // Giải mã token
       req.userId = decoded.id; // Gán `userId` vào request
-
       const user = await User.findById(req.userId, { password: 0 }); // Tìm user dựa trên ID, ẩn password
 
       if (!user) return res.status(404).json({ message: "No user found" });
