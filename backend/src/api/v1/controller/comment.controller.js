@@ -1,5 +1,4 @@
 import Comment from "../models/comment.js";
-import User from "../models/user.js";
 import Place from "../models/place.js";
 
 export const getListCommentByPlace = async (req, res, next) => {
@@ -63,7 +62,6 @@ export const createComment = async (req, res, next) => {
     try {
         const { star, content, place_id, image } = req.body;
         const user_id = req.userId;  // Lấy userId từ token đã xác thực
-        console.log('hay');
         // Kiểm tra xem place_id có tồn tại không
         const placeExists = await Place.findById(place_id);
 

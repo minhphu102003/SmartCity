@@ -162,6 +162,7 @@ export const deletePlace = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             message: "Place đã được xóa thành công",
+            data: place
         });
     } catch (err) {
         return res.status(500).json({

@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { getListCommentByPlace, getListCommentByUser, createComment,updateComment, deleteComment } from "../controller/comment.controller.js";
 import { veriFyToken } from "../middlewares/authJwt.js";
-
+import {validateById, validateWithToken} from "../validations/commonField.validator.js";
+import {handleValidationErrors} from "../validations/result.validator.js";
+import {validateCreateComment, validateUpdateComment} from "../validations/comment.validator.js";
 
 const router = Router();
 
@@ -15,22 +17,22 @@ router.use((req, res, next) => {
 
 // ? ok
 // Lấy comment dựa trên id place
-router.get("/listByPlace/:placeId", getListCommentByPlace);
+router.get("/listByPlace/:placeId", [validateById, handleValidationErrors], getListCommentByPlace);
 // Lấy comment dựa trên id user
 
 // ? ok 
-router.get("/listByUser/:userId", getListCommentByUser);
+router.get("/listByUser/:userId", [validateById, handleValidationErrors], getListCommentByUser);
 
 // ? Test ok
-router.post("/create",veriFyToken, createComment);
+router.post("/create", [validateWithToken, validateCreateComment, handleValidationErrors],veriFyToken, createComment);
 
 // Chỉnh sửa comment
 // ? test ok 
-router.put("/update/:commentId", veriFyToken, updateComment);
+router.put("/update/:commentId",[validateById, validateWithToken, validateUpdateComment, handleValidationErrors], veriFyToken, updateComment);
 
 
 // Xóa comment
 // ? test ok 
-router.delete("/delete/:commentId", veriFyToken, deleteComment);
+router.delete("/delete/:commentId", [validateById, validateWithToken, handleValidationErrors], veriFyToken, deleteComment);
 
 export default router;
