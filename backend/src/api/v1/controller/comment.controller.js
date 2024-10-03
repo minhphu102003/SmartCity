@@ -3,10 +3,10 @@ import Place from "../models/place.js";
 
 export const getListCommentByPlace = async (req, res, next) => {
     try {
-        const { placeId } = req.params;
+        const { Id } = req.params;
 
         // Tìm tất cả các comment theo place_id
-        const comments = await Comment.find({ place_id: placeId })
+        const comments = await Comment.find({ place_id: Id })
             .populate("user_id", "username")  // Populate thông tin user_id nếu cần
             .exec();
 
@@ -32,10 +32,10 @@ export const getListCommentByPlace = async (req, res, next) => {
 
 export const getListCommentByUser = async (req, res, next) => {
     try {
-        const {userId} = req.params;
+        const {Id} = req.params;
 
         // Tìm tất cả các comment theo user_id
-        const comments = await Comment.find({ user_id: userId })
+        const comments = await Comment.find({ user_id: Id })
             .populate("place_id", "name")  // Populate thông tin place_id nếu cần
             .exec();
 
@@ -100,12 +100,12 @@ export const createComment = async (req, res, next) => {
 
 export const updateComment = async (req, res, next) => {
     try {
-        const { commentId } = req.params; // ID của comment từ URL
+        const { Id } = req.params; // ID của comment từ URL
         const { star, content, image } = req.body; // Dữ liệu cần chỉnh sửa
         const userId = req.userId; // Lấy userId từ token
 
         // Tìm comment cần chỉnh sửa
-        const comment = await Comment.findById(commentId);
+        const comment = await Comment.findById(Id);
 
         if (!comment) {
             return res.status(404).json({
@@ -146,11 +146,11 @@ export const updateComment = async (req, res, next) => {
 
 export const deleteComment = async (req, res, next) => {
     try {
-        const { commentId } = req.params; // ID của comment từ URL
+        const { Id } = req.params; // ID của comment từ URL
         const userId = req.userId; // Lấy userId từ token
 
         // Tìm comment cần xóa
-        const comment = await Comment.findById(commentId);
+        const comment = await Comment.findById(Id);
 
         if (!comment) {
             return res.status(404).json({

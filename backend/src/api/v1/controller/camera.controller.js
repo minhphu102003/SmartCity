@@ -62,10 +62,10 @@ export const createCamera = async (req, res , next) => {
 
 export const updateCamera  = async (req, res , next) => {
     try{
-        const {cameraId} = req.params;
+        const {Id} = req.params;
         const {longitude, latitude, status} = req.body;
 
-        const findCamera = await Camera.findById(cameraId);
+        const findCamera = await Camera.findById(Id);
         if( !findCamera){
             return res.status(404).json({
                 success: false,
@@ -95,9 +95,9 @@ export const updateCamera  = async (req, res , next) => {
 
 export const deleteCamera = async (req, res, next) => {
     try{
-        const {cameraId} = req.params;
+        const {Id} = req.params;
         
-        const findCamera = await Camera.findById(cameraId);
+        const findCamera = await Camera.findById(Id);
 
         if(!findCamera){
             return res.status(404).json({
@@ -106,7 +106,7 @@ export const deleteCamera = async (req, res, next) => {
             });
         }
 
-        await Camera.findByIdAndDelete(cameraId);
+        await Camera.findByIdAndDelete(Id);
 
         return res.status(200).json({
             success: true,

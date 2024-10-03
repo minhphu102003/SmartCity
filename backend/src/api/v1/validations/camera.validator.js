@@ -1,4 +1,14 @@
-import { body } from "express-validator";
+import { body, query } from "express-validator";
+
+export const getListCameraValidator = [
+    query('limit')
+        .optional()
+        .isInt({ min: 1 }).withMessage('Limit must be a positive integer'), // Kiểm tra limit có hợp lệ không
+    query('page')
+        .optional()
+        .isInt({ min: 1 }).withMessage('Page must be a positive integer') // Kiểm tra page có hợp lệ không
+];
+
 
 export const validateCreateCamera = [
     body('longitude')

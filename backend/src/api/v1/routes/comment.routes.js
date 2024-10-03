@@ -17,22 +17,22 @@ router.use((req, res, next) => {
 
 // ? ok
 // Lấy comment dựa trên id place
-router.get("/listByPlace/:placeId", [validateById, handleValidationErrors], getListCommentByPlace);
+router.get("/listByPlace/:Id", [validateById, handleValidationErrors], getListCommentByPlace);
 // Lấy comment dựa trên id user
 
 // ? ok 
-router.get("/listByUser/:userId", [validateById, handleValidationErrors], getListCommentByUser);
+router.get("/listByUser/:Id", [validateById, handleValidationErrors], getListCommentByUser);
 
 // ? Test ok
 router.post("/create", [validateWithToken, validateCreateComment, handleValidationErrors],veriFyToken, createComment);
 
 // Chỉnh sửa comment
 // ? test ok 
-router.put("/update/:commentId",[validateById, validateWithToken, validateUpdateComment, handleValidationErrors], veriFyToken, updateComment);
+router.put("/update/:Id",[validateById, validateWithToken, validateUpdateComment, handleValidationErrors], veriFyToken, updateComment);
 
 
 // Xóa comment
 // ? test ok 
-router.delete("/delete/:commentId", [validateById, validateWithToken, handleValidationErrors], veriFyToken, deleteComment);
+router.delete("/delete/:Id", [validateById, validateWithToken, handleValidationErrors], veriFyToken, deleteComment);
 
 export default router;
