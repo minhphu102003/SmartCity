@@ -17,10 +17,7 @@ app.use(express.urlencoded({extended: false}));
 
 app.use(morganMiddleware);
 
-app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-}));
+app.use(cors());
 
 // routes
 // Use the routes from v1

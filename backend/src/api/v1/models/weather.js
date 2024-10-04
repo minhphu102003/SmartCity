@@ -1,39 +1,50 @@
 import mongoose from "mongoose";
 
-const weatherSchema = new mongoose.Schema(
-    {
-        longitude: {
-            type : Number,
-            require: true,
-            min: -180,
-            max: 180,
+const weatherSchema = new mongoose.Schema({
+    city: {
+        id: Number,
+        name: String,
+        coord: {
+            lon: Number,
+            lat: Number,
         },
-        latitude: {
-            type: Number,
-            require: true,
-            min: -180,
-            max: 180,
-        },
-        tempertature:{
-            type: Number,
-            require : true,
-        },
-        humidity:{
-            type: Number,
-            require: true,
-        },
-        wind_speed: {
-            type: Number,
-            require: true,
-        },
-        description:{
-            type: String,
-        },
+        country: String,
+        population: Number,
+        timezone: Number
     },
-    {
-        timestamps: true,
-        versionKey: false,
-    }
-)
+    list: [{
+        dt: Number,
+        sunrise: Number,
+        sunset: Number,
+        temp: {
+            day: Number,
+            min: Number,
+            max: Number,
+            night: Number,
+            eve: Number,
+            morn: Number,
+        },
+        feels_like: {
+            day: Number,
+            night: Number,
+            eve: Number,
+            morn: Number,
+        },
+        weather: [{
+            id: Number,
+            main: String,
+            description: String,
+            icon: String
+        }],
+        pressure: Number,
+        humidity: Number,
+        speed: Number,
+        deg: Number,
+        clouds: Number,
+        pop: Number
+    }]
+});
 
-export default mongoose.model("Weather",weatherSchema);
+const Weather = mongoose.model('Weather', weatherSchema);
+
+export default Weather;
