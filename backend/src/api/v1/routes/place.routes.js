@@ -24,13 +24,13 @@ router.get("/nearest", [nearestValidator, handleValidationErrors], searchNearest
 // viết api tạo một place mới 
 
 // ? Test ok 
-router.post("/add",[validateWithToken, addPlaceValidator, handleValidationErrors, veriFyToken, isAdmin], createPlace);
+router.post("/",[validateWithToken, addPlaceValidator, handleValidationErrors, veriFyToken, isAdmin], createPlace);
 
 // ? Test ok
-router.put("/update/:Id", [validateById, validateWithToken,updatePlaceValidator,handleValidationErrors, veriFyToken, isAdmin], updatePlace);
+router.put("/:Id", [validateById, validateWithToken,updatePlaceValidator,handleValidationErrors, veriFyToken, isAdmin], updatePlace);
 
 // ? Test ok 
-router.delete("/delete/:Id", [validateById, validateWithToken, handleValidationErrors, veriFyToken, isAdmin], deletePlace);
+router.delete("/:Id", [validateById, validateWithToken, handleValidationErrors, veriFyToken, isAdmin], deletePlace);
 
 export default router;
 

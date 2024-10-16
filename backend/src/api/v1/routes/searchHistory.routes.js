@@ -27,12 +27,12 @@ router.get('/list',[getListHistoryValidator, ...validatorMiddleware], getListHis
 // ? Người dùng không đăng nhập vẫn có thể tìm kiếm được mà  ??
 //  ! Như thế access Token valid thì nó lại vô lý và ta cần một kho lưu trữ gì đó dù
 //  ! Người sử dụng không đăng nhập vẫn có thể lưu lịch sử tìm kiếm của họ trên thiết bị 
-router.post('/create',[createHistoryValidator, ...validatorMiddleware], createHistory);
+router.post('/',[createHistoryValidator, ...validatorMiddleware], createHistory);
 
 // Router xóa thông tim lịch sử tìm kiếm của người dùng
 // ? Test ok
 
-router.delete('/delete', [deleteHistoryValidator, ...validatorMiddleware],  deleteHistory);
+router.delete('/', [deleteHistoryValidator, ...validatorMiddleware],  deleteHistory);
 
 // ? Có thể nâng cấp lên xóa trong một khoảng thời gian nào đó 
 

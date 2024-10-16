@@ -25,14 +25,14 @@ router.get("/list", [getListCameraValidator, ...adminAuthMiddlewares], getListCa
 
 // Tạo mới một camera từ admin
 // ? test ok
-router.post('/create', [validateCreateCamera, ...adminAuthMiddlewares], createCamera);
+router.post('/', [validateCreateCamera, ...adminAuthMiddlewares], createCamera);
 
 // Cập nhật camera từ admin
 // ? test ok 
-router.put("/update/:Id", [validateById, validateUpdateCamera, ...adminAuthMiddlewares], updateCamera);
+router.put("/:Id", [validateById, validateUpdateCamera, ...adminAuthMiddlewares], updateCamera);
 
 // Xóa camera từ admin
 // ? test ok
-router.delete("/delete/:Id", [validateById, ...adminAuthMiddlewares], deleteCamera);
+router.delete("/:Id", [validateById, ...adminAuthMiddlewares], deleteCamera);
 
 export default router;

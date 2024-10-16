@@ -5,28 +5,28 @@ const cameraReportSchema = new mongoose.Schema(
         camera_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Camera",
-            required: true,  // Liên kết tới bảng Camera
+            required: true,  
         },
         floodTraffic: {
-            type: Number,  // Biểu thị mức độ kẹt xe (hoặc lưu lượng xe)
+            type: Number,  
             required: true,
         },
         typeReport: {
-            type: Boolean,  // Phân loại báo cáo (ví dụ: true cho kẹt xe, false cho lưu thông bình thường)
+            type: Boolean, 
             required: true,
         },
         image: {
-            type: String,  // Đường dẫn đến hình ảnh
+            type: String,  
             required: true,
             unique: true,
         },
         timestamp: {
-            type: Date,  // Thời điểm báo cáo được tạo ra
-            default: Date.now,  // Tự động gán thời gian hiện tại khi tạo báo cáo
+            type: Date,  
+            default: Date.now, 
         }
     },
     {
-        timestamps: true,  // Tạo tự động các trường createdAt và updatedAt
+        timestamps: true,  
         versionKey: false,
     }
 );

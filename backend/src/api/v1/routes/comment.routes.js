@@ -24,15 +24,15 @@ router.get("/listByPlace/:Id", [validateById, handleValidationErrors], getListCo
 router.get("/listByUser/:Id", [validateById, handleValidationErrors], getListCommentByUser);
 
 // ? Test ok
-router.post("/create", [validateWithToken, validateCreateComment, handleValidationErrors],veriFyToken, createComment);
+router.post("/", [validateWithToken, validateCreateComment, handleValidationErrors],veriFyToken, createComment);
 
 // Chỉnh sửa comment
 // ? test ok 
-router.put("/update/:Id",[validateById, validateWithToken, validateUpdateComment, handleValidationErrors], veriFyToken, updateComment);
+router.put("/:Id",[validateById, validateWithToken, validateUpdateComment, handleValidationErrors], veriFyToken, updateComment);
 
 
 // Xóa comment
 // ? test ok 
-router.delete("/delete/:Id", [validateById, validateWithToken, handleValidationErrors], veriFyToken, deleteComment);
+router.delete("/:Id", [validateById, validateWithToken, handleValidationErrors], veriFyToken, deleteComment);
 
 export default router;

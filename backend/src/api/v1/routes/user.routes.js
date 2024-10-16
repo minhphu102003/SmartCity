@@ -24,19 +24,19 @@ router.get('/get-profile/:Id', [validateById, handleValidationErrors], getProfil
 
 // ? với phân quyền admin có thể tạo người dùng hoặc thêm role cho người dùng
 // ? Test xong ok
-router.post('/create',[veriFyToken, isAdmin, validateCreateUser, handleValidationErrors ], createUser);
+router.post('/',[veriFyToken, isAdmin, validateCreateUser, handleValidationErrors ], createUser);
 
 
 // Cập nhật thông tin của chính người dùng
 // ? Test xong
-router.put('/update', [validateWithToken,validateUpdateUser, handleValidationErrors, veriFyToken], updateUser); 
+router.put('/', [validateWithToken,validateUpdateUser, handleValidationErrors, veriFyToken], updateUser); 
 
 // Admin có thể cập nhật thông tin của bất kỳ người dùng nào
 // ? Test xong 
-router.put('/update/:Id', [validateById, validateUpdateUser, handleValidationErrors, veriFyToken, isAdmin], updateUser);
+router.put('/:Id', [validateById, validateUpdateUser, handleValidationErrors, veriFyToken, isAdmin], updateUser);
 
 // Admin có thể xóa user
 // ? Test xong
-router.delete('/delete/:Id', [validateById, handleValidationErrors, veriFyToken, isAdmin], deleteUser);
+router.delete('/:Id', [validateById, handleValidationErrors, veriFyToken, isAdmin], deleteUser);
 
 export default router;
