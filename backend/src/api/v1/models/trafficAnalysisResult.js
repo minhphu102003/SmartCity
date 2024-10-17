@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { CongestionLevels } from '../constants/enum.js';
 
 const trafficAnalysisResultSchema = new mongoose.Schema(
   {
@@ -9,8 +10,8 @@ const trafficAnalysisResultSchema = new mongoose.Schema(
     },
     congestionLevel: {
       type: String,
-      enum: ["NO_CONGESTION", "POSSIBLE_CONGESTION", "HEAVY_CONGESTION"], // Mức độ kẹt xe
-      required: true,
+      enum: Object.values(CongestionLevels), // Sử dụng enum từ file enums
+      default: null,
     },
     processedTime: {
       type: Date,

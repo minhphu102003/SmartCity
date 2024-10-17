@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { CongestionLevels } from "../constants/enum";
 
 // Định nghĩa schema cho RoadSegment
 const roadSegmentSchema = new mongoose.Schema(
@@ -21,8 +22,8 @@ const roadSegmentSchema = new mongoose.Schema(
     },
     congestionLevel: {
       type: String,
-      enum: ["NO_CONGESTION", "POSSIBLE_CONGESTION", "HEAVY_CONGESTION"], // Mức độ kẹt xe
-      required: true,
+      enum: Object.values(CongestionLevels), // Sử dụng enum từ file enums
+      default: null,
     },
     trafficVolume: {
       type: Number, // Lưu trữ lưu lượng giao thông

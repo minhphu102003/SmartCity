@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ReportTypes } from '../constants/enum.js'; 
 
 const cameraReportSchema = new mongoose.Schema(
     {
@@ -12,7 +13,8 @@ const cameraReportSchema = new mongoose.Schema(
             required: true,
         },
         typeReport: {
-            type: Boolean, 
+            type: String,
+            enum: Object.values(ReportTypes),
             required: true,
         },
         image: {

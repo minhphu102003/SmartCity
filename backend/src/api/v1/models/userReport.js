@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { CongestionLevels, ReportTypes } from '../constants/enum.js';
 
 const imageUserReportSchema = new mongoose.Schema({
     img: {
@@ -19,9 +20,9 @@ const userReportSchema = new mongoose.Schema(
       default: null, // Nếu người dùng có post mô tả
     },
     typeReport: {
-        type: String,
-        enum: ["TRAFFIC_JAM", "FLOOD"], 
-        required: true,
+      type: String,
+      enum: Object.values(ReportTypes), // Sử dụng enum từ file enums
+      required: true,
     },
     timestamp: {
       type: Date,
@@ -29,8 +30,8 @@ const userReportSchema = new mongoose.Schema(
     },
     congestionLevel: {
       type: String,
-      enum: ["NO_CONGESTION", "POSSIBLE_CONGESTION", "HEAVY_CONGESTION"],
-      default: null, // Cấp độ tắc nghẽn giao thông sau khi phân tích
+      enum: Object.values(CongestionLevels), // Sử dụng enum từ file enums
+      default: null,
     },
     analysisStatus: {
       type: Boolean, // true nếu đã được phân tích, false nếu chưa
