@@ -12,3 +12,9 @@ export const ReportTypes = {
     ACCIDENT: "ACCIDENT",
     ROADWORK: "ROADWORK",
 };
+
+export const NotificationStatus = {
+    SENT: "SENT",
+    READ: "READ",
+    PENDING: "PENDING",
+};
