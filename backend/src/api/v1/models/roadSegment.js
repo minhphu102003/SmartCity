@@ -25,6 +25,9 @@ const roadSegmentSchema = new mongoose.Schema(
       enum: Object.values(CongestionLevels), // Sử dụng enum từ file enums
       default: null,
     },
+    roadName: {
+      type: String,
+    },
     trafficVolume: {
       type: Number, // Lưu trữ lưu lượng giao thông
       default: 0, // Giá trị mặc định là 0

@@ -29,10 +29,6 @@ const routeSchema = new mongoose.Schema(
       type: Number, // Tổng khoảng cách của tuyến đường
       required: true,
     },
-    total_duration: {
-      type: Number, // Tổng thời gian của tuyến đường (có thể là giây hoặc phút)
-      required: true,
-    },
     recommended: {
       type: Boolean, // Tuyến đường được đề xuất hay không
       default: false, // Mặc định là không được đề xuất

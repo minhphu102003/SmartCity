@@ -29,6 +29,11 @@ const notificationSchema = new mongoose.Schema(
             type: Number, // Vĩ độ
             required: true, // Bắt buộc phải có latitude
         },
+        road_id: {
+            type: mongoose.Schema.Types.ObjectId, // Tham chiếu đến RoadSegment
+            ref: "RoadSegment", // Tham chiếu đến mô hình RoadSegment
+            required: true, // Bắt buộc phải có road_id
+        },
     },
     {
         timestamps: true, // Tự động thêm createdAt và updatedAt
