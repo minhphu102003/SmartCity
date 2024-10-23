@@ -2,42 +2,51 @@ import jwt from "jsonwebtoken";
 import Role from "../models/role.js";
 import User from "../models/user.js";
 
-export const signUpHandler = async(req, res ) =>{
-    try{
-        const {username, email , password , roles} = req.body;
-        console.log(req.body);
+export const signUpHandler = async(req, res ) => {
+  try {
+      const { username, email, password, roles } = req.body;
+      console.log(req.body);
 
-        const newUser = new User({
-            username,
-            email,
-            password
-        });
+      const newUser = new User({
+          username,
+          email,
+          password
+      });
 
-        if (roles){
-            const foundRoles = await Role.find({ name: { $in: roles } });
-            newUser.roles = foundRoles.map((role) => role._id);
-        }
-        else{
-            const role = await Role.findOne({ name: "user" });
-            newUser.roles = [role._id];
-        }
+      if (roles) {
+          const foundRoles = await Role.find({ name: { $in: roles } });
+          newUser.roles = foundRoles.map(role => role._id);
+      } else {
+          const role = await Role.findOne({ name: "user" });
+          newUser.roles = [role._id];
+      }
 
-        const savedUser = await newUser.save();
-        console.log(savedUser)   
+      const savedUser = await newUser.save();
+      console.log(savedUser);
 
-        const token = jwt.sign({ id: savedUser._id }, process.env.SECRET, {
-            expiresIn: 86400, // 24 hours
-        });
+      // Populate roles with role names
+      const populatedUser = await User.findById(savedUser._id).populate('roles', 'name');
 
+      const token = jwt.sign({ id: populatedUser._id }, process.env.SECRET, {
+          expiresIn: 86400, // 24 hours
+      });
 
-        newUser.tokens = [{ token, signedAt: Date.now().toString() }]
+      populatedUser.tokens = [{ token, signedAt: Date.now().toString() }];
+      await populatedUser.save();
 
-        await newUser.save();
-
-        return res.status(200).json({success: true, data: savedUser });
-    } catch (error) {
-        return res.status(500).json({success: false, msg: error.message});
-    }
+      return res.status(200).json({
+          success: true,
+          data: {
+              username: populatedUser.username,
+              email: populatedUser.email,
+              roles: populatedUser.roles.map(role => role.name), // Lấy tên của role
+              createdAt: populatedUser.createdAt,
+              updatedAt: populatedUser.updatedAt
+          }
+      });
+  } catch (error) {
+      return res.status(500).json({ success: false, msg: error.message });
+  }
 }
 
 // Sign in use email
