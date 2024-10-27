@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 
+
+// ! Chưa biết xử lý như thế nào về table này 
 const searchHistorySchema = new mongoose.Schema(
     {
-        user_id :{
+        account_id :{
             type: mongoose.Schema.Types.ObjectId,
-            ref:"User",
+            ref:"Account",
         },
         search_query :{
             type: String,

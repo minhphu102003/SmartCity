@@ -18,12 +18,16 @@ const commentSchema = new mongoose.Schema(
       default: 5,
       required: true,
     },
+    timestamps:{
+      type: Date,
+      default: Date.now()
+    },
     content: {
       type: String,
     },
-    user_id: {
+    account_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Account",
     },
     place_id: {
       type: mongoose.Schema.Types.ObjectId,

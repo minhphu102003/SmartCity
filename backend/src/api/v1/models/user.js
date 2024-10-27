@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
@@ -13,54 +12,25 @@ const userSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
-    password: {
-      type: String,
-      required: true,
-    },
     phone: {
       type: String,
     },
-    tokens: [{ type: Object }],
-    roles: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Role",
-      },
-    ],
+    longitude:{
+      type: Number
+    },
+    latitude:{
+      type: Number
+    },
+    account_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Account",
+      required: true,
+    },
   },
   {
     timestamps: true,
     versionKey: false,
   }
 );
-
-userSchema.statics.encryptPassword = async (password) => {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
-};
-
-userSchema.statics.comparePassword = async (password, receivedPassword) => {
-  return await bcrypt.compare(password, receivedPassword)
-}
-
-userSchema.pre("save", async function (next) {
-  const user = this;
-  if (!user.isModified("password")) {
-    return next();
-  }
-  const hash = await bcrypt.hash(user.password, 10);
-  user.password = hash;
-  next();
-})
-
-userSchema.methods.comparePassword = async function (password) {
-  if (!password) throw new Error('Password is mission, can not compare!');
-  try {
-    const result = await bcrypt.compare(password, this.password);
-    return result;
-  } catch (error) {
-    console.log('Error while comparing password!', error.message);
-  }
-};
 
 export default mongoose.model("User", userSchema);

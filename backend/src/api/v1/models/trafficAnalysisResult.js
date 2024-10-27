@@ -3,9 +3,9 @@ import { CongestionLevels } from '../constants/enum.js';
 
 const trafficAnalysisResultSchema = new mongoose.Schema(
   {
-    userReportId: {
+    accountReportId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "UserReport", // Liên kết tới UserReport
+      ref: "AccountReport", // Liên kết tới UserReport
       required: true,
     },
     congestionLevel: {

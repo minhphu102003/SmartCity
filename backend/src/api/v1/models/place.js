@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const placeSchema = new mongoose.Schema(
   {
+    // ! Enum cho kiểu dữ liệu này 
     type: {
       type: Number,
       required: true, // Bắt buộc nhập

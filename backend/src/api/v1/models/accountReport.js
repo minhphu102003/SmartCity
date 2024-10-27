@@ -10,9 +10,9 @@ const imageUserReportSchema = new mongoose.Schema({
 
 const userReportSchema = new mongoose.Schema(
   {
-    user_id: {
+    account_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Account",
       required: true,
     },
     description: {
@@ -58,4 +58,4 @@ const userReportSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model("UserReport", userReportSchema);
+export default mongoose.model("AccountReport", userReportSchema);

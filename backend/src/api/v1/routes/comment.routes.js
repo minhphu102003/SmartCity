@@ -14,7 +14,6 @@ router.use((req, res, next) => {
     );
     next();
 });
-
 // ? ok
 // Lấy comment dựa trên id place
 router.get("/listByPlace/:Id", [validateById, handleValidationErrors], getListCommentByPlace);
@@ -29,8 +28,6 @@ router.post("/", [validateWithToken, validateCreateComment, handleValidationErro
 // Chỉnh sửa comment
 // ? test ok 
 router.put("/:Id",[validateById, validateWithToken, validateUpdateComment, handleValidationErrors], veriFyToken, updateComment);
-
-
 // Xóa comment
 // ? test ok 
 router.delete("/:Id", [validateById, validateWithToken, handleValidationErrors], veriFyToken, deleteComment);

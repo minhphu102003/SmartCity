@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.js";
+import Account from "../models/account.js";
 import Role from "../models/role.js";
 
 
@@ -12,13 +12,13 @@ export const veriFyToken  = async(req, res, next) => {
 
   try {
       const decoded = jwt.verify(token, process.env.SECRET); // Giải mã token
-      req.userId = decoded.id; // Gán `userId` vào request
-      const user = await User.findById(req.userId, { password: 0 }); // Tìm user dựa trên ID, ẩn password
+      req.account_id = decoded.id; // Gán `userId` vào request
+      const account = await Account.findById(req.account_id, { password: 0 }); // Tìm user dựa trên ID, ẩn password
 
-      if (!user) return res.status(404).json({ message: "No user found" });
+      if (!account) return res.status(404).json({ message: "No account found" });
 
       // Kiểm tra xem token có nằm trong danh sách token của user không
-      let orgToken = user.tokens.filter(t => t.token === token);
+      let orgToken = account.tokens.find(t => t.token === token);
       if (orgToken.length == 0) {
           return res.status(401).json({ message: "Token is expired or invalid" });
       }
@@ -32,15 +32,11 @@ export const veriFyToken  = async(req, res, next) => {
 
 export const isAdmin = async (req, res, next) => {
     try {
-      const user = await User.findById(req.userId);
-      const roles = await Role.find({ _id: { $in: user.roles } });
+      const account = await Account.findById(req.account_id);
+      const roles = await Role.find({ _id: { $in: account.roles } });
   
-      for (let i = 0; i < roles.length; i++) {
-        if (roles[i].name === "admin") {
-          next();
-          return;
-        }
-      }
+      const isAdmin = roles.some(role => role.name === "admin");
+      if (isAdmin) return next();
   
       return res.status(403).json({ message: "Require Admin Role!" });
     } catch (error) {
