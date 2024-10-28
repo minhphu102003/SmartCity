@@ -56,58 +56,49 @@ export const signUpHandler = async(req, res ) => {
 }
 
 // Sign in use email
-
 export const signinHandler = async (req, res) => {
   try {
     const userFound = await User.findOne({ email: req.body.email }).populate({
       path: "account_id",
-      populate: { path: "roles", select: "name" } // Đảm bảo lấy tên role
+      populate: { path: "roles", select: "name" }
     });
-
 
     if (!userFound) return res.status(400).json({ message: "Account Not Found" });
 
     const matchPassword = await Account.comparePassword(req.body.password, userFound.account_id.password);
-
     if (!matchPassword) return res.status(401).json({ success: false, token: null, message: "Invalid Password" });
+    console.log(userFound.account_id.tokens);
+    // Lọc và làm sạch các token hết hạn
+    const validTokens = (userFound.account_id.tokens || []).filter(t => {
+      const timeDiff = (Date.now() - parseInt(t.signedAt)) / 1000;
+      return timeDiff < 86400; // 1 ngày
+    });
 
-    let oldTokens = userFound.account_id.tokens || [];
     let token;
-
-    if (oldTokens.length) {
-      // Lọc token còn hiệu lực
-      const validTokens = oldTokens.filter(t => {
-        const timeDiff = (Date.now() - parseInt(t.signedAt)) / 1000; // Tính thời gian còn lại
-        return timeDiff < 86400; // Giữ lại token còn hiệu lực
-      });
-
-      if (validTokens.length) {
-        // Nếu có token còn hiệu lực, sử dụng token đó
-        token = validTokens[0].token;
-      } else {
-        // Nếu không có token còn hiệu lực, tạo token mới
-        token = jwt.sign({ id: userFound.account_id._id }, process.env.SECRET, { expiresIn: 86400 });
-      }
+    if (validTokens.length) {
+      // Dùng token còn hiệu lực nếu có
+      token = validTokens[0].token;
     } else {
-      // Nếu không có token nào, tạo token mới
+      // Tạo token mới nếu không có token hợp lệ
       token = jwt.sign({ id: userFound.account_id._id }, process.env.SECRET, { expiresIn: 86400 });
+      validTokens.push({ token, signedAt: Date.now().toString() });
     }
 
     // Cập nhật token mới cho người dùng
     await Account.findByIdAndUpdate(userFound.account_id._id, {
-      tokens: [{ token, signedAt: Date.now().toString() }]
+      tokens: validTokens // Chỉ lưu trữ token hợp lệ
     });
 
     // Trả về token và thông tin người dùng
     res.json({
       success: true,
-      data : {
+      data: {
         userId: userFound._id,
         email: userFound.email,
         username: userFound.username,
         phone: userFound.phone || '',
         roles: userFound.account_id.roles.map(role => role.name),
-        token: token // Trả về token xác thực
+        token: token
       }
     });
   } catch (error) {
@@ -115,6 +106,7 @@ export const signinHandler = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 export const forgotHandler = async (req, res) =>{
   try{
@@ -195,26 +187,58 @@ export const resetPasswordHandler = async (req, res) => {
   }
 };
 
-
 export const logoutHandler = async (req, res) => {
-  if (req.headers && req.headers["x-access-token"]) {
-    const token = req.headers["x-access-token"];
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'Authorization fail!' });
-    }
-    try {
-      const decoded = jwt.verify(token, SECRET);
-      req.userId = decoded.id;
-  
-      const user = await User.findById(decoded.id, { password: 0 });
-      if (!user) return res.status(404).json({ message: "No user found" });
-      await User.findByIdAndUpdate(decoded.id, { tokens: [] });
-      res.json({ success: true, message: 'Sign out successfully!' });
-    } catch (error) {
-      return res.status(401).json({ message: "Unauthorized!" });
-    }
+  const token = req.headers["x-access-token"];
+  if (!token) {
+    return res.status(401).json({ success: false, message: "Authorization fail!" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET);
+    req.account_id = decoded.id;
+
+    const account = await Account.findById(decoded.id, { password: 0 });
+    if (!account) return res.status(404).json({ message: "No account found" });
+
+    // Loại bỏ token đăng xuất khỏi mảng tokens
+    account.tokens = account.tokens.filter((t) => t.token !== token);
+
+    await account.save();
+    res.json({ success: true, message: "Sign out successfully!" });
+  } catch (error) {
+    return res.status(401).json({ message: "Unauthorized!" });
   }
 };
 
+export const changePasswordHandler = async (req, res) => {
+  try {
+    // Lấy account_id từ token đã xác thực
+    const accountId = req.account_id;
+
+    // Tìm tài khoản dựa trên accountId
+    const account = await Account.findById(accountId);
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+
+    // Kiểm tra mật khẩu hiện tại
+    const { currentPassword, newPassword } = req.body;
+    const isMatch = await Account.comparePassword(currentPassword, account.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    account.password = newPassword;
+    await account.save();
+
+    const currentToken = req.headers["x-access-token"];
+    account.tokens = account.tokens.filter(t => t.token === currentToken);
+    // Lưu cập nhật vào cơ sở dữ liệu
+    await account.save();
+
+    return res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
