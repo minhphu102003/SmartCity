@@ -1,5 +1,5 @@
-import { body, param, query, validationResult } from "express-validator";
-
+import { body, query } from "express-validator";
+import {PlaceTypes} from "../constants/enum.js";
 
 export const nearestValidator = [
     query("latitude")
@@ -15,17 +15,55 @@ export const nearestValidator = [
         .withMessage("Longitude is not Empty")
         .bail()
         .isFloat({min:-180, max: 180})
-        .withMessage("Longitude must be a number between -180 and 180")
+        .withMessage("Longitude must be a number between -180 and 180"),
+    query('limit')
+        .optional() // Tham số này không bắt buộc
+        .isInt({ min: 1 }).withMessage('Giới hạn phải là một số nguyên dương') // Kiểm tra phải là số nguyên dương
+        .toInt(),
+    query('radius')
+        .optional() // Tham số này không bắt buộc
+        .isInt({ min: 1 }).withMessage('Giới hạn phải là một số nguyên dương') // Kiểm tra phải là số nguyên dương
+        .toInt(),
+    query("type")
+        .optional()
+        .isIn(Object.values(PlaceTypes))
+        .withMessage(
+            `Type of report must be one of: ${Object.values(PlaceTypes).join(", ")}`
+        ),
 ];
 
+export const findPlaceNameValidator = [
+    query('name')
+        .exists().withMessage('Tên địa điểm là bắt buộc') // Kiểm tra xem có tồn tại không
+        .isString().withMessage('Tên địa điểm phải là chuỗi') // Kiểm tra kiểu dữ liệu
+        .trim() // Loại bỏ khoảng trắng thừa
+        .notEmpty().withMessage('Tên địa điểm không được để trống'), // Kiểm tra không rỗng
 
+    query('limit')
+        .optional() // Tham số này không bắt buộc
+        .isInt({ min: 1 }).withMessage('Giới hạn phải là một số nguyên dương') // Kiểm tra phải là số nguyên dương
+        .toInt(), // Chuyển đổi sang số nguyên
+
+    query('page')
+        .optional() // Tham số này không bắt buộc
+        .isInt({ min: 1 }).withMessage('Số trang phải là một số nguyên dương') // Kiểm tra phải là số nguyên dương
+        .toInt(), // Chuyển đổi sang số nguyên
+];
+
+export const updateStatusValidator = [
+    body('status')
+        .exists().withMessage('Trạng thái là bắt buộc') // Kiểm tra xem có tồn tại không
+        .isBoolean().withMessage('Trạng thái phải là true hoặc false'), // Kiểm tra kiểu dữ liệu Boolean
+];
+
+// ! Validator ở đây còn thiếu 
 export const addPlaceValidator = [
     body("type")
-        .notEmpty()
-        .withMessage("Type is required")
-        .bail()
-        .isInt()
-        .withMessage("Type must be an integer"),
+    .optional()
+    .isIn(Object.values(PlaceTypes))
+    .withMessage(
+        `Type of report must be one of: ${Object.values(PlaceTypes).join(", ")}`
+    ),
     body("name")
         .trim()
         .notEmpty()
@@ -59,9 +97,11 @@ export const addPlaceValidator = [
 
 export const updatePlaceValidator = [
     body("type")
-        .optional()
-        .isInt()
-        .withMessage("Type must be an integer"),
+    .optional()
+    .isIn(Object.values(PlaceTypes))
+    .withMessage(
+        `Type of report must be one of: ${Object.values(PlaceTypes).join(", ")}`
+    ),
     body("name")
         .optional()
         .trim()

@@ -18,3 +18,11 @@ export const NotificationStatus = {
     READ: "READ",
     PENDING: "PENDING",
 };
+
+// Các loại địa điểm
+export const PlaceTypes = {
+    RESTAURANT: "Restaurant",
+    HOTEL: "Hotel",
+    TOURIST_DESTINATION: "Tourist destination",
+    MUSEUM: "Museum",
+};

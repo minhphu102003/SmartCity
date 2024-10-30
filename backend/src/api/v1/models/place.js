@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
+import {PlaceTypes} from "../constants/enum.js";
 
 const placeSchema = new mongoose.Schema(
   {
     // ! Enum cho kiểu dữ liệu này 
     type: {
-      type: Number,
-      required: true, // Bắt buộc nhập
+      type: String,
+      enum: Object.values(PlaceTypes), // Chỉ chấp nhận các giá trị từ PlaceTypes
+      required: true,
     },
     name: {
       type: String,
@@ -18,22 +20,26 @@ const placeSchema = new mongoose.Schema(
       max: 5, // Điểm số tối đa
       default: 0, // Giá trị mặc định
     },
-    longitude: {
-      type: Number,
-      required: true, // Bắt buộc nhập
-      min: -180, // Kinh độ tối thiểu
-      max: 180, // Kinh độ tối đa
-    },
-    latitude: {
-      type: Number,
-      required: true, // Bắt buộc nhập
-      min: -90, // Vĩ độ tối thiểu
-      max: 90, // Vĩ độ tối đa
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"], // Đảm bảo chỉ chấp nhận kiểu 'Point'
+        required: true,
+      },
+      coordinates: {
+        type: [Number], // Mảng chứa [longitude, latitude]
+        required: true,
+        validate: {
+          validator: function (v) {
+            return v.length === 2 && v[0] >= -180 && v[0] <= 180 && v[1] >= -90 && v[1] <= 90;
+          },
+          message: "Coordinates must be an array of [longitude, latitude] within valid ranges",
+        },
+      },
     },
     img: {
       type: String,
-      unique: true, // Đảm bảo ảnh là duy nhất
-      required: true, // Bắt buộc nhập
+      unique: true,
     },
     status: {
       type: Boolean,
