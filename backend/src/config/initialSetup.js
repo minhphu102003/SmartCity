@@ -39,13 +39,13 @@ export const createAdmin  = async() => {
 
     // Tạo newAccount với cú pháp new và save để đảm bảo mật khẩu được mã hóa
     const newAccount = new Account({
+        username: process.env.ADMIN_USERNAME,
         password: process.env.ADMIN_PASSWORD,
         roles: roles.map((role) => role._id),
     });
     await newAccount.save(); // middleware pre("save") sẽ mã hóa mật khẩu
     //create a  new admin user
     const newUser = await User.create({
-        username: process.env.ADMIN_USERNAME,
         email: process.env.ADMIN_EMAIL,
         account_id: newAccount._id,
     });

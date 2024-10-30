@@ -8,10 +8,9 @@ export const signUpHandler = async(req, res ) => {
   try {
       const { username, email, password, roles } = req.body;
 
-      const newAccount = new Account({password: password})
+      const newAccount = new Account({ username,password: password})
 
       const newUser = new User({
-          username,
           email,
           account_id: newAccount._id
       });
@@ -43,7 +42,7 @@ export const signUpHandler = async(req, res ) => {
       return res.status(201).json({
           success: true,
           data: {
-              username: populatedUser.username,
+              username: populatedUser.account_id.username,
               email: populatedUser.email,
               roles: populatedUser.account_id.roles.map(role => role.name), // Lấy tên của role
               createdAt: populatedUser.createdAt,
@@ -67,7 +66,6 @@ export const signinHandler = async (req, res) => {
 
     const matchPassword = await Account.comparePassword(req.body.password, userFound.account_id.password);
     if (!matchPassword) return res.status(401).json({ success: false, token: null, message: "Invalid Password" });
-    console.log(userFound.account_id.tokens);
     // Lọc và làm sạch các token hết hạn
     const validTokens = (userFound.account_id.tokens || []).filter(t => {
       const timeDiff = (Date.now() - parseInt(t.signedAt)) / 1000;
@@ -95,7 +93,7 @@ export const signinHandler = async (req, res) => {
       data: {
         userId: userFound._id,
         email: userFound.email,
-        username: userFound.username,
+        username: userFound.account_id.username,
         phone: userFound.phone || '',
         roles: userFound.account_id.roles.map(role => role.name),
         token: token

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import Account from "../models/account.js";
 import Role from "../models/role.js";
+import AccountReport from "../models/accountReport.js";
 
 
 export const veriFyToken = async (req, res, next) => {
@@ -12,9 +13,7 @@ export const veriFyToken = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.SECRET);
     req.account_id = decoded.id;
-    console.log(decoded.id);
     const account = await Account.findById(req.account_id, { password: 0 });
-    console.log(account);
     if (!account) {
       return res.status(404).json({ message: "No account found" });
     }
@@ -38,7 +37,6 @@ export const veriFyToken = async (req, res, next) => {
   }
 };
 
-
 export const isAdmin = async (req, res, next) => {
     try {
       const account = await Account.findById(req.account_id);
@@ -52,4 +50,40 @@ export const isAdmin = async (req, res, next) => {
       console.log(error);
       return res.status(500).send({ message: error });
     }
+};
+
+
+// ? Code này vẫn chưa tận dụng được hàm isAdmin ở trên và dùng return first 
+// ? Đang bị lỗi return nhiều res nếu sử dụng lại, cũng chả biết sao nữa 
+export const isAdminOrOwner = async (req, res, next) => {
+  const reportId = req.params.id;
+  const account_id = req.account_id;
+
+  try {
+    // Tìm báo cáo theo ID
+    const report = await AccountReport.findById(reportId);
+    if (!report) {
+      return res.status(404).json({ success: false, message: "Report not found." });
+    }
+
+    // Gọi hàm isAdmin và chờ đợi kết quả
+    const account = await Account.findById(account_id);
+    const roles = await Role.find({ _id: { $in: account.roles } });
+
+    const isAdmin = roles.some(role => role.name === "admin");
+    if (isAdmin) {
+      return next(); // Nếu là admin, cho phép tiếp tục
+    }
+
+    // Nếu không phải admin, kiểm tra quyền sở hữu
+    if (report.account_id.toString() === account_id) {
+      return next(); // Nếu là chủ sở hữu, cho phép tiếp tục
+    }
+
+    // Nếu không phải admin hoặc chủ sở hữu
+    return res.status(403).json({ success: false, message: "You do not have permission to delete this report." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
 };

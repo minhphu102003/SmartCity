@@ -32,6 +32,8 @@ router.use((req, res, next) => {
   );
   next();
 });
+
+// Validate lại 
   
   router.post("/signup",[signUpValidator, handleValidationErrors], [checkExistingRole], signUpHandler);
   router.post("/signin",[signInValidator, handleValidationErrors], signinHandler);

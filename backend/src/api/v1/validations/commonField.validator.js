@@ -1,9 +1,9 @@
 import {header, param} from "express-validator";
 
 export const validateById = [
-    param('Id')
+    param('id')
         .isMongoId()
-        .withMessage('Invalid userId format')
+        .withMessage('Invalid id format')
         .exists({ checkNull: true, checkFalsy: true })
 ];
 

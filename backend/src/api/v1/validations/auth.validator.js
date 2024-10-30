@@ -1,4 +1,5 @@
 import { body } from "express-validator";
+import Account from "../models/account.js";
 import User from "../models/user.js";
 
 // Validator chung cho email
@@ -43,7 +44,7 @@ const usernameValidator = () =>
     .withMessage("User name CANNOT be empty")
     .bail()
     .custom(async (username) => {
-      const userNameExist = await User.findOne({ username });
+      const userNameExist = await Account.findOne({ username });
       if (userNameExist) {
         throw new Error("User Name already in use");
       }
