@@ -1,4 +1,6 @@
 import Place from '../models/place.js';
+import fs from 'fs';
+import path from 'path';
 import { calculateDistance } from '../services/distance.js';
 
 const flattenPlace = (place) => {
@@ -83,51 +85,39 @@ export const createPlace = async (req, res, next) => {
         const {
             type,
             name,
-            star,
-            img,
-            status = true, // Thay đổi thành Boolean
+            status = true, // Default status to true if not provided
             timeOpen,
             timeClose,
             longitude,
             latitude
         } = req.body;
 
-        const starFloat = parseFloat(star);
         const lat = parseFloat(latitude);
         const lon = parseFloat(longitude);
 
-        // Kiểm tra xem hai địa điểm có cùng tọa độ không
-        const existingPlace = await Place.findOne({
-            "location.coordinates": [lon, lat] // Sử dụng mảng để tìm kiếm
-        });
 
-        if (existingPlace) {
-            return res.status(400).json({
-                success: false,
-                message: "Địa điểm với kinh độ và vĩ độ này đã tồn tại."
-            });
-        }
+        // Get the image path from the uploaded file
+        const imgPath = req.file.path;
 
-        // Tạo đối tượng mới với các trường được cung cấp
+        // Create new place data with a default star value of 5
         const newPlaceData = {
             type,
             name,
-            star: starFloat,
+            star: 5, // Set star to default value of 5
             location: {
-                type: "Point", // Đảm bảo kiểu là "Point"
-                coordinates: [lon, lat] // Mảng chứa [longitude, latitude]
+                type: "Point",
+                coordinates: [lon, lat]
             },
-            img,
+            img: imgPath, // Store image path
             status
         };
 
-        // Chỉ thêm timeOpen và timeClose nếu chúng được cung cấp
+        // Add timeOpen and timeClose if provided
         if (timeOpen) newPlaceData.timeOpen = timeOpen;
         if (timeClose) newPlaceData.timeClose = timeClose;
 
-        // Tạo mới một địa điểm với cấu trúc mới
+        // Create and save the new place
         const newPlace = new Place(newPlaceData);
-
         const savedPlace = await newPlace.save();
 
         const flatPlace = flattenPlace(savedPlace);
@@ -139,70 +129,80 @@ export const createPlace = async (req, res, next) => {
     } catch (err) {
         return res.status(500).json({
             success: false,
-            message: err.message // Sửa từ e.message thành err.message
+            message: err.message
         });
     }
-}
+};
+
 
 export const updatePlace = async (req, res, next) => {
     try {
-        const { id } = req.params; // Lấy ID của place từ URL
+        const { id } = req.params;
         const {
             type,
             name,
             longitude,
             latitude,
-            img,
             status,
             timeOpen,
-            timeClose
+            timeClose,
         } = req.body;
 
-        // Kiểm tra xem place có tồn tại không
+        // Find the place by ID
         const place = await Place.findById(id);
         if (!place) {
             return res.status(404).json({
                 success: false,
-                message: "Place không tồn tại",
+                message: "Place does not exist",
             });
         }
 
-        // Cập nhật các trường có thể thay đổi
-        if (type !== undefined) place.type = type; // Không cần parseInt
+        // Handle image update if a new file is uploaded
+        if (req.file) {
+            // Delete the old image if it exists
+            if (place.img && !place.img.startsWith("https://")) {
+                // Only attempt deletion if img is a local path (doesn't start with "https://")
+                fs.unlink(path.resolve(place.img), (err) => {
+                    if (err) console.error(`Failed to delete old image: ${err.message}`);
+                });
+            }
+            // Update the place with the new image path
+            place.img = req.file.path;
+        }
+
+        // Update other fields
+        if (type !== undefined) place.type = type;
         if (name !== undefined) place.name = name;
-        if (img !== undefined) place.img = img;
         if (status !== undefined) place.status = status;
         if (timeOpen !== undefined) place.timeOpen = timeOpen;
         if (timeClose !== undefined) place.timeClose = timeClose;
 
-        // Cập nhật tọa độ
+        // Update coordinates if provided
         if (longitude !== undefined && latitude !== undefined) {
             const lat = parseFloat(latitude);
             const lon = parseFloat(longitude);
-            
-            // Kiểm tra trùng lặp tọa độ với các địa điểm khác
+
+            // Check for duplicate coordinates
             const existingPlace = await Place.findOne({
                 "location.coordinates": [lon, lat],
-                _id: { $ne: id } // Đảm bảo không so sánh với chính nó
+                _id: { $ne: id } // Exclude the current place
             });
 
             if (existingPlace) {
                 return res.status(400).json({
                     success: false,
-                    message: "Địa điểm với kinh độ và vĩ độ này đã tồn tại."
+                    message: "A place with these coordinates already exists."
                 });
             }
 
-            // Cập nhật tọa độ
             place.location = {
                 type: "Point",
                 coordinates: [lon, lat]
             };
         }
 
-        // Lưu các thay đổi
+        // Save the updated place
         const updatedPlace = await place.save();
-        
         const flatPlace = flattenPlace(updatedPlace);
 
         return res.status(200).json({
@@ -217,11 +217,12 @@ export const updatePlace = async (req, res, next) => {
     }
 };
 
+
 export const deletePlace = async (req, res, next) => {
     try {
-        const { id } = req.params; // Lấy ID của place từ URL
+        const { id } = req.params; // Get the place ID from the URL
 
-        // Kiểm tra xem place có tồn tại không
+        // Check if place exists
         const place = await Place.findById(id);
         if (!place) {
             return res.status(404).json({
@@ -230,7 +231,16 @@ export const deletePlace = async (req, res, next) => {
             });
         }
 
-        // Xóa place
+        // Check if there's a local image to delete
+        if (place.img && !place.img.startsWith("https://")) {
+            fs.unlink(path.resolve(place.img), (err) => {
+                if (err) {
+                    console.error(`Failed to delete image: ${err.message}`);
+                }
+            });
+        }
+
+        // Delete the place document
         await Place.findByIdAndDelete(id);
 
         const flatPlace = flattenPlace(place);
@@ -238,7 +248,7 @@ export const deletePlace = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             message: "Place đã được xóa thành công",
-            data: flatPlace // Gửi thông tin place đã xóa
+            data: flatPlace // Send details of the deleted place
         });
     } catch (err) {
         return res.status(500).json({

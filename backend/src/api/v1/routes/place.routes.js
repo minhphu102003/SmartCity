@@ -21,6 +21,8 @@ import {
   validateById,
   validateWithToken,
 } from "../validations/commonField.validator.js";
+import {handleSingleUpload} from "../middlewares/upload.js";
+import {validateUploadSingleFile} from "../validations/uploadImage.validator.js";
 
 const router = Router();
 
@@ -34,7 +36,8 @@ router.use((req, res, next) => {
   );
   next();
 });
-
+// OK test done Và chỉ có quyền thêm sửa xóa nếu admin 
+//  Có thể cập nhật database sau để cho người dùng có thể thêm sửa place của chính mình như chắc phải để version sau  đón chờ ở api/v2
 // Route với middleware và controller
 // ? Test ok
 router.get("/nearest", [nearestValidator, handleValidationErrors], searchNearest);
@@ -43,10 +46,15 @@ router.get("/search", [findPlaceNameValidator, handleValidationErrors], findPlac
 // ? Test ok
 router.get("/:id", [validateById, handleValidationErrors], findPlaceById);
 
-// ? Cơ bản là ok 
-router.post("/", [validateWithToken, addPlaceValidator, handleValidationErrors, ...verifyTokenAndAdmin], createPlace);
-router.put("/:id", [validateById, validateWithToken, updatePlaceValidator, handleValidationErrors, ...verifyTokenAndAdmin], updatePlace);
+router.post("/",[handleSingleUpload, validateUploadSingleFile], [validateWithToken, addPlaceValidator, handleValidationErrors, ...verifyTokenAndAdmin], createPlace);
+// Test cái này trước 
+// Ok
+// Thiếu upload ảnh để cập nhật  
+router.put("/:id",[handleSingleUpload], [validateById, validateWithToken, updatePlaceValidator, handleValidationErrors, ...verifyTokenAndAdmin], updatePlace);
+// Bỏ các api dưới này đi 
 router.patch("/:id", [validateById, updateStatusValidator, handleValidationErrors, ...verifyTokenAndAdmin], updateStatusPlace);
+// ? OK
+
 router.delete("/:id", [validateById, validateWithToken, handleValidationErrors, ...verifyTokenAndAdmin], deletePlace);
 
 export default router;

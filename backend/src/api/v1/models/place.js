@@ -18,7 +18,7 @@ const placeSchema = new mongoose.Schema(
       type: Number,
       min: 0, // Điểm số tối thiểu
       max: 5, // Điểm số tối đa
-      default: 0, // Giá trị mặc định
+      default: 5, // Giá trị mặc định
     },
     location: {
       type: {
@@ -46,22 +46,10 @@ const placeSchema = new mongoose.Schema(
       default: true, // Giá trị mặc định
     },
     timeOpen: {
-      type: String,
-      validate: {
-        validator: function (v) {
-          return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v); // Validate HH:mm format
-        },
-        message: props => `${props.value} is not a valid time format!`,
-      }, // Có thể dùng String hoặc một định dạng thời gian khác
+      type: String,// Có thể dùng String hoặc một định dạng thời gian khác
     },
     timeClose: {
-      type: String,
-      validate: {
-        validator: function (v) {
-          return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v); // Validate HH:mm format
-        },
-        message: props => `${props.value} is not a valid time format!`,
-      }, // Có thể dùng String hoặc một định dạng thời gian khác
+      type: String,// Có thể dùng String hoặc một định dạng thời gian khác
     },
   },
   {

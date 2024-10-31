@@ -1,5 +1,5 @@
 import { Router } from "express";
-import uploadFileMiddleware from "../middlewares/upload.js";
+import {handleMultipleUploads} from "../middlewares/upload.js";
 import {
   veriFyToken,
   isAdmin,
@@ -12,9 +12,9 @@ import {
 import {
   createAccountReportValidator,
   getAccountReportValidator,
-  validateUploadFile,
   updateAccountReportValidator,
 } from "../validations/accountReport.validator.js";
+import {validateUploadMultipleFile} from "../validations/uploadImage.validator.js";
 import { handleValidationErrors } from "../validations/result.validator.js";
 import {
   createAccountReport,
@@ -47,8 +47,8 @@ router.get("/:id", [validateById, ...accountMiddleware], getAccountReportById);
 // ? Thiếu gửi lên kafka để python xử lý tiếp
 router.post(
   "/",
-  uploadFileMiddleware,
-  validateUploadFile,
+  handleMultipleUploads,
+  validateUploadMultipleFile,
   [validateWithToken, createAccountReportValidator, ...accountMiddleware],
   veriFyToken,
   createAccountReport
@@ -68,6 +68,7 @@ router.put(
 );
 
 //  Test cả 2 role done
+//  Xóa thành công ảnh trên server
 
 router.delete(
   "/:id",

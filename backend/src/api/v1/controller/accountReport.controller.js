@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import AccountReport from "../models/accountReport.js";
 import Account from "../models/account.js";
 
@@ -180,19 +182,31 @@ export const deleteAccountReport = async (req, res) => {
   const reportId = req.params.id;
 
   try {
-    // Tìm báo cáo theo ID
+    // Find the report by ID
     const report = await AccountReport.findById(reportId);
     if (!report) {
       return res.status(404).json({ success: false, message: "Report not found." });
     }
 
-    // Xóa báo cáo
+    // Delete images from the server based on paths in listImg
+    if (report.listImg && report.listImg.length > 0) {
+      report.listImg.forEach((image) => {
+        const imagePath = path.resolve(image.img); // Ensure absolute path for deletion
+        fs.unlink(imagePath, (err) => {
+          if (err) {
+            console.error(`Error deleting image at ${imagePath}:`, err.message);
+          }
+        });
+      });
+    }
+
+    // Delete the report document from the database
     await AccountReport.findByIdAndDelete(reportId);
 
-    // Trả về thông tin của báo cáo đã xóa
+    // Respond with the deleted report's information
     res.status(200).json({
       success: true,
-      message: "Report deleted successfully.",
+      message: "Report and associated images deleted successfully.",
       report: {
         reportId: report._id,
         description: report.description,
@@ -205,7 +219,7 @@ export const deleteAccountReport = async (req, res) => {
         createdAt: report.createdAt,
         updatedAt: report.updatedAt,
         accountId: report.account_id,
-        // Nếu bạn cần thêm thông tin khác, hãy thêm ở đây
+        // Add any additional information if needed
       },
     });
   } catch (error) {

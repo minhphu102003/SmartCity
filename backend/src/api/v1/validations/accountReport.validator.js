@@ -32,33 +32,6 @@ export const createAccountReportValidator = [
     .withMessage("Latitude is required"),
 ];
 
-export const validateUploadFile = (req, res, next) => {
-  const errors = [];
-  // Check if any files were uploaded
-  if (!req.files || req.files.length === 0) {
-    errors.push({ msg: "At least one file upload is required." });
-  } else {
-    // Allowed MIME types for images
-    const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
-    
-    // Check if all uploaded files are images
-    const invalidFiles = req.files.filter(
-      (file) => !allowedMimeTypes.includes(file.mimetype)
-    );
-
-    if (invalidFiles.length > 0) {
-      errors.push({ msg: "Only image files (JPG, PNG, GIF) are allowed." });
-    }
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json({ success: false, errors });
-  }
-
-  next();
-};
-
-
 export const getAccountReportValidator = [
   query("page")
     .optional()
