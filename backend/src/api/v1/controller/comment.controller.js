@@ -1,14 +1,30 @@
+import fs from "fs";
+import path from "path";
 import Comment from "../models/comment.js";
 import Place from "../models/place.js";
+import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
+
+const updatePlaceStar = async (place_id) => {
+    const comments = await Comment.find({ place_id }); // Fetch all comments for the place
+    const totalStars = comments.reduce((acc, comment) => acc + comment.star, 0);
+    const averageStar = comments.length > 0 ? totalStars / comments.length : 0;
+
+    await Place.findByIdAndUpdate(place_id, { star: averageStar }); // Update the place with the new average star rating
+};
 
 export const getListCommentByPlace = async (req, res, next) => {
     try {
-        const { Id } = req.params;
+        const { id } = req.params;
+        const { page = 1, limit = 10 } = req.query;
 
         // Tìm tất cả các comment theo place_id
-        const comments = await Comment.find({ place_id: Id })
-            .populate("user_id", "username")  // Populate thông tin user_id nếu cần
+        const comments = await Comment.find({ place_id: id })
+            .populate("account_id", "username") // Lấy thông tin username từ account
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
             .exec();
+
+        const totalComments = await Comment.countDocuments({ place_id: id }); // Tổng số bình luận cho địa điểm này
 
         if (!comments || comments.length === 0) {
             return res.status(404).json({
@@ -19,7 +35,10 @@ export const getListCommentByPlace = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
-            data: comments,
+            totalComments, // Tổng số bình luận
+            totalPages: Math.ceil(totalComments / limit), // Tổng số trang
+            currentPage: parseInt(page), // Trang hiện tại
+            data : comments // Danh sách bình luận
         });
     } catch (err) {
         return res.status(500).json({
@@ -29,15 +48,19 @@ export const getListCommentByPlace = async (req, res, next) => {
     }
 };
 
-
-export const getListCommentByUser = async (req, res, next) => {
+export const getListCommentByAccount = async (req, res, next) => {
     try {
-        const {Id} = req.params;
+        const { id } = req.params;
+        const { page = 1, limit = 10 } = req.query;
 
-        // Tìm tất cả các comment theo user_id
-        const comments = await Comment.find({ user_id: Id })
-            .populate("place_id", "name")  // Populate thông tin place_id nếu cần
+        // Tìm tất cả các comment theo account_id
+        const comments = await Comment.find({ account_id: id })
+            .populate("place_id", "name") // Lấy thông tin tên địa điểm từ place
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
             .exec();
+
+        const totalComments = await Comment.countDocuments({ account_id: id }); // Tổng số bình luận của user
 
         if (!comments || comments.length === 0) {
             return res.status(404).json({
@@ -48,7 +71,10 @@ export const getListCommentByUser = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
-            data: comments,
+            totalComments, // Tổng số bình luận của user
+            totalPages: Math.ceil(totalComments / limit), // Tổng số trang
+            currentPage: parseInt(page), // Trang hiện tại
+            data: comments
         });
     } catch (err) {
         return res.status(500).json({
@@ -58,35 +84,44 @@ export const getListCommentByUser = async (req, res, next) => {
     }
 };
 
+
 export const createComment = async (req, res, next) => {
     try {
-        const { star, content, place_id, image } = req.body;
-        const user_id = req.userId;  // Lấy userId từ token đã xác thực
-        // Kiểm tra xem place_id có tồn tại không
+        const { star, content, place_id } = req.body; // Remove images from body since they are in req.files
+        const account_id = req.account_id; // Retrieve account_id from the authenticated token
+
+        // Check if place_id exists
         const placeExists = await Place.findById(place_id);
 
         if (!placeExists) {
             return res.status(404).json({
                 success: false,
-                message: "Place không tồn tại",
+                message: "Place not found",
             });
         }
 
-        // Tạo comment mới
+        // Convert uploaded images to an array of imageCommentSchema objects
+        const listImg = req.files?.map((file) => ({ image: file.filename })) || []; // Use filename for the stored image
+
+        // Create a new comment
         const newComment = new Comment({
             star,
             content,
-            user_id,   // Gán userId lấy từ token
+            account_id, // Assign account_id from token
             place_id,
-            image,
+            listImg, // Assign list of images
         });
 
-        // Lưu comment vào cơ sở dữ liệu
+        // Save the comment to the database
         const savedComment = await newComment.save();
+
+        updatePlaceStar(place_id).catch(err => {
+            console.error("Error updating place star:", err);
+        });
 
         return res.status(201).json({
             success: true,
-            message: "Comment đã được tạo thành công",
+            message: "Comment created successfully",
             data: savedComment,
         });
     } catch (err) {
@@ -100,39 +135,68 @@ export const createComment = async (req, res, next) => {
 
 export const updateComment = async (req, res, next) => {
     try {
-        const { Id } = req.params; // ID của comment từ URL
-        const { star, content, image } = req.body; // Dữ liệu cần chỉnh sửa
-        const userId = req.userId; // Lấy userId từ token
+        const { id } = req.params; // Comment ID from URL
+        const { star, content, replaceImageId } = req.body; // Data to be updated
+        const account_id = req.account_id; // Retrieve account_id from token
 
-        // Tìm comment cần chỉnh sửa
-        const comment = await Comment.findById(Id);
+        // Find the comment to be updated
+        const comment = await Comment.findById(id);
 
         if (!comment) {
             return res.status(404).json({
                 success: false,
-                message: "Comment không tồn tại",
+                message: "Comment not found",
             });
         }
 
-        // Kiểm tra quyền sở hữu comment
-        if (comment.user_id.toString() !== userId) {
+        // Check comment ownership
+        if (comment.account_id.toString() !== account_id) {
             return res.status(403).json({
                 success: false,
-                message: "Bạn không có quyền chỉnh sửa comment này",
+                message: "You do not have permission to edit this comment",
             });
         }
 
-        // Cập nhật dữ liệu
+        // Update fields
         if (star !== undefined) comment.star = star;
         if (content !== undefined) comment.content = content;
-        if (image !== undefined) comment.image = image;
 
-        // Lưu lại các thay đổi
+        // Handle images: if new images are uploaded
+        if (replaceImageId && replaceImageId.length > 0) {
+            // Xóa các hình ảnh cũ dựa trên replaceImageId
+            replaceImageId.forEach((item) => {
+                const imageIndex = comment.listImg.findIndex(img => img._id.toString() === item);
+                if (imageIndex !== -1) {
+                    // Delete the old image from the server
+                    fs.unlink(UPLOAD_DIRECTORY + comment.listImg[imageIndex].image, (err) => {
+                        if (err) {
+                            console.error(`Error deleting image: ${comment.listImg[imageIndex]}`, err);
+                        }
+                    });
+
+                    // Xóa hình ảnh cũ khỏi danh sách
+                    comment.listImg.splice(imageIndex, 1);
+                }
+            });
+        }
+
+        // Thêm các hình ảnh mới nếu có
+        if (req.files && req.files.length > 0) {
+            const newImages = req.files.map(file => ({ image: file.filename }));
+            comment.listImg.push(...newImages); // Append new images to the list
+        }
+
+        // Save changes
         const updatedComment = await comment.save();
+        
+        updatePlaceStar(comment.place_id).catch(err => {
+            console.error("Error updating place star:", err);
+        });
+
 
         return res.status(200).json({
             success: true,
-            message: "Comment đã được cập nhật",
+            message: "Comment updated successfully",
             data: updatedComment,
         });
     } catch (err) {
@@ -143,36 +207,48 @@ export const updateComment = async (req, res, next) => {
     }
 };
 
-
 export const deleteComment = async (req, res, next) => {
     try {
-        const { Id } = req.params; // ID của comment từ URL
-        const userId = req.userId; // Lấy userId từ token
+        const { id } = req.params; // Comment ID from URL
+        const account_id = req.account_id; // Retrieve account_id from token
 
-        // Tìm comment cần xóa
-        const comment = await Comment.findById(Id);
+        // Find the comment to be deleted
+        const comment = await Comment.findById(id);
 
         if (!comment) {
             return res.status(404).json({
                 success: false,
-                message: "Comment không tồn tại",
+                message: "Comment not found",
             });
         }
 
-        // Kiểm tra quyền sở hữu comment
-        if (comment.user_id.toString() !== userId) {
+        // Check comment ownership
+        if (comment.account_id.toString() !== account_id) {
             return res.status(403).json({
                 success: false,
-                message: "Bạn không có quyền xóa comment này",
+                message: "You do not have permission to delete this comment",
             });
         }
 
-        // Xóa comment
-        await Comment.findByIdAndDelete(commentId);
+        // Delete images from the server
+        if (comment.listImg && comment.listImg.length > 0) {
+            comment.listImg.forEach(imageObj => {
+                const imagePath = imageObj.image; // Assuming imageObj.image is the absolute path
+                fs.unlink(UPLOAD_DIRECTORY + imagePath, (err) => {
+                    if (err) {
+                        console.error(`Error deleting image: ${imagePath}`, err);
+                    }
+                });
+            });
+        }
+
+        // Delete the comment and return the deleted data
+        const deletedComment = await Comment.findByIdAndDelete(id);
 
         return res.status(200).json({
             success: true,
-            message: "Comment đã được xóa",
+            message: "Comment deleted successfully",
+            data: deletedComment,
         });
     } catch (err) {
         return res.status(500).json({

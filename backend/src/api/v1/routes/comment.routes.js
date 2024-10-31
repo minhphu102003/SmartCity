@@ -1,9 +1,16 @@
 import { Router } from "express";
-import { getListCommentByPlace, getListCommentByUser, createComment,updateComment, deleteComment } from "../controller/comment.controller.js";
+import { 
+    getListCommentByPlace, 
+    getListCommentByAccount, 
+    createComment,
+    updateComment, 
+    deleteComment 
+} from "../controller/comment.controller.js";
 import { veriFyToken } from "../middlewares/authJwt.js";
 import {validateById, validateWithToken} from "../validations/commonField.validator.js";
 import {handleValidationErrors} from "../validations/result.validator.js";
 import {validateCreateComment, validateUpdateComment} from "../validations/comment.validator.js";
+import {handleMultipleUploads} from "../middlewares/upload.js";
 
 const router = Router();
 
@@ -14,22 +21,23 @@ router.use((req, res, next) => {
     );
     next();
 });
-// ? ok
+
 // Lấy comment dựa trên id place
-router.get("/listByPlace/:Id", [validateById, handleValidationErrors], getListCommentByPlace);
+router.get("/listByPlace/:id", [validateById, handleValidationErrors], getListCommentByPlace);
 // Lấy comment dựa trên id user
 
 // ? ok 
-router.get("/listByUser/:Id", [validateById, handleValidationErrors], getListCommentByUser);
+router.get("/listByUser/:id", [validateById, handleValidationErrors], getListCommentByAccount);
 
+// Thiếu cập nhật star overrall cho hình ảnh
 // ? Test ok
-router.post("/", [validateWithToken, validateCreateComment, handleValidationErrors],veriFyToken, createComment);
+router.post("/",[handleMultipleUploads], [validateWithToken, validateCreateComment, handleValidationErrors],veriFyToken, createComment);
 
 // Chỉnh sửa comment
 // ? test ok 
-router.put("/:Id",[validateById, validateWithToken, validateUpdateComment, handleValidationErrors], veriFyToken, updateComment);
+router.put("/:id",[handleMultipleUploads],[validateById, validateWithToken, validateUpdateComment, handleValidationErrors], veriFyToken, updateComment);
 // Xóa comment
 // ? test ok 
-router.delete("/:Id", [validateById, validateWithToken, handleValidationErrors], veriFyToken, deleteComment);
+router.delete("/:id", [validateById, validateWithToken, handleValidationErrors], veriFyToken, deleteComment);
 
 export default router;

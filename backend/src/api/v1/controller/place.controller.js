@@ -2,6 +2,7 @@ import Place from '../models/place.js';
 import fs from 'fs';
 import path from 'path';
 import { calculateDistance } from '../services/distance.js';
+import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
 
 const flattenPlace = (place) => {
     return {
@@ -97,7 +98,7 @@ export const createPlace = async (req, res, next) => {
 
 
         // Get the image path from the uploaded file
-        const imgPath = req.file.path;
+        const imgPath = req.file.filename;
 
         // Create new place data with a default star value of 5
         const newPlaceData = {
@@ -162,12 +163,12 @@ export const updatePlace = async (req, res, next) => {
             // Delete the old image if it exists
             if (place.img && !place.img.startsWith("https://")) {
                 // Only attempt deletion if img is a local path (doesn't start with "https://")
-                fs.unlink(path.resolve(place.img), (err) => {
+                fs.unlink(path.resolve(UPLOAD_DIRECTORY + place.img), (err) => {
                     if (err) console.error(`Failed to delete old image: ${err.message}`);
                 });
             }
             // Update the place with the new image path
-            place.img = req.file.path;
+            place.img = req.file.filename;
         }
 
         // Update other fields

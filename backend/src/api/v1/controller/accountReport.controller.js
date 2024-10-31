@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import AccountReport from "../models/accountReport.js";
 import Account from "../models/account.js";
+import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
 
 
 
@@ -68,7 +69,7 @@ export const getAccountReports = async (req, res) => {
       totalReports,
       totalPages: Math.ceil(totalReports / limit),
       currentPage: parseInt(page),
-      reports: formattedReports,
+      data: formattedReports,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -126,7 +127,7 @@ export const createAccountReport = async (req, res) => {
       req.body;
     const account_id = req.account_id;
     // Lấy đường dẫn của file đã upload từ `multer`
-    const uploadedImages = req.files.map((file) => ({ img: file.path }));
+    const uploadedImages = req.files.map((file) => ({ img: file.filename }));
 
     // Tạo một báo cáo mới với dữ liệu từ client và đường dẫn của ảnh đã upload
     const newReport = new AccountReport({
@@ -192,7 +193,7 @@ export const deleteAccountReport = async (req, res) => {
     if (report.listImg && report.listImg.length > 0) {
       report.listImg.forEach((image) => {
         const imagePath = path.resolve(image.img); // Ensure absolute path for deletion
-        fs.unlink(imagePath, (err) => {
+        fs.unlink(UPLOAD_DIRECTORY + imagePath, (err) => {
           if (err) {
             console.error(`Error deleting image at ${imagePath}:`, err.message);
           }
@@ -207,7 +208,7 @@ export const deleteAccountReport = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Report and associated images deleted successfully.",
-      report: {
+      data: {
         reportId: report._id,
         description: report.description,
         typeReport: report.typeReport,

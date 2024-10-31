@@ -7,10 +7,6 @@ export const validateCreateComment = [
     body('place_id')
         .isMongoId()
         .withMessage('Place ID must be a valid MongoDB ID.'),
-    body('image')
-        .optional() // Nếu không có, không cần thiết phải gửi
-        .isURL()
-        .withMessage('Image must be a valid URL.'),
 ];
 
 
@@ -24,8 +20,4 @@ export const validateUpdateComment = [
         .isString()
         .notEmpty()
         .withMessage('Content cannot be empty.'),
-    body('image')
-        .optional() // Nếu không có, không cần thiết phải gửi
-        .isURL()
-        .withMessage('Image must be a valid URL.'),
 ];
