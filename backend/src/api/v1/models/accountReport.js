@@ -45,6 +45,11 @@ const userReportSchema = new mongoose.Schema(
       type: Number, // Vĩ độ tại thời điểm report
       default: null,
     },
+    roadSegment_id: {
+      type: mongoose.Schema.Types.ObjectId, // Sử dụng ObjectId để tham chiếu đến model RoadSegment
+      ref: "RoadSegment", // Tham chiếu đến mô hình RoadSegment
+      // Bỏ 'required: true' để làm cho foreign key này là optional
+    },
     listImg: [imageUserReportSchema],
   },
   {

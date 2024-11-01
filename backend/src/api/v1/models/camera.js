@@ -12,12 +12,6 @@ const cameraSchema = new mongoose.Schema(
       coordinates: {
         type: [Number], // Array of [longitude, latitude]
         required: true,
-        validate: {
-          validator: function (val) {
-            return val.length === 2; // Validate that there are exactly 2 elements
-          },
-          message: "Coordinates should be an array of [longitude, latitude]",
-        },
       },
     },
     status: {

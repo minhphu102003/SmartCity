@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { CongestionLevels } from "../constants/enum";
+import { CongestionLevels } from "../constants/enum.js";
 
 // Định nghĩa schema cho RoadSegment
 const roadSegmentSchema = new mongoose.Schema(
