@@ -1,7 +1,10 @@
 import {Router} from "express";
-import {getClothingSuggestion} from "../controller/weather.controller.js";
-import {validateWeatherQuery} from "../validations/weather.validator.js";
+import {getClothingSuggestion, getWeatherData, getWeatherConditions, deleteWeatherRecord} from "../controller/weather.controller.js";
+import {coordinatesQueryValidator} from "../validations/coordinates.validator.js";
 import {handleValidationErrors} from "../validations/result.validator.js";
+import {validateDateRange, validateDistance} from "../validations/weather.validator.js";
+import {isAdmin,veriFyToken} from "../middlewares/authJwt.js";
+import {validateById, validateWithToken} from "../validations/commonField.validator.js";
 
 const router = Router();
 
@@ -12,9 +15,10 @@ router.use((req, res, next) => {
     );
     next();
 });
-
-
-
-router.get("/suggestion",[validateWeatherQuery, handleValidationErrors], getClothingSuggestion);
+// Test ok 
+router.get("/suggestion",[coordinatesQueryValidator, handleValidationErrors], getClothingSuggestion);
+router.get("/conditions", getWeatherConditions);
+router.get("/", [coordinatesQueryValidator, validateDateRange, validateDistance, handleValidationErrors], getWeatherData);
+router.delete("/:id", [validateById, validateWithToken, handleValidationErrors],veriFyToken, isAdmin, deleteWeatherRecord);
 
 export default router;

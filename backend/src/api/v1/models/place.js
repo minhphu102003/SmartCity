@@ -29,12 +29,6 @@ const placeSchema = new mongoose.Schema(
       coordinates: {
         type: [Number], // Mảng chứa [longitude, latitude]
         required: true,
-        validate: {
-          validator: function (v) {
-            return v.length === 2 && v[0] >= -180 && v[0] <= 180 && v[1] >= -90 && v[1] <= 90;
-          },
-          message: "Coordinates must be an array of [longitude, latitude] within valid ranges",
-        },
       },
     },
     img: {

@@ -1,11 +1,25 @@
 import { query } from "express-validator";
 
-// Validator cho API getClothingSuggestion
-export const validateWeatherQuery = [
-    query('lon')
-        .exists().withMessage('Thiếu thông tin longitude')
-        .isFloat({ min: -180, max: 180 }).withMessage('Longitude phải là số và nằm trong khoảng từ -180 đến 180'),
-    query('lat')
-        .exists().withMessage('Thiếu thông tin latitude')
-        .isFloat({ min: -90, max: 90 }).withMessage('Latitude phải là số và nằm trong khoảng từ -90 đến 90')
+// Validator for date range
+export const validateDateRange = [
+    query('startDate')
+        .optional()
+        .isISO8601().withMessage('Start date must be a valid ISO 8601 date string'),
+    query('endDate')
+        .optional()
+        .isISO8601().withMessage('End date must be a valid ISO 8601 date string')
+        .custom((value, { req }) => {
+            if (req.query.startDate && new Date(value) < new Date(req.query.startDate)) {
+                throw new Error('End date must be after start date');
+            }
+            return true;
+        }),
+];
+
+// Validator for distance
+export const validateDistance = [
+    query('distance')
+        .optional()
+        .isInt({ min: 0 }).withMessage('Distance must be a positive integer')
+        .toInt(), // Convert to integer
 ];

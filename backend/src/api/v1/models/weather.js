@@ -2,10 +2,6 @@ import mongoose from "mongoose";
 
 // Định nghĩa schema cho weatherCondition
 const weatherConditionSchema = new mongoose.Schema({
-  id: {
-    type: mongoose.Schema.Types.ObjectId,
-    auto: true, // Tự động sinh ID
-  },
   main: {
     type: String,
     required: true,
@@ -18,9 +14,11 @@ const weatherConditionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+}, {
+  versionKey: false, // Tắt trường __v nếu không cần thiết
 });
 
-// Định nghĩa schema cho weather
+
 const weatherSchema = new mongoose.Schema({
   dt: {
     type: Number, // Thời gian (UNIX timestamp)
@@ -70,28 +68,41 @@ const weatherSchema = new mongoose.Schema({
     type: String, // Quốc gia
     required: true,
   },
-  sunrise: {
-    type: Number, // Thời gian mặt trời mọc (UNIX timestamp)
-    required: true,
-  },
-  sunset: {
-    type: Number, // Thời gian mặt trời lặn (UNIX timestamp)
-    required: true,
-  },
   timezone: {
     type: Number, // Múi giờ
     required: true,
   },
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"], // Only accept 'Point'
+      required: true,
+    },
+    coordinates: {
+      type: [Number], // Array of [longitude, latitude]
+      required: true,
+      validate: {
+        validator: function (val) {
+          return val.length === 2;
+        },
+        message: 'Coordinates should be an array of [longitude, latitude]',
+      },
+    },
+  },
   weather_conditions: [
     {
-      type: mongoose.Schema.Types.ObjectId, // Tham chiếu tới weatherCondition
+      type: mongoose.Schema.Types.ObjectId, // Reference to weatherCondition
       ref: "WeatherCondition",
     },
-  ], // Mảng chứa các điều kiện thời tiết
+  ], // Array of weather conditions
 }, {
-  timestamps: true, // Tự động tạo createdAt và updatedAt
+  timestamps: true, // Automatically creates createdAt and updatedAt
   versionKey: false,
 });
+
+// Add a geospatial index to the location field
+weatherSchema.index({ location: "2dsphere" });
+
 
 // Tạo model cho WeatherCondition
 const WeatherCondition = mongoose.model('WeatherCondition', weatherConditionSchema);
