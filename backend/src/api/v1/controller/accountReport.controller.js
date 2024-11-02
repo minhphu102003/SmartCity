@@ -54,8 +54,8 @@ export const getAccountReports = async (req, res) => {
       typeReport: report.typeReport,
       congestionLevel: report.congestionLevel,
       analysisStatus: report.analysisStatus,
-      longitude: report.longitude,
-      latitude: report.latitude,
+      longitude: report.location.coordinates[0],
+      latitude: report.location.coordinates[1],
       timestamp: report.timestamp,
       createdAt: report.createdAt,
       updatedAt: report.updatedAt,
@@ -81,7 +81,7 @@ export const getAccountReportById = async (req, res) => {
   try {
     const reportId = req.params.id;
 
-    // Tìm báo cáo và populate thông tin tài khoản
+    // Find the report and populate account information
     const report = await AccountReport.findById(reportId).populate({
       path: "account_id",
       select: "-password -otp -otpExpiration -otpVerified",
@@ -94,15 +94,15 @@ export const getAccountReportById = async (req, res) => {
         .json({ success: false, message: "Báo cáo không tồn tại" });
     }
 
-    // Làm phẳng dữ liệu trả về để đơn giản hóa cấu trúc
+    // Flatten the data for a simpler response structure
     const formattedReport = {
       reportId: report._id,
       description: report.description,
       typeReport: report.typeReport,
       congestionLevel: report.congestionLevel,
       analysisStatus: report.analysisStatus,
-      longitude: report.longitude,
-      latitude: report.latitude,
+      longitude: report.location.coordinates[0],
+      latitude: report.location.coordinates[1],
       timestamp: report.timestamp,
       createdAt: report.createdAt,
       updatedAt: report.updatedAt,
@@ -118,31 +118,33 @@ export const getAccountReportById = async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
-}; 
+};
 
 
 export const createAccountReport = async (req, res) => {
   try {
-    const { description, typeReport, congestionLevel, longitude, latitude } =
-      req.body;
+    const { description, typeReport, congestionLevel, longitude, latitude } = req.body;
     const account_id = req.account_id;
-    // Lấy đường dẫn của file đã upload từ `multer`
+
+    // Get file paths from uploaded images using multer
     const uploadedImages = req.files.map((file) => ({ img: file.filename }));
 
-    // Tạo một báo cáo mới với dữ liệu từ client và đường dẫn của ảnh đã upload
+    // Create a new report with data from client and uploaded images
     const newReport = new AccountReport({
       account_id,
       description,
       typeReport,
       congestionLevel,
-      longitude,
-      latitude,
+      location: {
+        type: "Point",
+        coordinates: [longitude, latitude],
+      },
       listImg: uploadedImages,
     });
 
     await newReport.save();
 
-    // ? Khi tạo xong cần gửi lên kafka để xử lý tiếp nì
+    // Optionally send the report to Kafka for further processing
 
     res.status(201).json({ success: true, data: newReport });
   } catch (error) {
@@ -150,25 +152,23 @@ export const createAccountReport = async (req, res) => {
   }
 };
 
-
 export const updateAccountReport = async (req, res) => {
   const reportId = req.params.id;
-  const updateData = { ...req.body }; // Tạo một bản sao để sửa đổi
+  const updateData = { ...req.body }; // Create a copy of req.body for modifications
 
   try {
-    // Kiểm tra nếu báo cáo tồn tại
+    // Check if the report exists
     const report = await AccountReport.findById(reportId);
     if (!report) {
       return res.status(404).json({ success: false, message: "Report not found." });
     }
 
-    // Bỏ các trường không được phép cập nhật
+    // Remove fields that are not allowed to be updated
     delete updateData.timestamp;
-    delete updateData.longitude;
-    delete updateData.latitude;
+    delete updateData.location;
     delete updateData.listImg;
 
-    // Cập nhật báo cáo với các trường hợp lệ
+    // Update the report with only the allowed fields
     const updatedReport = await AccountReport.findByIdAndUpdate(reportId, updateData, {
       new: true,
     });
@@ -178,6 +178,7 @@ export const updateAccountReport = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const deleteAccountReport = async (req, res) => {
   const reportId = req.params.id;
@@ -192,8 +193,8 @@ export const deleteAccountReport = async (req, res) => {
     // Delete images from the server based on paths in listImg
     if (report.listImg && report.listImg.length > 0) {
       report.listImg.forEach((image) => {
-        const imagePath = path.resolve(image.img); // Ensure absolute path for deletion
-        fs.unlink(UPLOAD_DIRECTORY + imagePath, (err) => {
+        const imagePath = path.join(UPLOAD_DIRECTORY, image.img); // Ensure absolute path for deletion
+        fs.unlink(imagePath, (err) => {
           if (err) {
             console.error(`Error deleting image at ${imagePath}:`, err.message);
           }
@@ -214,13 +215,12 @@ export const deleteAccountReport = async (req, res) => {
         typeReport: report.typeReport,
         congestionLevel: report.congestionLevel,
         analysisStatus: report.analysisStatus,
-        longitude: report.longitude,
-        latitude: report.latitude,
+        longitude: report.location.coordinates[0],
+        latitude: report.location.coordinates[1],
         timestamp: report.timestamp,
         createdAt: report.createdAt,
         updatedAt: report.updatedAt,
         accountId: report.account_id,
-        // Add any additional information if needed
       },
     });
   } catch (error) {

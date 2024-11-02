@@ -37,13 +37,16 @@ const userReportSchema = new mongoose.Schema(
       type: Boolean, // true nếu đã được phân tích, false nếu chưa
       default: false,
     },
-    longitude: {
-      type: Number, // Kinh độ tại thời điểm report
-      default: null,
-    },
-    latitude: {
-      type: Number, // Vĩ độ tại thời điểm report
-      default: null,
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"], // Đảm bảo chỉ chấp nhận kiểu 'Point'
+        required: true,
+      },
+      coordinates: {
+        type: [Number], // Mảng chứa [longitude, latitude]
+        required: true,
+      },
     },
     roadSegment_id: {
       type: mongoose.Schema.Types.ObjectId, // Sử dụng ObjectId để tham chiếu đến model RoadSegment
@@ -57,5 +60,7 @@ const userReportSchema = new mongoose.Schema(
     versionKey: false,
   }
 );
+
+userReportSchema.index({ location: "2dsphere" });
 
 export default mongoose.model("AccountReport", userReportSchema);
