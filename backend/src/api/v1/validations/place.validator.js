@@ -19,11 +19,11 @@ export const nearestValidator = [
         .withMessage("Longitude must be a number between -180 and 180"),
     query('limit')
         .optional() // Tham số này không bắt buộc
-        .isInt({ min: 1 }).withMessage('Giới hạn phải là một số nguyên dương') // Kiểm tra phải là số nguyên dương
+        .isInt({ min: 1 }).withMessage('Limit must be a positive integer') // Kiểm tra phải là số nguyên dương
         .toInt(),
     query('radius')
         .optional() // Tham số này không bắt buộc
-        .isInt({ min: 1 }).withMessage('Giới hạn phải là một số nguyên dương') // Kiểm tra phải là số nguyên dương
+        .isInt({ min: 1 }).withMessage('Radius must be a positive integer') // Kiểm tra phải là số nguyên dương
         .toInt(),
     query("type")
         .optional()
@@ -31,30 +31,34 @@ export const nearestValidator = [
         .withMessage(
             `Type of report must be one of: ${Object.values(PlaceTypes).join(", ")}`
         ),
+    query('page')
+        .optional() // This parameter is optional
+        .isInt({ min: 1 }).withMessage('Page number must be a positive integer') // Check positive integer
+        .toInt(), // Convert to integer
 ];
 
 export const findPlaceNameValidator = [
     query('name')
-        .exists().withMessage('Tên địa điểm là bắt buộc') // Kiểm tra xem có tồn tại không
-        .isString().withMessage('Tên địa điểm phải là chuỗi') // Kiểm tra kiểu dữ liệu
-        .trim() // Loại bỏ khoảng trắng thừa
-        .notEmpty().withMessage('Tên địa điểm không được để trống'), // Kiểm tra không rỗng
+    .trim() // Remove excess whitespace
+    .notEmpty().withMessage('Place name cannot be empty') // Check not empty
+    .bail()
+        .isString().withMessage('Place name must be a string'), // Check data type
 
     query('limit')
-        .optional() // Tham số này không bắt buộc
-        .isInt({ min: 1 }).withMessage('Giới hạn phải là một số nguyên dương') // Kiểm tra phải là số nguyên dương
-        .toInt(), // Chuyển đổi sang số nguyên
+        .optional() // This parameter is optional
+        .isInt({ min: 1 }).withMessage('Limit must be a positive integer') // Check positive integer
+        .toInt(), // Convert to integer
 
     query('page')
-        .optional() // Tham số này không bắt buộc
-        .isInt({ min: 1 }).withMessage('Số trang phải là một số nguyên dương') // Kiểm tra phải là số nguyên dương
-        .toInt(), // Chuyển đổi sang số nguyên
+        .optional() // This parameter is optional
+        .isInt({ min: 1 }).withMessage('Page number must be a positive integer') // Check positive integer
+        .toInt(), // Convert to integer
 ];
 
 export const updateStatusValidator = [
     body('status')
-        .exists().withMessage('Trạng thái là bắt buộc') // Kiểm tra xem có tồn tại không
-        .isBoolean().withMessage('Trạng thái phải là true hoặc false'), // Kiểm tra kiểu dữ liệu Boolean
+        .exists().withMessage('Status is required') // Check if it exists
+        .isBoolean().withMessage('Status must be true or false'), // Check Boolean data type
 ];
 
 // ! Validator ở đây còn thiếu 

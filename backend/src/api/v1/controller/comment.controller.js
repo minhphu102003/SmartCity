@@ -12,6 +12,16 @@ const updatePlaceStar = async (place_id) => {
     await Place.findByIdAndUpdate(place_id, { star: averageStar }); // Update the place with the new average star rating
 };
 
+const formatComment = (comment) => {
+    const { account_id, ...rest } = comment.toObject();
+    return {
+        ...rest,
+        account_id: account_id._id,
+        username: account_id.username,
+    };
+};
+
+
 export const getListCommentByPlace = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -19,7 +29,7 @@ export const getListCommentByPlace = async (req, res, next) => {
 
         // Tìm tất cả các comment theo place_id
         const comments = await Comment.find({ place_id: id })
-            .populate("account_id", "username") // Lấy thông tin username từ account
+            .populate("account_id", "username")
             .skip((page - 1) * limit)
             .limit(parseInt(limit))
             .exec();
@@ -32,13 +42,15 @@ export const getListCommentByPlace = async (req, res, next) => {
                 message: "No comments found for this place.",
             });
         }
+        const formatComments = comments.map(formatComment);
 
         return res.status(200).json({
             success: true,
-            totalComments, // Tổng số bình luận
+            total: totalComments, // Tổng số bình luận
+            count: comments.length,
             totalPages: Math.ceil(totalComments / limit), // Tổng số trang
             currentPage: parseInt(page), // Trang hiện tại
-            data : comments // Danh sách bình luận
+            data : formatComments // Danh sách bình luận
         });
     } catch (err) {
         return res.status(500).json({
@@ -55,7 +67,8 @@ export const getListCommentByAccount = async (req, res, next) => {
 
         // Tìm tất cả các comment theo account_id
         const comments = await Comment.find({ account_id: id })
-            .populate("place_id", "name") // Lấy thông tin tên địa điểm từ place
+            .populate("account_id", "username")
+            .populate("place_id", "name type star img") 
             .skip((page - 1) * limit)
             .limit(parseInt(limit))
             .exec();
@@ -68,13 +81,15 @@ export const getListCommentByAccount = async (req, res, next) => {
                 message: "No comments found for this user.",
             });
         }
+        const formatComments = comments.map(formatComment);
 
         return res.status(200).json({
             success: true,
-            totalComments, // Tổng số bình luận của user
+            total: totalComments, 
+            count: comments.length,// Tổng số bình luận của user
             totalPages: Math.ceil(totalComments / limit), // Tổng số trang
             currentPage: parseInt(page), // Trang hiện tại
-            data: comments
+            data: formatComments
         });
     } catch (err) {
         return res.status(500).json({

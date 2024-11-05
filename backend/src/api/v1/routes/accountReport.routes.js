@@ -37,44 +37,10 @@ router.use((req, res, next) => {
 });
 
 // ? Ok test xong
-router.get(
-  "/",
-  [getAccountReportValidator, ...accountMiddleware],
-  getAccountReports
-);
-// ? Ok Test xong
-router.get("/:id", [validateById, ...accountMiddleware], getAccountReportById);
-// ? Thiếu gửi lên kafka để python xử lý tiếp
-router.post(
-  "/",
-  handleMultipleUploads,
-  validateUploadMultipleFile,
-  [validateWithToken, createAccountReportValidator, ...accountMiddleware],
-  veriFyToken,
-  createAccountReport
-);
-// ? Đã test
-router.put(
-  "/:id",
-  [
-    validateById,
-    validateWithToken,
-    updateAccountReportValidator,
-    ...accountMiddleware,
-  ],
-  veriFyToken,
-  isAdmin,
-  updateAccountReport
-);
-
-//  Test cả 2 role done
-//  Xóa thành công ảnh trên server
-
-router.delete(
-  "/:id",
-  [validateById, validateWithToken, ...accountMiddleware],
-  [veriFyToken, isAdminOrOwner],
-  deleteAccountReport
-);
-
+router.get("/", [getAccountReportValidator, ...accountMiddleware], getAccountReports); // ? Ok Test xong
+router.get("/:id", [validateById, ...accountMiddleware], getAccountReportById); // ? Thiếu gửi lên kafka để python xử lý tiếp
+router.post("/", handleMultipleUploads, validateUploadMultipleFile, [validateWithToken, createAccountReportValidator, ...accountMiddleware], veriFyToken, createAccountReport); // ? Đã test
+router.put("/:id",[handleMultipleUploads], [validateById, validateWithToken, updateAccountReportValidator, ...accountMiddleware], veriFyToken, isAdminOrOwner, updateAccountReport); // Test cả 2 role done, Xóa thành công ảnh trên server
+router.delete("/:id", [validateById, validateWithToken, ...accountMiddleware], [veriFyToken, isAdmin], deleteAccountReport);
 export default router;
+

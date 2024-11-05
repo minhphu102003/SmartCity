@@ -22,7 +22,6 @@ import {
   validateWithToken,
 } from "../validations/commonField.validator.js";
 import {handleSingleUpload} from "../middlewares/upload.js";
-import {validateUploadSingleFile} from "../validations/uploadImage.validator.js";
 
 const router = Router();
 
@@ -46,7 +45,7 @@ router.get("/search", [findPlaceNameValidator, handleValidationErrors], findPlac
 // ? Test ok
 router.get("/:id", [validateById, handleValidationErrors], findPlaceById);
 
-router.post("/",[handleSingleUpload, validateUploadSingleFile], [validateWithToken, addPlaceValidator, handleValidationErrors, ...verifyTokenAndAdmin], createPlace);
+router.post("/",[handleSingleUpload], [validateWithToken, addPlaceValidator, handleValidationErrors, ...verifyTokenAndAdmin], createPlace);
 // Test cái này trước 
 // Ok
 // Thiếu upload ảnh để cập nhật  

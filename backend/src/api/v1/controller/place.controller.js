@@ -21,12 +21,12 @@ const flattenPlace = (place) => {
 
 export const searchNearest = async (req, res, next) => {
     try {
-        const { latitude, longitude, radius = 100, type, limit = 50 } = req.query;
+        const { latitude, longitude, radius = 100, type, limit = 50, page = 1 } = req.query;
 
         if (!latitude || !longitude) {
             return res.status(400).json({
                 success: false,
-                message: "Vui lòng cung cấp latitude và longitude",
+                message: "Please provide latitude and longitude",
             });
         }
 
@@ -34,42 +34,50 @@ export const searchNearest = async (req, res, next) => {
         const lon = parseFloat(longitude);
         const radiusInKm = parseFloat(radius);
         const limitResults = parseInt(limit);
+        const currentPage = parseInt(page);
+        const skip = (currentPage - 1) * limitResults;
 
-        // Lấy các địa điểm từ cơ sở dữ liệu 
+        // Build the initial query
         let query = {};
         if (type) {
-            query.type = type; // Thêm điều kiện lọc nếu có type
+            query.type = type; // Filter by type if provided
         }
 
+        // Fetch places from database
         const allPlaces = await Place.find(query);
 
-        // Lọc các địa điểm gần nhất
+        // Filter places within the specified radius
         const nearbyPlaces = allPlaces.filter((place) => {
             const distance = calculateDistance(
                 lat,
                 lon,
-                place.location.coordinates[1], // Lấy latitude từ location
-                place.location.coordinates[0]  // Lấy longitude từ location
+                place.location.coordinates[1],
+                place.location.coordinates[0]
             );
             return distance <= radiusInKm;
         });
 
-        // Sắp xếp theo khoảng cách
+        // Sort places by distance
         nearbyPlaces.sort((a, b) => {
             const distanceA = calculateDistance(lat, lon, a.location.coordinates[1], a.location.coordinates[0]);
             const distanceB = calculateDistance(lat, lon, b.location.coordinates[1], b.location.coordinates[0]);
             return distanceA - distanceB;
         });
 
-        // Giới hạn số lượng kết quả trả về
-        const limitedPlaces = nearbyPlaces.slice(0, limitResults);
+        // Calculate total pages and limit results for pagination
+        const total = nearbyPlaces.length;
+        const totalPages = Math.ceil(total / limitResults);
+        const limitedPlaces = nearbyPlaces.slice(skip, skip + limitResults);
 
-        // Làm phẳng dữ liệu
+        // Flatten data
         const flatPlaces = limitedPlaces.map(flattenPlace);
 
         return res.status(200).json({
             success: true,
+            total,
             count: flatPlaces.length,
+            totalPages,
+            currentPage,
             data: flatPlaces,
         });
     } catch (e) {
@@ -78,7 +86,7 @@ export const searchNearest = async (req, res, next) => {
             message: e.message,
         });
     }
-}
+};
 
 
 export const createPlace = async (req, res, next) => {
@@ -248,7 +256,7 @@ export const deletePlace = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
-            message: "Place đã được xóa thành công",
+            message: "Place has been deleted successfully",
             data: flatPlace // Send details of the deleted place
         });
     } catch (err) {
@@ -268,7 +276,7 @@ export const findPlaceById = async (req, res, next) => {
         if (!place) {
             return res.status(404).json({
                 success: false,
-                message: "Place không tồn tại",
+                message: "Place does not exist",
             });
         }
 
@@ -290,36 +298,42 @@ export const findPlaceById = async (req, res, next) => {
 
 export const findPlaceName = async (req, res, next) => {
     try {
-        const { name } = req.query; // Lấy tên từ query parameter
-        const limit = parseInt(req.query.limit) || 10; // Giới hạn số lượng kết quả trả về, mặc định là 10
-        const page = parseInt(req.query.page) || 1; // Số trang, mặc định là 1
-
-        // Tính toán số lượng kết quả cần bỏ qua
+        const { name } = req.query; // Retrieve name from query parameter
+        const limit = parseInt(req.query.limit) || 10; // Limit results per page, default to 10
+        const page = parseInt(req.query.page) || 1; // Page number, default to 1
         const skip = (page - 1) * limit;
 
-        // Tìm kiếm địa điểm có tên gần giống với tên đã cung cấp
-        const places = await Place.find({
-            name: { $regex: name, $options: 'i' } // Sử dụng regex để tìm kiếm không phân biệt chữ hoa chữ thường
-        })
-        .limit(limit) // Giới hạn số lượng kết quả trả về
-        .skip(skip); // Bỏ qua số lượng kết quả tương ứng với trang hiện tại
+        // Count total documents that match the search criteria
+        const total = await Place.countDocuments({
+            name: { $regex: name, $options: 'i' } // Case-insensitive regex search
+        });
 
-        // Kiểm tra xem có địa điểm nào không
+        // Fetch paginated results
+        const places = await Place.find({
+            name: { $regex: name, $options: 'i' }
+        })
+        .limit(limit)
+        .skip(skip);
+
+        // If no places are found
         if (places.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: "Không tìm thấy địa điểm nào với tên đã cung cấp",
+                message: "No places found with the provided name",
             });
         }
 
         const flatPlaces = places.map(flattenPlace);
-        // Trả về danh sách địa điểm tìm thấy
+        const totalPages = Math.ceil(total / limit);
+
+        // Return response with pagination format
         return res.status(200).json({
             success: true,
-            count: places.length,
+            total,
+            count: flatPlaces.length,
+            totalPages,
+            currentPage: page,
             data: flatPlaces,
-            page, // Thêm thông tin trang
-            limit, // Thêm thông tin giới hạn
         });
     } catch (err) {
         return res.status(500).json({
@@ -328,6 +342,8 @@ export const findPlaceName = async (req, res, next) => {
         });
     }
 };
+
+
 
 export const updateStatusPlace = async (req, res , next) =>{
     try {

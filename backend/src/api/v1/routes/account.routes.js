@@ -3,19 +3,27 @@ import {
   getAccountDetailsHandler,
   updateAccountDetailsHandler,
   deleteAccountHandler,
-  listAccountsHandler,
-  searchAccountsHandler,
+  listOrSearchAccountsHandler,
   manageAccountRolesHandler,
 } from "../controller/account.controller.js";
+import { validateById } from "../validations/commonField.validator.js";
 import { validateWithToken } from "../validations/commonField.validator.js";
+import {isAdmin, veriFyToken} from "../middlewares/authJwt.js";
 import { handleValidationErrors } from "../validations/result.validator.js";
 import {
-  accountIdValidator,
   updateAccountValidator,
   searchAccountsValidator,
+  validateManageAccountRoles,
 } from "../validations/account.validator.js";
 
 const router = Router();
+
+const adminAuthMiddlewares = [
+  validateWithToken,
+  handleValidationErrors,
+  veriFyToken,
+  isAdmin,
+];
 
 // CORS headers
 router.use((req, res, next) => {
@@ -26,45 +34,13 @@ router.use((req, res, next) => {
   next();
 });
 
-// Get account details
-router.get(
-  "/:id",
-  [accountIdValidator, handleValidationErrors],
-  getAccountDetailsHandler
-);
-
-// Update account details
-router.put(
-  "/:id",
-  [accountIdValidator, updateAccountValidator, handleValidationErrors],
-  updateAccountDetailsHandler
-);
-
-// Delete account
-router.delete(
-  "/:id",
-  [accountIdValidator, handleValidationErrors],
-  deleteAccountHandler
-);
-
-// List all accounts
-router.get(
-  "/",
-  listAccountsHandler
-);
-
-// Search accounts
-router.get(
-  "/search",
-  [searchAccountsValidator, handleValidationErrors],
-  searchAccountsHandler
-);
-
-// Manage account roles (optional)
-router.put(
-  "/:id/roles",
-  [accountIdValidator, handleValidationErrors],
-  manageAccountRolesHandler
-);
+router.get("/", [searchAccountsValidator, handleValidationErrors], listOrSearchAccountsHandler); 
+// ? Ok test xong
+router.get("/:id", [validateById, handleValidationErrors], getAccountDetailsHandler); 
+// ? Test ok
+router.put("/:id", [validateById, validateWithToken, updateAccountValidator, handleValidationErrors], veriFyToken, updateAccountDetailsHandler); 
+// ! Chưa test chưa làm gì hết ở đây
+router.delete("/:id", [validateById, ...adminAuthMiddlewares], deleteAccountHandler); // Delete account
+router.put("/:id/roles", [validateById,validateManageAccountRoles, ...adminAuthMiddlewares], manageAccountRolesHandler); // Manage account roles (optional)
 
 export default router;

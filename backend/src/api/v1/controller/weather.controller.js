@@ -34,22 +34,22 @@ export const getWeatherConditions = async (req, res) => {
         // Lấy tất cả các điều kiện thời tiết khác nhau với phân trang
         const conditions = await WeatherCondition.find()
             .skip(skip)
-            .limit(limit)
+            .limit(parseInt(limit)) // Ensure limit is an integer
             .exec();
 
         const totalConditions = await WeatherCondition.countDocuments(); // Tổng số điều kiện thời tiết
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            count: conditions.length,
-            data: conditions,
             total: totalConditions, // Tổng số điều kiện
-            page: parseInt(page), // Chuyển đổi thành số nguyên
-            limit: parseInt(limit), // Chuyển đổi thành số nguyên
+            count: conditions.length, // Số lượng điều kiện trả về
+            totalPages: Math.ceil(totalConditions / limit), // Tổng số trang
+            currentPage: parseInt(page), // Trang hiện tại
+            data: conditions // Danh sách điều kiện thời tiết
         });
     } catch (error) {
         console.error("Error retrieving weather conditions:", error);
-        res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 

@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import Account from "../models/account.js";
 import Role from "../models/role.js";
 import AccountReport from "../models/accountReport.js";
+import role from "../models/role.js";
 
 
 export const veriFyToken = async (req, res, next) => {
@@ -66,22 +67,35 @@ export const isAdminOrOwner = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Report not found." });
     }
 
-    // Gọi hàm isAdmin và chờ đợi kết quả
+    // Kiểm tra vai trò của tài khoản
     const account = await Account.findById(account_id);
     const roles = await Role.find({ _id: { $in: account.roles } });
-
     const isAdmin = roles.some(role => role.name === "admin");
+
+    // Nếu là admin, cho phép tiếp tục
     if (isAdmin) {
-      return next(); // Nếu là admin, cho phép tiếp tục
+      return next();
     }
 
-    // Nếu không phải admin, kiểm tra quyền sở hữu
-    if (report.account_id.toString() === account_id) {
-      return next(); // Nếu là chủ sở hữu, cho phép tiếp tục
+    // Nếu không phải admin, kiểm tra nếu là owner
+    const isOwner = report.account_id.toString() === account_id;
+
+    if (isOwner) {
+      const timeDifference = (Date.now() - new Date(report.timestamp).getTime()) / (1000 * 60);
+
+      // Giới hạn cập nhật sau 5 phút
+      if (timeDifference > 5) {
+        return res.status(403).json({
+          success: false,
+          message: "You cannot update this report after 5 minutes of creation.",
+        });
+      }
+
+      return next();
     }
 
-    // Nếu không phải admin hoặc chủ sở hữu
-    return res.status(403).json({ success: false, message: "You do not have permission to delete this report." });
+    // Không phải admin cũng không phải owner
+    return res.status(403).json({ success: false, message: "You do not have permission to update this report." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ success: false, message: error.message });

@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import AccountReport from "../models/accountReport.js";
-import Account from "../models/account.js";
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
 
 
@@ -66,7 +65,8 @@ export const getAccountReports = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      totalReports,
+      total: totalReports,
+      count: formattedReports.length,
       totalPages: Math.ceil(totalReports / limit),
       currentPage: parseInt(page),
       data: formattedReports,
@@ -91,7 +91,7 @@ export const getAccountReportById = async (req, res) => {
     if (!report) {
       return res
         .status(404)
-        .json({ success: false, message: "Báo cáo không tồn tại" });
+        .json({ success: false, message: "Report does not exist" });
     }
 
     // Flatten the data for a simpler response structure
@@ -143,10 +143,15 @@ export const createAccountReport = async (req, res) => {
     });
 
     await newReport.save();
-
+    const {location, ...rest} = newReport._doc;
+    const responeReport = {
+      latitude: location.coordinates[1],
+      longitude: location.coordinates[0],
+      ...rest,
+    }
     // Optionally send the report to Kafka for further processing
 
-    res.status(201).json({ success: true, data: newReport });
+    res.status(201).json({ success: true, data: responeReport });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -154,7 +159,8 @@ export const createAccountReport = async (req, res) => {
 
 export const updateAccountReport = async (req, res) => {
   const reportId = req.params.id;
-  const updateData = { ...req.body }; // Create a copy of req.body for modifications
+  const { replaceImageId, ...updateData } = req.body; // Extract replaceImageId and other update data
+  const account_id = req.account_id;
 
   try {
     // Check if the report exists
@@ -163,19 +169,72 @@ export const updateAccountReport = async (req, res) => {
       return res.status(404).json({ success: false, message: "Report not found." });
     }
 
+    // Check if the user is an admin or owner
+    const isOwner = report.account_id.toString() === account_id;
+
     // Remove fields that are not allowed to be updated
     delete updateData.timestamp;
     delete updateData.location;
-    delete updateData.listImg;
 
-    // Update the report with only the allowed fields
-    const updatedReport = await AccountReport.findByIdAndUpdate(reportId, updateData, {
-      new: true,
+    // If the user is the owner, handle image updates
+    if (isOwner) {
+      // Calculate remaining images count after deletions
+
+      // If there are no remaining images, return an error
+      if (req.files.length == 0 && (report.listImg.length - replaceImageId.length <= 0)) {
+        return res.status(400).json({
+          success: false,
+          message: "At least one image must be kept in the report.",
+        });
+      }
+
+      // Handle image deletion based on replaceImageId
+      if (replaceImageId && replaceImageId.length > 0) {
+        replaceImageId.forEach((item) => {
+          const imageIndex = report.listImg.findIndex(img => img._id.toString() === item);
+          if (imageIndex !== -1) {
+            // Delete the old image from the server
+            const imagePath = path.join(UPLOAD_DIRECTORY, report.listImg[imageIndex].img);
+            fs.unlink(imagePath, (err) => {
+              if (err) {
+                console.error(`Error deleting image: ${imagePath}`, err);
+              }
+            });
+
+            // Remove the old image from the list
+            report.listImg.splice(imageIndex, 1);
+          }
+        });
+      }
+
+      // Add new images if uploaded
+      if (req.files && req.files.length > 0) {
+        const newImages = req.files.map(file => ({ img: file.filename }));
+        report.listImg.push(...newImages); // Append new images to the list
+      }
+    } else {
+      // If the user is an admin, disallow image updates
+      if (replaceImageId && replaceImageId.length > 0) {
+        return res.status(403).json({
+          success: false,
+          message: "Admins cannot edit images.",
+        });
+      }
+      // Do not process images for admins
+    }
+
+    // Update other fields of the report
+    Object.assign(report, updateData);
+
+    // Save changes
+    const updatedReport = await report.save();
+
+    return res.status(200).json({
+      success: true,
+      data: updatedReport,
     });
-
-    res.status(200).json({ success: true, data: updatedReport });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

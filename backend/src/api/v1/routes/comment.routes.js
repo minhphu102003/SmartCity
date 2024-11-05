@@ -27,9 +27,8 @@ router.get("/listByPlace/:id", [validateById, handleValidationErrors], getListCo
 // Lấy comment dựa trên id user
 
 // ? ok 
-router.get("/listByUser/:id", [validateById, handleValidationErrors], getListCommentByAccount);
+router.get("/listByAccount/:id", [validateById, handleValidationErrors], getListCommentByAccount);
 
-// Thiếu cập nhật star overrall cho hình ảnh
 // ? Test ok
 router.post("/",[handleMultipleUploads], [validateWithToken, validateCreateComment, handleValidationErrors],veriFyToken, createComment);
 

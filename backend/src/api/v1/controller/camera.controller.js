@@ -40,7 +40,7 @@ export const getCameraById = async (req, res) => {
 };
 
 export const getCameras = async (req, res) => {
-    const { latitude, longitude, distance = 1000, limit = 10, page = 1 } = req.query;
+    const { latitude, longitude, distance = 5, limit = 10, page = 1 } = req.query;
 
     try {
         const parsedLimit = parseInt(limit);
@@ -56,7 +56,7 @@ export const getCameras = async (req, res) => {
             const nearbyCamerasQuery = {
                 location: {
                     $geoWithin: {
-                        $centerSphere: [[parseFloat(longitude), parseFloat(latitude)], distance / 6378.1], // distance in radians
+                        $centerSphere: [[parseFloat(longitude), parseFloat(latitude)], distance*1000 / 6378.1], // distance in radians
                     },
                 },
             };
@@ -80,9 +80,9 @@ export const getCameras = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            totalCameras,
+            total: totalCameras,
             totalPages,
-            currentPage: parsedPage,
+            currentPage: parsedPage, 
             data: flatCameras, // Return the flattened camera data
         });
     } catch (error) {
