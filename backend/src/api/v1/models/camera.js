@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const cameraSchema = new mongoose.Schema(
   {
-    // Để MongoDB tự động sinh ra _id
     location: {
       type: {
         type: String,
@@ -20,16 +19,15 @@ const cameraSchema = new mongoose.Schema(
     },
     installation_date: {
       type: Date,
-      default: Date.now, // Thời gian lắp đặt mặc định là thời điểm hiện tại
+      default: Date.now, // Default installation date is the current time
     },
-    roadSegment_id: {
-      type: mongoose.Schema.Types.ObjectId, // Sử dụng ObjectId để tham chiếu đến model RoadSegment
-      ref: "RoadSegment", // Tham chiếu đến mô hình RoadSegment
-      // Bỏ 'required: true' để làm cho foreign key này là optional
-    },
+    roadSegments: [{
+      type: mongoose.Schema.Types.ObjectId, // Reference to multiple RoadSegment models
+      ref: "RoadSegment", // Reference to the RoadSegment model
+    }],
   },
   {
-    timestamps: true, // Tự động thêm trường createdAt và updatedAt
+    timestamps: true, // Automatically add createdAt and updatedAt fields
     versionKey: false,
   }
 );

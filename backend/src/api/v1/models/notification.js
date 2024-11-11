@@ -3,9 +3,9 @@ import { NotificationStatus } from "../constants/enum";
 
 const notificationSchema = new mongoose.Schema(
     {
-        user_id: {
+        account_id: {
             type: mongoose.Schema.Types.ObjectId, // Tham chiếu đến ID của người dùng
-            ref: "User", // Tham chiếu đến mô hình User
+            ref: "Account", // Tham chiếu đến mô hình User
             required: true, // Bắt buộc phải có user_id
         },
         message: {
@@ -28,11 +28,6 @@ const notificationSchema = new mongoose.Schema(
         latitude: {
             type: Number, // Vĩ độ
             required: true, // Bắt buộc phải có latitude
-        },
-        road_id: {
-            type: mongoose.Schema.Types.ObjectId, // Tham chiếu đến RoadSegment
-            ref: "RoadSegment", // Tham chiếu đến mô hình RoadSegment
-            required: true, // Bắt buộc phải có road_id
         },
     },
     {

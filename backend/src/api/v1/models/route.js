@@ -3,21 +3,27 @@ import mongoose from "mongoose";
 // Định nghĩa schema cho Route
 const routeSchema = new mongoose.Schema(
   {
-    start_longitude: {
-      type: Number, // Kinh độ điểm bắt đầu
-      required: true,
+    start_location: {
+      type: {
+        type: String,
+        enum: ["Point"], // Đảm bảo chỉ chấp nhận kiểu 'Point'
+        required: true,
+      },
+      coordinates: {
+        type: [Number], // Mảng chứa [longitude, latitude]
+        required: true,
+      },
     },
-    start_latitude: {
-      type: Number, // Vĩ độ điểm bắt đầu
-      required: true,
-    },
-    end_longitude: {
-      type: Number, // Kinh độ điểm kết thúc
-      required: true,
-    },
-    end_latitude: {
-      type: Number, // Vĩ độ điểm kết thúc
-      required: true,
+    end_location: {
+      type: {
+        type: String,
+        enum: ["Point"], // Đảm bảo chỉ chấp nhận kiểu 'Point'
+        required: true,
+      },
+      coordinates: {
+        type: [Number], // Mảng chứa [longitude, latitude]
+        required: true,
+      },
     },
     segments: [
       {
@@ -39,5 +45,9 @@ const routeSchema = new mongoose.Schema(
     versionKey: false,
   }
 );
+
+// Tạo index cho start_location và end_location để hỗ trợ truy vấn địa lý
+routeSchema.index({ start_location: "2dsphere" });
+routeSchema.index({ end_location: "2dsphere" });
 
 export default mongoose.model("Route", routeSchema);

@@ -2,8 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import AccountReport from "../models/accountReport.js";
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
+import {produceMessage} from "../../../config/kafka.config.js";
 
-
+const PRODUCE_TOPIC = process.env.PRODUCE_TOPIC || 'express-topic';
 
 export const getAccountReports = async (req, res) => {
   try {
@@ -143,19 +144,39 @@ export const createAccountReport = async (req, res) => {
     });
 
     await newReport.save();
-    const {location, ...rest} = newReport._doc;
-    const responeReport = {
+
+    // Add to cache after saving to DB
+    req.cachedReports = req.cachedReports.push(newReport);
+
+    console.log(req.cachedReports)
+
+    const { location, ...rest } = newReport._doc;
+    const responseReport = {
       latitude: location.coordinates[1],
       longitude: location.coordinates[0],
       ...rest,
-    }
-    // Optionally send the report to Kafka for further processing
+    };
 
-    res.status(201).json({ success: true, data: responeReport });
+    const messageObject = {
+      reportId: newReport._id,
+      account_id,
+      description,
+      typeReport,
+      congestionLevel,
+      longitude,
+      latitude,
+      listImg: uploadedImages,
+    };
+
+    produceMessage(PRODUCE_TOPIC, messageObject, "create");
+
+    // Optionally send the report to Kafka for further processing
+    res.status(201).json({ success: true, data: responseReport });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const updateAccountReport = async (req, res) => {
   const reportId = req.params.id;
@@ -163,10 +184,15 @@ export const updateAccountReport = async (req, res) => {
   const account_id = req.account_id;
 
   try {
-    // Check if the report exists
-    const report = await AccountReport.findById(reportId);
+    // Check if the report exists in cache first
+    let report = cachedReports.find((r) => r._id.toString() === reportId);
+
     if (!report) {
-      return res.status(404).json({ success: false, message: "Report not found." });
+      // If not in cache, fetch from DB
+      report = await AccountReport.findById(reportId);
+      if (!report) {
+        return res.status(404).json({ success: false, message: "Report not found." });
+      }
     }
 
     // Check if the user is an admin or owner
@@ -179,8 +205,6 @@ export const updateAccountReport = async (req, res) => {
     // If the user is the owner, handle image updates
     if (isOwner) {
       // Calculate remaining images count after deletions
-
-      // If there are no remaining images, return an error
       if (req.files.length == 0 && (report.listImg.length - replaceImageId.length <= 0)) {
         return res.status(400).json({
           success: false,
@@ -220,14 +244,19 @@ export const updateAccountReport = async (req, res) => {
           message: "Admins cannot edit images.",
         });
       }
-      // Do not process images for admins
     }
 
     // Update other fields of the report
     Object.assign(report, updateData);
 
-    // Save changes
+    // Save changes to DB
     const updatedReport = await report.save();
+
+    // Update cache after saving
+    const cacheIndex = cachedReports.findIndex((r) => r._id.toString() === reportId);
+    if (cacheIndex !== -1) {
+      cachedReports[cacheIndex] = updatedReport; // Update cache
+    }
 
     return res.status(200).json({
       success: true,
@@ -239,14 +268,20 @@ export const updateAccountReport = async (req, res) => {
 };
 
 
+
 export const deleteAccountReport = async (req, res) => {
   const reportId = req.params.id;
 
   try {
-    // Find the report by ID
-    const report = await AccountReport.findById(reportId);
+    // Check if the report exists in cache first
+    let report = cachedReports.find((r) => r._id.toString() === reportId);
+
     if (!report) {
-      return res.status(404).json({ success: false, message: "Report not found." });
+      // If not in cache, fetch from DB
+      report = await AccountReport.findById(reportId);
+      if (!report) {
+        return res.status(404).json({ success: false, message: "Report not found." });
+      }
     }
 
     // Delete images from the server based on paths in listImg
@@ -261,8 +296,11 @@ export const deleteAccountReport = async (req, res) => {
       });
     }
 
-    // Delete the report document from the database
+    // Delete the report document from DB
     await AccountReport.findByIdAndDelete(reportId);
+
+    // Remove the report from cache
+    cachedReports = cachedReports.filter((r) => r._id.toString() !== reportId);
 
     // Respond with the deleted report's information
     res.status(200).json({

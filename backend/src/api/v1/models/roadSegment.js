@@ -1,46 +1,61 @@
 import mongoose from "mongoose";
-import { CongestionLevels } from "../constants/enum.js";
+import { CongestionLevels } from '../constants/enum.js';
 
-// Định nghĩa schema cho RoadSegment
 const roadSegmentSchema = new mongoose.Schema(
-  {
-    start_longitude: {
-      type: Number, // Kinh độ điểm bắt đầu
-      required: true,
+    {
+      roadName: {
+        type: String,
+      },
+      start_location: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          required: true,
+        },
+        coordinates: {
+          type: [Number], // [longitude, latitude]
+          required: true,
+        },
+      },
+      end_location: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          required: true,
+        },
+        coordinates: {
+          type: [Number], // [longitude, latitude]
+          required: true,
+        },
+      },
+      roadSegmentLine: { // Thêm trường này để lưu trữ đoạn đường dạng LineString
+        type: {
+          type: String,
+          enum: ["LineString"],
+          required: true,
+        },
+        coordinates: {
+          type: [[Number]], // Array of [longitude, latitude] pairs
+          required: true,
+        },
+      },
+      reports: [
+        {
+          type: mongoose.Schema.Types.ObjectId, // Tham chiếu tới CameraReport
+          ref: "CameraReport", // Tên model được tham chiếu
+        },
+      ],
     },
-    start_latitude: {
-      type: Number, // Vĩ độ điểm bắt đầu
-      required: true,
-    },
-    end_longitude: {
-      type: Number, // Kinh độ điểm kết thúc
-      required: true,
-    },
-    end_latitude: {
-      type: Number, // Vĩ độ điểm kết thúc
-      required: true,
-    },
-    congestionLevel: {
-      type: String,
-      enum: Object.values(CongestionLevels), // Sử dụng enum từ file enums
-      default: null,
-    },
-    roadName: {
-      type: String,
-    },
-    trafficVolume: {
-      type: Number, // Lưu trữ lưu lượng giao thông
-      default: 0, // Giá trị mặc định là 0
-    },
-    weatherImpact: {
-      type: Boolean, // Ảnh hưởng của thời tiết
-      default: false, // Mặc định là không có ảnh hưởng
-    },
-  },
-  {
-    timestamps: true, // Tự động tạo createdAt và updatedAt
-    versionKey: false,
-  }
-);
-
-export default mongoose.model("RoadSegment", roadSegmentSchema);
+    {
+      timestamps: true,
+      versionKey: false,
+    }
+  );
+  
+  // Tạo index 2dsphere cho trường coordinates
+  roadSegmentSchema.index(
+    { "start_location.coordinates": 1, "end_location.coordinates": 1 },
+    { unique: true }
+  );
+  
+  export default mongoose.model("RoadSegment", roadSegmentSchema);

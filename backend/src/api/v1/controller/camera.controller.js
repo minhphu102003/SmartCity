@@ -94,16 +94,11 @@ export const getCameras = async (req, res) => {
 
 export const createCamera = async (req, res, next) => {
     try {
-        // Extract single coordinate values and other fields from request body
-        const {
-            longitude,
-            latitude,
-            status = true,
-            installation_date,
-            roadSegment_id,
-        } = req.body;
+        const { longitude, latitude, status = true, installation_date, roadSegment_ids } = req.body;
 
-        // Create new Camera with coordinates provided as separate longitude and latitude values
+        // Nếu cung cấp roadSegment_ids, đảm bảo chúng là mảng
+        const roadSegments = Array.isArray(roadSegment_ids) ? roadSegment_ids : [roadSegment_ids];
+
         const newCamera = new Camera({
             location: {
                 type: 'Point',
@@ -111,12 +106,14 @@ export const createCamera = async (req, res, next) => {
             },
             status,
             installation_date,
-            roadSegment_id,
+            roadSegments, // Sử dụng mảng roadSegment_ids
         });
 
-        // Save the camera document to the database
         const savedCamera = await newCamera.save();
-        // Respond with success message and saved camera data
+
+        // Add the new camera to cache
+        req.cachedCameras.push(savedCamera.toObject());
+
         return res.status(201).json({
             success: true,
             message: 'Camera created successfully',
@@ -131,12 +128,12 @@ export const createCamera = async (req, res, next) => {
     }
 };
 
+
 export const updateCamera = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { longitude, latitude, status, installation_date, roadSegment_id } = req.body;
+        const { longitude, latitude, status, installation_date, roadSegment_ids } = req.body;
 
-        // Find the existing camera record
         const camera = await Camera.findById(id);
         if (!camera) {
             return res.status(404).json({
@@ -145,7 +142,6 @@ export const updateCamera = async (req, res, next) => {
             });
         }
 
-        // Update location if both longitude and latitude are provided
         if (longitude !== undefined && latitude !== undefined) {
             camera.location = {
                 type: 'Point',
@@ -153,24 +149,28 @@ export const updateCamera = async (req, res, next) => {
             };
         }
 
-        // Update other fields if provided
         if (status !== undefined) camera.status = status;
         if (installation_date) camera.installation_date = installation_date;
 
-        // Check if the provided roadSegment_id exists in the RoadSegment collection
-        if (roadSegment_id) {
-            const roadSegmentExists = await RoadSegment.findById(roadSegment_id);
-            if (!roadSegmentExists) {
+        // Kiểm tra và cập nhật mảng roadSegments
+        if (roadSegment_ids) {
+            const roadSegmentsExist = await RoadSegment.find({ '_id': { $in: roadSegment_ids } });
+            if (roadSegmentsExist.length !== roadSegment_ids.length) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Road segment not found',
+                    message: 'One or more road segments not found',
                 });
             }
-            camera.roadSegment_id = roadSegment_id;
+            camera.roadSegments = roadSegment_ids; // Cập nhật roadSegments
         }
 
-        // Save the updated camera document
         const updatedCamera = await camera.save();
+
+        // Update cache with the new camera data
+        const index = req.cachedCameras.findIndex(c => c._id.toString() === updatedCamera._id.toString());
+        if (index !== -1) {
+            req.cachedCameras[index] = updatedCamera.toObject();
+        }
 
         return res.status(200).json({
             success: true,
@@ -186,33 +186,32 @@ export const updateCamera = async (req, res, next) => {
     }
 };
 
+
 export const deleteCamera = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        // Find and delete the camera in a single operation
         const deletedCamera = await Camera.findByIdAndDelete(id);
-
-        // If no camera is found, return a 404 response
         if (!deletedCamera) {
             return res.status(404).json({
                 success: false,
-                message: "Camera not found"
+                message: "Camera not found",
             });
         }
 
-        // Return the deleted camera data in the response
+        // Remove the deleted camera from the cache
+        req.cachedCameras = req.cachedCameras.filter(camera => camera._id.toString() !== id);
+
         return res.status(200).json({
             success: true,
             message: "Camera deleted successfully",
-            data: flatCameraDate(deletedCamera)
+            data: flatCameraDate(deletedCamera),
         });
 
     } catch (err) {
-        // Catch and handle any errors
         return res.status(500).json({
             success: false,
-            message: err.message
+            message: err.message,
         });
     }
 };

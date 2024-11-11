@@ -6,6 +6,7 @@ import cameraRoutes from "./routes/camera.routes.js";
 import accountReport from "./routes/accountReport.routes.js";
 import weatherRoutes from "./routes/weather.routes.js";
 import accountRoutes from "./routes/account.routes.js";
+import renderRoutes from "./routes/renderRoutes.routes.js";
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.use("/camera",cameraRoutes);
 router.use("/weather", weatherRoutes);
 router.use("/account-report",accountReport);
 router.use("/account",accountRoutes);
+router.use("/routes",renderRoutes);
 
 export default router;
