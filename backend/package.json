@@ -31,7 +31,8 @@
     "nodemailer": "^6.9.15",
     "path": "^0.12.7",
     "polyline": "^0.2.0",
-    "polyline-encoded": "^0.0.9"
+    "polyline-encoded": "^0.0.9",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"

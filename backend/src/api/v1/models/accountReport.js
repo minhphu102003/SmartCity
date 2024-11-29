@@ -48,11 +48,12 @@ const userReportSchema = new mongoose.Schema(
         required: true,
       },
     },
-    roadSegment_id: {
-      type: mongoose.Schema.Types.ObjectId, // Sử dụng ObjectId để tham chiếu đến model RoadSegment
-      ref: "RoadSegment", // Tham chiếu đến mô hình RoadSegment
-      // Bỏ 'required: true' để làm cho foreign key này là optional
-    },
+    roadSegment_ids: [
+      {
+        type: mongoose.Schema.Types.ObjectId, // Liên kết nhiều đoạn đường
+        ref: "RoadSegment",
+      },
+    ],
     listImg: [imageUserReportSchema],
   },
   {

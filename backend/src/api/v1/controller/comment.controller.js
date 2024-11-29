@@ -3,13 +3,36 @@ import path from "path";
 import Comment from "../models/comment.js";
 import Place from "../models/place.js";
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
+import {produceMessage} from "../../../config/kafka.config.js";
+
+const PRODUCE_TOPIC = process.env.PRODUCE_TOPIC || 'express-topic';
 
 const updatePlaceStar = async (place_id) => {
-    const comments = await Comment.find({ place_id }); // Fetch all comments for the place
-    const totalStars = comments.reduce((acc, comment) => acc + comment.star, 0);
-    const averageStar = comments.length > 0 ? totalStars / comments.length : 0;
+    try {
+        const comments = await Comment.find({ place_id });
+        const totalStars = comments.reduce((acc, comment) => acc + comment.star, 0);
+        const averageStar = comments.length > 0 ? totalStars / comments.length : 0;
+        const roundedAverageStar = parseFloat(averageStar.toFixed(1));
+        const updatedPlace = await Place.findByIdAndUpdate(
+            place_id,
+            { star: roundedAverageStar  },
+            { new: true } // Trả về document đã được cập nhật
+        );
+        if (!updatedPlace) {
+            console.error(`Place with ID ${place_id} not found.`);
+            return;
+        }
+        const messageObject = {
+            place_id,
+            roundedAverageStar ,
+            updatedAt: new Date() // Gửi thêm timestamp cập nhật (nếu cần)
+        };
+        produceMessage(PRODUCE_TOPIC, messageObject, "update-star");
 
-    await Place.findByIdAndUpdate(place_id, { star: averageStar }); // Update the place with the new average star rating
+        console.log(`Place ${place_id} star rating updated and sent to Kafka.`);
+    } catch (error) {
+        console.error('Error updating place star rating:', error);
+    }
 };
 
 const formatComment = (comment) => {
@@ -259,7 +282,9 @@ export const deleteComment = async (req, res, next) => {
 
         // Delete the comment and return the deleted data
         const deletedComment = await Comment.findByIdAndDelete(id);
-
+        updatePlaceStar(deletedComment.place_id).catch(err => {
+            console.error("Error updating place star:", err);
+        });
         return res.status(200).json({
             success: true,
             message: "Comment deleted successfully",

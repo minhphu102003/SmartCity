@@ -5,7 +5,6 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       unique: true,
-      required: true,
     },
     phone: {
       type: String,
@@ -19,8 +18,8 @@ const userSchema = new mongoose.Schema(
     account_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Account",
-      required: true,
     },
+    uniqueId: { type: String, unique: true },
   },
   {
     timestamps: true,

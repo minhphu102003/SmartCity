@@ -13,7 +13,7 @@ router.use((req, res, next) => {
       "Access-Control-Allow-Headers",
       "x-access-token, Origin, Content-Type, Accept"
     );
-    next();
+    next(); 
 });
 // Test ok 
 router.get("/suggestion",[coordinatesQueryValidator, handleValidationErrors], getClothingSuggestion);

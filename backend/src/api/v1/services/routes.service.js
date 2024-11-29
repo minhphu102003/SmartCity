@@ -8,7 +8,7 @@ import haversine from 'haversine-distance';
 
 // Helper function to call OSRM API and fetch route data
 export const fetchOSRMData = async (start, end, vehicleType) => {
-  const osrmUrl = `https://router.project-osrm.org/route/v1/${vehicleType}/${start};${end}?alternatives=true`;
+  const osrmUrl = `https://router.project-osrm.org/route/v1/${vehicleType}/${start};${end}?alternatives=true&steps=true`;
   const osrmResponse = await axios.get(osrmUrl);
   return osrmResponse.data.routes;
 };

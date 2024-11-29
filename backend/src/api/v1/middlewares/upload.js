@@ -16,26 +16,26 @@ const storage = multer.diskStorage({
 const uploadMultiple = multer({
   storage,
   limits: { fileSize: MAX_FILE_SIZE }, // Limit for each file
-  fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
-    if (!allowedMimeTypes.includes(file.mimetype)) {
-      return cb(new Error("Only image files (JPEG, JPG, PNG, GIF) are allowed."));
-    }
-    cb(null, true);
-  },
+  // fileFilter: (req, file, cb) => {
+  //   const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+  //   if (!allowedMimeTypes.includes(file.mimetype)) {
+  //     return cb(new Error("Only image files (JPEG, JPG, PNG, GIF) are allowed."));
+  //   }
+  //   cb(null, true);
+  // },
 }).array("files", MAX_FILE_COUNT); // Allow multiple files
 
 // Upload a single file
 const uploadSingle = multer({
   storage,
   limits: { fileSize: MAX_FILE_SIZE }, // Limit for the file
-  fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
-    if (!allowedMimeTypes.includes(file.mimetype)) {
-      return cb(new Error("Only image files (JPEG, JPG, PNG, GIF) are allowed."));
-    }
-    cb(null, true);
-  },
+  // fileFilter: (req, file, cb) => {
+  //   const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+  //   if (!allowedMimeTypes.includes(file.mimetype)) {
+  //     return cb(new Error("Only image files (JPEG, JPG, PNG, GIF) are allowed."));
+  //   }
+  //   cb(null, true);
+  // },
 }).single("img"); // Allow a single file
 
 // Middleware to handle multiple uploads

@@ -5,6 +5,7 @@ import {
   deleteAccountHandler,
   listOrSearchAccountsHandler,
   manageAccountRolesHandler,
+  getUserProfile,
 } from "../controller/account.controller.js";
 import { validateById } from "../validations/commonField.validator.js";
 import { validateWithToken } from "../validations/commonField.validator.js";
@@ -34,6 +35,7 @@ router.use((req, res, next) => {
   next();
 });
 
+router.get('/profile',[validateWithToken,handleValidationErrors],veriFyToken, getUserProfile);
 router.get("/", [searchAccountsValidator, handleValidationErrors], listOrSearchAccountsHandler); 
 // ? Ok test xong
 router.get("/:id", [validateById, handleValidationErrors], getAccountDetailsHandler); 

@@ -92,41 +92,59 @@ export const getCameras = async (req, res) => {
 };
 
 
-export const createCamera = async (req, res, next) => {
+export const createCamera = async (req, res) => {
     try {
-        const { longitude, latitude, status = true, installation_date, roadSegment_ids } = req.body;
-
-        // Nếu cung cấp roadSegment_ids, đảm bảo chúng là mảng
-        const roadSegments = Array.isArray(roadSegment_ids) ? roadSegment_ids : [roadSegment_ids];
-
-        const newCamera = new Camera({
-            location: {
-                type: 'Point',
-                coordinates: [parseFloat(longitude), parseFloat(latitude)],
+      const { longitude, latitude, link, status = true, installation_date } = req.body;
+  
+      // Chuẩn hóa tọa độ
+      const cameraCoordinates = [parseFloat(longitude), parseFloat(latitude)];
+  
+      // Tìm kiếm đoạn đường gần nhất trong phạm vi 10m
+      const roadSegment = await RoadSegment.findOne({
+        roadSegmentLine: {
+          $near: {
+            $geometry: {
+              type: "Point",
+              coordinates: cameraCoordinates,
             },
-            status,
-            installation_date,
-            roadSegments, // Sử dụng mảng roadSegment_ids
-        });
-
-        const savedCamera = await newCamera.save();
-
-        // Add the new camera to cache
-        req.cachedCameras.push(savedCamera.toObject());
-
-        return res.status(201).json({
-            success: true,
-            message: 'Camera created successfully',
-            data: flatCameraDate(savedCamera),
-        });
+            $maxDistance: 10, // Sai số 10m
+          },
+        },
+      });
+  
+      // Tạo camera mới
+      const newCamera = new Camera({
+        location: {
+          type: "Point",
+          coordinates: cameraCoordinates,
+        },
+        status,
+        link,
+        installation_date,
+        roadSegments: roadSegment ? [roadSegment._id] : [], // Lưu đoạn đường nếu tìm thấy
+      });
+  
+      const savedCamera = await newCamera.save();
+  
+      if (!roadSegment) {
+        // Nếu không có đoạn đường, thêm vào cache
+        req.cameraCache.push(savedCamera.toObject());
+      }
+  
+      return res.status(201).json({
+        success: true,
+        message: "Camera created successfully",
+        data: flatCameraDate(savedCamera),
+      });
     } catch (err) {
-        console.error('Error creating camera:', err);
-        return res.status(500).json({
-            success: false,
-            message: err.message,
-        });
+      console.error("Error creating camera:", err);
+      return res.status(500).json({
+        success: false,
+        message: err.message,
+      });
     }
 };
+  
 
 
 export const updateCamera = async (req, res, next) => {

@@ -2,6 +2,41 @@ import Account from "../models/account.js"; // Adjust the path as needed
 import User from "../models/user.js"; // Adjust the path as needed
 import Role from "../models/role.js";
 
+export const getUserProfile = async (req, res) => {
+  try {
+    // Lấy account_id từ middleware
+    const account_id = req.account_id;
+
+    // Tìm tài khoản từ collection Account (loại trừ password)
+    const account = await Account.findById(account_id, { password: 0 }).populate("roles", "name");
+    if (!account) {
+      return res.status(404).json({ message: "No account found" });
+    }
+
+    // Tìm thông tin người dùng từ collection User
+    const user = await User.findOne({ account_id: account_id }).select("email phone");
+    if (!user) {
+      return res.status(404).json({ message: "No user information found" });
+    }
+
+    // Gộp thông tin tài khoản và người dùng
+    res.status(200).json({
+      success: true,
+      message: "User profile fetched successfully",
+      data: {
+        username: account.username,
+        roles: account.roles.map((role) => role.name),
+        createdAt: account.createdAt,
+        email: user.email,
+        phone: user.phone,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Internal Server Error", error: err.message });
+  }
+};
+
 // Get account details by ID
 export const getAccountDetailsHandler = async (req, res) => {
   const accountId = req.params.id;

@@ -13,6 +13,10 @@ const cameraSchema = new mongoose.Schema(
         required: true,
       },
     },
+    link :{
+      type: String,
+      required: true
+    },
     status: {
       type: Boolean,
       default: true,

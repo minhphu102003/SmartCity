@@ -21,14 +21,7 @@ const flattenPlace = (place) => {
 
 export const searchNearest = async (req, res, next) => {
     try {
-        const { latitude, longitude, radius = 100, type, limit = 50, page = 1 } = req.query;
-
-        if (!latitude || !longitude) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide latitude and longitude",
-            });
-        }
+        const { latitude, longitude, radius = 10, type, limit = 20, page = 1, minStar, maxStar } = req.query;
 
         const lat = parseFloat(latitude);
         const lon = parseFloat(longitude);
@@ -37,56 +30,64 @@ export const searchNearest = async (req, res, next) => {
         const currentPage = parseInt(page);
         const skip = (currentPage - 1) * limitResults;
 
-        // Build the initial query
         let query = {};
-        if (type) {
-            query.type = type; // Filter by type if provided
+        let sort = { distance: 1 };  // Thêm trường sắp xếp mặc định theo 'distance'
+
+        // Nếu có maxStar, chỉ sắp xếp theo star
+        if (maxStar !== undefined) {
+            query = {
+                ...(type && { type }),
+                star: {
+                    ...(minStar && { $gte: parseFloat(minStar) }),
+                    $lte: parseFloat(maxStar),
+                },
+            };
+            sort = { star: -1 }; // Sắp xếp theo star giảm dần
+        } else {
+            // Nếu không có maxStar, vẫn giữ sort mặc định theo 'distance'
+            query = {
+                ...(type && { type }),
+                ...(minStar !== undefined ? { star: { $gte: parseFloat(minStar) } } : {}),
+            };
         }
+        // Tổng số kết quả
+        const totalCount = await Place.countDocuments(query);
+        // Sử dụng $geoNear để truy vấn
+        const allPlaces = await Place.aggregate([
+            {
+                $geoNear: {
+                    near: { type: "Point", coordinates: [lon, lat] },
+                    distanceField: "distance", // Trường sẽ chứa khoảng cách
+                    maxDistance: radiusInKm * 1000, // Chuyển km thành meters
+                    // spherical: true,
+                },
+            },
+            { $match: query }, // Áp dụng các điều kiện lọc thêm
+            { $sort: sort }, // Sắp xếp kết quả trước
+            { $skip: skip },
+            { $limit: limitResults },
+        ]);
 
-        // Fetch places from database
-        const allPlaces = await Place.find(query);
-
-        // Filter places within the specified radius
-        const nearbyPlaces = allPlaces.filter((place) => {
-            const distance = calculateDistance(
-                lat,
-                lon,
-                place.location.coordinates[1],
-                place.location.coordinates[0]
-            );
-            return distance <= radiusInKm;
-        });
-
-        // Sort places by distance
-        nearbyPlaces.sort((a, b) => {
-            const distanceA = calculateDistance(lat, lon, a.location.coordinates[1], a.location.coordinates[0]);
-            const distanceB = calculateDistance(lat, lon, b.location.coordinates[1], b.location.coordinates[0]);
-            return distanceA - distanceB;
-        });
-
-        // Calculate total pages and limit results for pagination
-        const total = nearbyPlaces.length;
-        const totalPages = Math.ceil(total / limitResults);
-        const limitedPlaces = nearbyPlaces.slice(skip, skip + limitResults);
-
-        // Flatten data
-        const flatPlaces = limitedPlaces.map(flattenPlace);
+        const flatPlaces = allPlaces.map(flattenPlace);
+        const totalPages = Math.ceil(totalCount / limitResults);
 
         return res.status(200).json({
             success: true,
-            total,
+            total: totalCount,
             count: flatPlaces.length,
             totalPages,
             currentPage,
             data: flatPlaces,
         });
     } catch (e) {
+        console.log(e);
         return res.status(500).json({
             success: false,
             message: e.message,
         });
     }
 };
+
 
 
 export const createPlace = async (req, res, next) => {

@@ -1,57 +1,35 @@
 import { Weather, WeatherCondition } from "../models/weather.js";
 import axios from "axios";
 
+
 function suggestClothing(temp, clouds, windSpeed, weatherCondition) {
     let suggestion = '';
-
+    let code = 0;
     if (temp < 20) {
         suggestion = 'Wear a jacket and long pants';
+        code = '1';
     } else if (temp > 30) {
         suggestion = 'Wear light and cool clothing';
+        code = '2';
     } else {
         suggestion = 'Wear regular clothing';
+        code = '3';
     }
 
     if (weatherCondition.includes('Rain') || clouds > 50 || windSpeed > 5) {
         suggestion += ', bring a raincoat or umbrella and be cautious of the wind';
+        code += '1';
     } else if (weatherCondition.includes('Clear')) {
         suggestion += ', wear sunglasses and a hat';
+        code += '2';
     }
 
     if (temp > 35 || temp < 10 || windSpeed > 10) {
         suggestion += '. It is advisable to stay indoors if not necessary.';
     }
 
-    return suggestion;
+    return { suggestion, code, temp };
 }
-
-
-export const getWeatherConditions = async (req, res) => {
-    try {
-        const { page = 1, limit = 10 } = req.query; // Lấy thông tin page và limit từ query string
-        const skip = (page - 1) * limit; // Tính số bản ghi cần bỏ qua
-
-        // Lấy tất cả các điều kiện thời tiết khác nhau với phân trang
-        const conditions = await WeatherCondition.find()
-            .skip(skip)
-            .limit(parseInt(limit)) // Ensure limit is an integer
-            .exec();
-
-        const totalConditions = await WeatherCondition.countDocuments(); // Tổng số điều kiện thời tiết
-
-        return res.status(200).json({
-            success: true,
-            total: totalConditions, // Tổng số điều kiện
-            count: conditions.length, // Số lượng điều kiện trả về
-            totalPages: Math.ceil(totalConditions / limit), // Tổng số trang
-            currentPage: parseInt(page), // Trang hiện tại
-            data: conditions // Danh sách điều kiện thời tiết
-        });
-    } catch (error) {
-        console.error("Error retrieving weather conditions:", error);
-        return res.status(500).json({ success: false, message: error.message });
-    }
-};
 
 export const getClothingSuggestion = async (req, res, next) => {
     try {
@@ -79,17 +57,17 @@ export const getClothingSuggestion = async (req, res, next) => {
         // Check if there's existing weather data
         const existingWeatherData = await Weather.find(query).populate("weather_conditions").sort({ dt: -1 }).limit(1);
 
-        let suggestion;
+        let suggestion, code, temp; // Declare variables here
 
         if (existingWeatherData.length > 0) {
             // Use the existing weather data to generate a clothing suggestion
             const latestWeather = existingWeatherData[0];
-            suggestion = suggestClothing(
+            ({ suggestion, code, temp } = suggestClothing(
                 latestWeather.temp,
                 latestWeather.clouds_all,
                 latestWeather.wind_speed,
                 latestWeather.weather_conditions[0].main
-            );
+            ));
         } else {
             // Fetch new weather data from the external API
             const apikey = process.env.API_KEY;
@@ -135,21 +113,50 @@ export const getClothingSuggestion = async (req, res, next) => {
             await weather.save();
 
             // Generate clothing suggestion
-            suggestion = suggestClothing(
+            ({ suggestion, code, temp } = suggestClothing(
                 weatherData.main.temp,
                 weatherData.clouds.all,
                 weatherData.wind.speed,
                 weatherData.weather[0].main
-            );
+            ));
         }
         res.json({
             success: true,
             message: existingWeatherData.length > 0 ? 'Existing weather data used' : 'New weather data fetched and saved',
             data: suggestion,
+            code: code,
+            temp: temp,
         });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const getWeatherConditions = async (req, res) => {
+    try {
+        const { page = 1, limit = 10 } = req.query; // Lấy thông tin page và limit từ query string
+        const skip = (page - 1) * limit; // Tính số bản ghi cần bỏ qua
+
+        // Lấy tất cả các điều kiện thời tiết khác nhau với phân trang
+        const conditions = await WeatherCondition.find()
+            .skip(skip)
+            .limit(parseInt(limit)) // Ensure limit is an integer
+            .exec();
+
+        const totalConditions = await WeatherCondition.countDocuments(); // Tổng số điều kiện thời tiết
+
+        return res.status(200).json({
+            success: true,
+            total: totalConditions, // Tổng số điều kiện
+            count: conditions.length, // Số lượng điều kiện trả về
+            totalPages: Math.ceil(totalConditions / limit), // Tổng số trang
+            currentPage: parseInt(page), // Trang hiện tại
+            data: conditions // Danh sách điều kiện thời tiết
+        });
+    } catch (error) {
+        console.error("Error retrieving weather conditions:", error);
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 

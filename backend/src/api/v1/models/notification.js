@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { NotificationStatus } from "../constants/enum"; 
+import { NotificationStatus } from "../constants/enum.js"; 
 
 const notificationSchema = new mongoose.Schema(
     {
@@ -28,6 +28,10 @@ const notificationSchema = new mongoose.Schema(
         latitude: {
             type: Number, // Vĩ độ
             required: true, // Bắt buộc phải có latitude
+        },
+        img: {
+            type: String, // Nội dung notification
+            required: true, // Bắt buộc phải có message
         },
     },
     {

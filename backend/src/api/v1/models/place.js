@@ -53,4 +53,6 @@ const placeSchema = new mongoose.Schema(
   }
 );
 
+placeSchema.index({ location: "2dsphere" });
+
 export default mongoose.model("Place", placeSchema); // Xuất model Place

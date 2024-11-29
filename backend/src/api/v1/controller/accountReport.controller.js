@@ -1,10 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import AccountReport from "../models/accountReport.js";
+import RoadSegment from '../models/roadSegment.js';
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
 import {produceMessage} from "../../../config/kafka.config.js";
 
-const PRODUCE_TOPIC = process.env.PRODUCE_TOPIC || 'express-topic';
+const PRODUCE_TOPIC = process.env.KAFKA_TOPIC_PRODUCER || 'express-topic';
+const DEMO_TOPIC = process.env.KAFKA_TOPIC_CONSUMER || 'python-topic';
 
 export const getAccountReports = async (req, res) => {
   try {
@@ -18,9 +20,7 @@ export const getAccountReports = async (req, res) => {
       endDate,
       analysisStatus,
     } = req.query;
-
     const query = {};
-
     // Thiết lập các điều kiện lọc
     if (typeReport) query.typeReport = typeReport;
     if (congestionLevel) query.congestionLevel = congestionLevel;
@@ -28,6 +28,7 @@ export const getAccountReports = async (req, res) => {
     if (analysisStatus) query.analysisStatus = analysisStatus === "true";
 
     // Lọc theo khoảng thời gian
+    
     if (startDate || endDate) {
       query.timestamp = {};
       if (startDate) query.timestamp.$gte = new Date(startDate);
@@ -36,6 +37,7 @@ export const getAccountReports = async (req, res) => {
 
     // Tìm và populate dữ liệu với phân trang
     const reports = await AccountReport.find(query)
+      .sort({ timestamp: 1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .populate({
@@ -59,6 +61,7 @@ export const getAccountReports = async (req, res) => {
       timestamp: report.timestamp,
       createdAt: report.createdAt,
       updatedAt: report.updatedAt,
+      imgs: report.listImg,
       accountId: report.account_id._id,
       username: report.account_id.username,
       roles: report.account_id.roles.map(role => role.name),
@@ -107,6 +110,7 @@ export const getAccountReportById = async (req, res) => {
       timestamp: report.timestamp,
       createdAt: report.createdAt,
       updatedAt: report.updatedAt,
+      imgs: report.listImg,
       accountId: report.account_id._id,
       username: report.account_id.username,
       roles: report.account_id.roles.map(role => role.name),
@@ -127,10 +131,22 @@ export const createAccountReport = async (req, res) => {
     const { description, typeReport, congestionLevel, longitude, latitude } = req.body;
     const account_id = req.account_id;
 
-    // Get file paths from uploaded images using multer
+    // Lấy danh sách ảnh được tải lên từ Multer
     const uploadedImages = req.files.map((file) => ({ img: file.filename }));
 
-    // Create a new report with data from client and uploaded images
+    // Bán kính tìm kiếm xấp xỉ (10m = 10 / 6378.1 radians, với bán kính Trái Đất = 6378.1 km)
+    const searchRadius = 10 / 6378100;
+
+    // Tìm các đoạn đường gần tọa độ báo cáo
+    const nearbyRoadSegments = await RoadSegment.find({
+      "roadSegmentLine": {
+        $geoWithin: {
+          $centerSphere: [[longitude, latitude], searchRadius],
+        },
+      },
+    });
+
+    // Tạo báo cáo mới
     const newReport = new AccountReport({
       account_id,
       description,
@@ -141,15 +157,20 @@ export const createAccountReport = async (req, res) => {
         coordinates: [longitude, latitude],
       },
       listImg: uploadedImages,
+      roadSegment_ids: nearbyRoadSegments.map((segment) => segment._id), // Gắn các đoạn đường phù hợp
     });
 
     await newReport.save();
 
-    // Add to cache after saving to DB
-    req.cachedReports = req.cachedReports.push(newReport);
+    // Chỉ thêm vào cache nếu không tìm thấy RoadSegment nào
+    if (nearbyRoadSegments.length === 0) {
+      req.cachedReports = req.cachedReports.push(newReport);
+      console.log("Report added to cache:", newReport._id);
+    } else {
+      console.log("Nearby RoadSegment(s) found, report not cached.");
+    }
 
-    console.log(req.cachedReports)
-
+    // Tạo response
     const { location, ...rest } = newReport._doc;
     const responseReport = {
       latitude: location.coordinates[1],
@@ -157,6 +178,7 @@ export const createAccountReport = async (req, res) => {
       ...rest,
     };
 
+    // Gửi thông điệp tới Kafka
     const messageObject = {
       reportId: newReport._id,
       account_id,
@@ -167,15 +189,27 @@ export const createAccountReport = async (req, res) => {
       latitude,
       listImg: uploadedImages,
     };
-
     produceMessage(PRODUCE_TOPIC, messageObject, "create");
 
-    // Optionally send the report to Kafka for further processing
+    const messageObjectSendDemo = {
+      reportId: newReport._id,
+      account_id,
+      description,
+      typeReport,
+      congestionLevel,
+      longitude,
+      latitude,
+      img: uploadedImages[0]?.img || "",
+    };
+    produceMessage(DEMO_TOPIC, messageObjectSendDemo, "user report");
+
+    // Trả về kết quả cho client
     res.status(201).json({ success: true, data: responseReport });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 export const updateAccountReport = async (req, res) => {
