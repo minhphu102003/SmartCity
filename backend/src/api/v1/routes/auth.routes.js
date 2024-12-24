@@ -10,7 +10,7 @@ import {
 } from "../controller/auth.controller.js";
 import {
   checkExistingRole,
-} from "../middlewares/veriFySignUp.js";
+} from "../middlewares/verifySignUp.js";
 import {veriFyToken} from "../middlewares/authJwt.js";
 import {
   forgotPasswordValidator,

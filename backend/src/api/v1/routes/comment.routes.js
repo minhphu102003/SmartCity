@@ -10,7 +10,8 @@ import { veriFyToken } from "../middlewares/authJwt.js";
 import {validateById, validateWithToken} from "../validations/commonField.validator.js";
 import {handleValidationErrors} from "../validations/result.validator.js";
 import {validateCreateComment, validateUpdateComment} from "../validations/comment.validator.js";
-import {handleMultipleUploads} from "../middlewares/upload.js";
+// import {handleMultipleUploads} from "../middlewares/upload.js";
+import {handleMultipleUploads} from "../services/cloudinary.service.js";
 
 const router = Router();
 

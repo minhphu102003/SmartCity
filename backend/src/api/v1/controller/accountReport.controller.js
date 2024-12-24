@@ -3,7 +3,8 @@ import path from 'path';
 import AccountReport from "../models/accountReport.js";
 import RoadSegment from '../models/roadSegment.js';
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
-import {produceMessage} from "../../../config/kafka.config.js";
+// import {produceMessage} from "../../../config/kafka.config.js";
+import {produceMessage} from '../../../kafkaOnline.config.js';
 
 const PRODUCE_TOPIC = process.env.KAFKA_TOPIC_PRODUCER || 'express-topic';
 const DEMO_TOPIC = process.env.KAFKA_TOPIC_CONSUMER || 'python-topic';
@@ -37,7 +38,7 @@ export const getAccountReports = async (req, res) => {
 
     // Tìm và populate dữ liệu với phân trang
     const reports = await AccountReport.find(query)
-      .sort({ timestamp: 1 })
+      .sort({ timestamp: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .populate({
@@ -132,20 +133,26 @@ export const createAccountReport = async (req, res) => {
     const account_id = req.account_id;
 
     // Lấy danh sách ảnh được tải lên từ Multer
-    const uploadedImages = req.files.map((file) => ({ img: file.filename }));
-
-    // Bán kính tìm kiếm xấp xỉ (10m = 10 / 6378.1 radians, với bán kính Trái Đất = 6378.1 km)
-    const searchRadius = 10 / 6378100;
+    // const uploadedImages = req.files.map((file) => ({ img: file.filename }));
+    const uploadedImages = Array.isArray(req.body.uploadedImages)
+    ? req.body.uploadedImages.map((url) => ({ img: url }))
+    : [];
+    console.log("Uploaded Images:", uploadedImages);
+    // Bán kính tìm kiếm tối đa (10m)
+    const searchRadiusInMeters = 10;
 
     // Tìm các đoạn đường gần tọa độ báo cáo
     const nearbyRoadSegments = await RoadSegment.find({
-      "roadSegmentLine": {
-        $geoWithin: {
-          $centerSphere: [[longitude, latitude], searchRadius],
+      roadSegmentLine: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [longitude, latitude],
+          },
+          $maxDistance: searchRadiusInMeters,
         },
       },
     });
-
     // Tạo báo cáo mới
     const newReport = new AccountReport({
       account_id,
@@ -161,10 +168,11 @@ export const createAccountReport = async (req, res) => {
     });
 
     await newReport.save();
+    const timestamp = newReport.createdAt;
 
     // Chỉ thêm vào cache nếu không tìm thấy RoadSegment nào
     if (nearbyRoadSegments.length === 0) {
-      req.cachedReports = req.cachedReports.push(newReport);
+      req.cachedReports = req.cachedReports ? req.cachedReports.push(newReport) : [newReport];
       console.log("Report added to cache:", newReport._id);
     } else {
       console.log("Nearby RoadSegment(s) found, report not cached.");
@@ -188,6 +196,7 @@ export const createAccountReport = async (req, res) => {
       longitude,
       latitude,
       listImg: uploadedImages,
+      timestamp
     };
     produceMessage(PRODUCE_TOPIC, messageObject, "create");
 
@@ -199,6 +208,7 @@ export const createAccountReport = async (req, res) => {
       congestionLevel,
       longitude,
       latitude,
+      timestamp,
       img: uploadedImages[0]?.img || "",
     };
     produceMessage(DEMO_TOPIC, messageObjectSendDemo, "user report");
@@ -206,11 +216,10 @@ export const createAccountReport = async (req, res) => {
     // Trả về kết quả cho client
     res.status(201).json({ success: true, data: responseReport });
   } catch (error) {
+    console.error("Error creating account report:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
 
 export const updateAccountReport = async (req, res) => {
   const reportId = req.params.id;

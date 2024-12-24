@@ -53,9 +53,7 @@ const roadSegmentSchema = new mongoose.Schema(
   );
   
   // Tạo index 2dsphere cho trường coordinates
-  roadSegmentSchema.index(
-    { "start_location.coordinates": 1, "end_location.coordinates": 1 },
-    { unique: true }
-  );
+  roadSegmentSchema.index({ "start_location": "2dsphere" });
+  roadSegmentSchema.index({ "end_location": "2dsphere" });
   
   export default mongoose.model("RoadSegment", roadSegmentSchema);

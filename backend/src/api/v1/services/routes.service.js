@@ -139,7 +139,7 @@ export const updateCamerasWithRoadSegment = async (
   endLocation,
   cachedCameras
 ) => {
-  const radius = 10; // Mức sai số khoảng 10m
+  const radius = 20; // Mức sai số khoảng 10m
 
   // Use cached cameras instead of querying the database
   const camerasToUpdate = cachedCameras.filter((camera) => {
@@ -180,7 +180,7 @@ export const updateCamerasWithRoadSegment = async (
 
 // Helper function to update reports associated with road segments
 export const updateReportsWithRoadSegment = async (roadSegmentId, startLocation, endLocation, cachedReports) => {
-  const radius = 10; // 10 meters
+  const radius = 20; // 10 meters
 
   // Filter cached reports to find those near the new road segment
   const reportsToUpdate = cachedReports.filter(report => {
@@ -198,10 +198,10 @@ export const updateReportsWithRoadSegment = async (roadSegmentId, startLocation,
   });
 
   for (const report of reportsToUpdate) {
-      if (!report.roadSegment_id) {
-          report.roadSegment_id = roadSegmentId; // Link report to road segment
-          await report.save();
-      }
+    if (!report.roadSegment_ids.includes(roadSegmentId)) {
+      report.roadSegment_ids.push(roadSegmentId); // Thêm đoạn đường vào danh sách liên kết
+      await report.save();
+    }
   }
 };
 
@@ -229,7 +229,7 @@ const mergeReports = (cameraReports, accountReports) => {
     trafficVolume: report.trafficVolume,
     congestionLevel: report.congestionLevel,
     typeReport: report.typeReport,
-    img: report.img,
+    img: report.img[0].img,
     timestamp: report.timestamp,
   }));
 
@@ -238,7 +238,7 @@ const mergeReports = (cameraReports, accountReports) => {
     trafficVolume: null,
     congestionLevel: report.congestionLevel,
     typeReport: report.typeReport,
-    img: report.img, // `img` is formatted in processReportsForRoadSegment
+    img: report.img[0].img, // `img` is formatted in processReportsForRoadSegment
     timestamp: report.timestamp,
   }));
 
@@ -263,7 +263,6 @@ export const processReportsForRoadSegment = async (roadSegmentId, fiveMinutesAgo
 
       // Fetch nearby AccountReports
       const nearbyAccountReports = await getNearbyAccountReports(recentCameraReport, roadSegmentId, fiveMinutesAgo);
-
       for (const accountReport of nearbyAccountReports) {
         const distance = haversine(
           { lat: recentCameraReport.location.coordinates[1], lon: recentCameraReport.location.coordinates[0] },
@@ -279,10 +278,9 @@ export const processReportsForRoadSegment = async (roadSegmentId, fiveMinutesAgo
     } else if (!recentCameraReport) {
       // If no CameraReport, fetch AccountReports within the past 5 minutes
       const accountReports = await AccountReport.find({
-        roadSegment_id: roadSegmentId,
+        roadSegment_ids: roadSegmentId,
         timestamp: { $gte: fiveMinutesAgo },
       });
-
       for (const accountReport of accountReports) {
         if (!processedAccountReportIds.has(accountReport._id.toString())) {
           accountReport.img = Array.isArray(accountReport.listImg) ? accountReport.listImg : [accountReport.listImg];
@@ -290,6 +288,20 @@ export const processReportsForRoadSegment = async (roadSegmentId, fiveMinutesAgo
           processedAccountReportIds.add(accountReport._id.toString());
         }
       }
+    }
+  }
+
+  const accountReports = await AccountReport.find({
+    roadSegment_ids: roadSegmentId,
+    timestamp: { $gte: fiveMinutesAgo }
+  });
+
+  console.log(accountReports);
+  for (const accountReport of accountReports) {
+    if (!processedAccountReportIds.has(accountReport._id.toString())) {
+      accountReport.img = Array.isArray(accountReport.listImg) ? accountReport.listImg : [accountReport.listImg];
+      recentAccountReports.push(accountReport);
+      processedAccountReportIds.add(accountReport._id.toString());
     }
   }
 
@@ -308,15 +320,15 @@ export const getRecentCameraReport = async (cameraId, fiveMinutesAgo) => {
 // Tìm AccountReports gần CameraReport trong bán kính 20m và thời gian 5 phút
 export const getNearbyAccountReports = async (cameraReport, roadSegmentId, fiveMinutesAgo) => {
   return await AccountReport.find({
-    roadSegment_id: roadSegmentId,
-    timestamp: { $gte: fiveMinutesAgo },
+    roadSegment_ids: roadSegmentId, // Kiểm tra trong mảng roadSegment_ids
+    timestamp: { $gte: fiveMinutesAgo }, // Chỉ lấy các báo cáo trong 5 phút gần đây
     location: {
       $nearSphere: {
         $geometry: {
           type: "Point",
           coordinates: cameraReport.location.coordinates,
         },
-        $maxDistance: 20,
+        $maxDistance: 20, // 20 mét
       },
     },
   });

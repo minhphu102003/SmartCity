@@ -22,7 +22,6 @@ export const findRoutesHandler = async (req, res, next) => {
     // Iterate over each route to process and add reports and recommended status
     for (const router of routes) {
       const { roadSegmentID, newRoadSegments } = await insertUniqueRoadSegments(router);
-
       // Update cameras and reports with new road segments
       for (const savedRoadSegment of newRoadSegments) {
         await updateReportsWithRoadSegment(
@@ -37,8 +36,9 @@ export const findRoutesHandler = async (req, res, next) => {
           savedRoadSegment.end_location.coordinates,
           req.cachedCameras
         );
+        roadSegmentID.push(savedRoadSegment._id);
       }
-
+      console.log(roadSegmentID);
       // Collect recent reports for calculating the recommended status
       const recentReports = [];
       const processedAccountReportIds = new Set();

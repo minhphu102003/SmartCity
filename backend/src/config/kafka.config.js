@@ -4,6 +4,11 @@ import User from "../api/v1/models/user.js";
 import Notification from "../api/v1/models/notification.js";
 import {NotificationStatus} from "../api/v1/constants/enum.js";
 import {calculateDistance} from "../api/v1/services/distance.js";
+import moment from "moment-timezone";
+
+const getVietnamTimestamp = () => {
+  return moment.utc().add(7, 'hours').toISOString(); // Cộng thêm 7 giờ và trả về ISO 8601
+};
 
 const kafka = new Kafka({
   clientId: 'express-app',
@@ -45,13 +50,13 @@ const produceMessage = async (topic, messageObject, type) => {
     await producer.disconnect();
 };
 
-const buildNotificationMessage = (type, description, latitude, longitude, img) => {
+const buildNotificationMessage = (type, description, timestamp, latitude, longitude, img) => {
   const baseMessage = {
     title: 'Traffic jam notification',
     content: `Traffic jams reported near you: ${description}`,
     status: 'PENDING', // Default to 'read' or handle as per your logic
     isRead: false, // If the notification is read or not
-    timestamp: new Date().toISOString(),
+    timestamp,
     distance: '', // Leave this empty for frontend to calculate
     longitude,
     latitude,
@@ -71,11 +76,10 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
       const promises = batch.messages.map(async (message) => {
         try {
           const data = JSON.parse(message.value.toString());
-          const { type, latitude, longitude, account_id,typeReport, img, description } = data;
+          const { type, latitude, longitude, account_id,typeReport,timestamp, img, description } = data;
 
           // Build the notification message using the helper function
-          const notificationMessage = buildNotificationMessage(type, description, latitude, longitude, img);
-
+          const notificationMessage = buildNotificationMessage(type, description,timestamp, latitude, longitude, img);
           // Send message to all connected WebSocket clients
           sendMessageToFrontend(notificationMessage);
 
@@ -106,7 +110,7 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
               if (user.account_id) {
                 const notification = new Notification({
                   account_id: user.account_id,
-                  message: `Có báo cáo tắc đường gần bạn: ${description}`,
+                  message: `Traffic jams reported near you: ${description}`,
                   longitude,
                   latitude,
                   img: img, // First image

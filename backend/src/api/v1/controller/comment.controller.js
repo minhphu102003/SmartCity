@@ -27,7 +27,7 @@ const updatePlaceStar = async (place_id) => {
             roundedAverageStar ,
             updatedAt: new Date() // Gửi thêm timestamp cập nhật (nếu cần)
         };
-        produceMessage(PRODUCE_TOPIC, messageObject, "update-star");
+        // produceMessage(PRODUCE_TOPIC, messageObject, "update-star");
 
         console.log(`Place ${place_id} star rating updated and sent to Kafka.`);
     } catch (error) {
@@ -139,15 +139,16 @@ export const createComment = async (req, res, next) => {
         }
 
         // Convert uploaded images to an array of imageCommentSchema objects
-        const listImg = req.files?.map((file) => ({ image: file.filename })) || []; // Use filename for the stored image
-
+        const uploadedImages = Array.isArray(req.body.uploadedImages)
+        ? req.body.uploadedImages.map((url) => ({ image: url }))
+        : [];
         // Create a new comment
         const newComment = new Comment({
             star,
             content,
             account_id, // Assign account_id from token
             place_id,
-            listImg, // Assign list of images
+            listImg: uploadedImages, // Assign list of images
         });
 
         // Save the comment to the database

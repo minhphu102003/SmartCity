@@ -6,9 +6,10 @@ import { UPLOAD_DIRECTORY } from "./api/v1/constants/uploadConstants.js";
 import v1Routes from "./api/v1/index.js";
 import Camera from './api/v1/models/camera.js';  
 import AccountReport from './api/v1/models/accountReport.js';
-import { consumeMessages } from "./config/kafka.config.js";
+// import { consumeMessages } from "./config/kafka.config.js";
 import { WebSocketServer } from 'ws';  // Correct way to import WebSocketServer
 import {handleLocationUpdate } from "./api/v1/services/readLocation.js";
+import { produceMessage, consumeMessages, readConfig } from './kafkaOnline.config.js'; 
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morganMiddleware);
 app.use(cors());
 app.use('/uploads', express.static(UPLOAD_DIRECTORY));
+
+
 
 const wsClients = [];
 // Middleware to measure response time
@@ -40,7 +43,7 @@ let cachedReports = [];
 const preload = async () => {
     try {
         cachedCameras = await Camera.find({ roadSegments: { $exists: true, $size: 0 } });
-        cachedReports = await AccountReport.find({ roadSegment_id: { $exists: false } });
+        cachedReports = await AccountReport.find({ roadSegment_ids: { $exists: false } });
         console.log(`${cachedCameras.length} cameras without road segments loaded into cache`);
         console.log(`${cachedReports.length} reports without road segment references loaded into cache`);
     } catch (error) {
@@ -91,7 +94,6 @@ app.server = app.listen(app.get("port"), () => {
 });
 
 // Function to send a message to all connected WebSocket clients
-// Function to send a message to all connected WebSocket clients
 const sendMessageToFrontend = (message) => {
     wsClients.forEach(client => {
         if (client.readyState === client.OPEN) { // Check if client is still connected
@@ -104,7 +106,10 @@ const sendMessageToFrontend = (message) => {
 const startKafkaConsumer = async () => {
     try {
         const topic = process.env.KAFKA_TOPIC_CONSUMER || 'python-topic';
+        // const config = readConfig("./src/client.properties");
+        // await produce(topic, config);
         await consumeMessages(topic, sendMessageToFrontend);
+        // await consume(topic, config); // Kafka consumer setup
         console.log(`Kafka consumer started on topic: ${topic}`);
     } catch (error) {
         console.error("Error starting Kafka consumer:", error);

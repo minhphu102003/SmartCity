@@ -3,3 +3,4 @@
 
 /src/api/v1/logs/access.log
 /uploads
+/client.properties

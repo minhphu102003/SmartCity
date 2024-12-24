@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Account",
     },
-    uniqueId: { type: String, unique: true },
+    uniqueId: { type: String},
   },
   {
     timestamps: true,
