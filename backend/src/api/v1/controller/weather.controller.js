@@ -5,7 +5,7 @@ import axios from "axios";
 function suggestClothing(temp, clouds, windSpeed, weatherCondition) {
     let suggestion = '';
     let code = 0;
-    if (temp < 20) {
+    if (temp < 25) {
         suggestion = 'Wear a jacket and long pants';
         code = '1';
     } else if (temp > 30) {

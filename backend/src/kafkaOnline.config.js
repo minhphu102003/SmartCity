@@ -9,10 +9,21 @@ import {config} from "dotenv";
 config();
 
 
-const buildNotificationMessage = (type, description, timestamp, latitude, longitude, img) => {
+const buildNotificationMessage = (type, typeReport, description, timestamp, latitude, longitude, img) => {
+  // Định nghĩa bản đồ ánh xạ từ typeReport
+  const reportTypeMap = {
+    'TRAFFIC_JAM': 'Traffic Jam',
+    'FLOOD': 'Flood',
+    'ACCIDENT': 'Accident',
+    'ROADWORK': 'Road Work',
+  };
+
+  // Chuyển đổi typeReport thành dạng thân thiện với người dùng
+  const typeDescription = reportTypeMap[typeReport] || 'Unknown';
+
   const baseMessage = {
-    title: 'Traffic jam notification',
-    content: `Traffic jams reported near you: ${description}`,
+    title: `${typeDescription} notification`,
+    content: `${typeDescription} reported near you: ${description}`,
     status: 'PENDING', // Default to 'read' or handle as per your logic
     isRead: false, // If the notification is read or not
     timestamp,
@@ -21,6 +32,7 @@ const buildNotificationMessage = (type, description, timestamp, latitude, longit
     latitude,
     img
   };
+
   return baseMessage;
 };
 
@@ -71,7 +83,7 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
       password: process.env.sasl_password, // Thay bằng password của bạn
     },
   });
-  const consumer = kafka.consumer({ groupId: 'express-group' });
+  const consumer = kafka.consumer({ groupId: 'express-group1' });
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: true });
 
@@ -81,26 +93,34 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
         const data = JSON.parse(message.value.toString());
         console.log(`Consumed message from topic ${topic}:`, data);
 
-        const { type, latitude, longitude, account_id, typeReport, timestamp, img, description } = data;
+        const { type, latitude, camera_id, longitude, account_id, typeReport, trafficVolume, timestamp, congestionLevel, img, description } = data;
 
         // Gửi dữ liệu đến frontend (WebSocket hoặc phương thức khác)
-        const notificationMessage = buildNotificationMessage(type, description, timestamp, latitude, longitude, img);
+        const notificationMessage = buildNotificationMessage(type, typeReport, description, timestamp, latitude, longitude, img);
         sendMessageToFrontend(notificationMessage);
 
         // Xử lý logic tương tự như cũ, dựa trên `type`
         if (type === "camera report") {
-          const report = new CameraReport({ camera_id, trafficVolume, congestionLevel, typeReport, img });
+          const report = new CameraReport({ camera_id, trafficVolume, congestionLevel, typeReport, img, timestamp });
           await report.save();
-          console.log('Camera report saved:', report);
         } else if (type === "user report") {
-          // Lọc và xử lý thông báo như trước
+          const reportTypeMap = {
+            'TRAFFIC_JAM': 'Traffic Jam',
+            'FLOOD': 'Flood',
+            'ACCIDENT': 'Accident',
+            'ROADWORK': 'Road Work',
+          };
+        
+          // Chuyển đổi typeReport thành dạng thân thiện với người dùng
+          const typeDescription = reportTypeMap[typeReport] || 'Unknown';
+          // Lọc và xử lý thông báo như trước 
           const allUsers = await User.find({ latitude: { $exists: true }, longitude: { $exists: true } });
           const usersInRange = allUsers.filter((user) => calculateDistance(latitude, longitude, user.latitude, user.longitude) <= 10);
           for (const user of usersInRange) {
             if(user.account_id){
               const notification = new Notification({
                 account_id: user.account_id,
-                message: `Traffic jams reported near you: ${description}`,
+                message: `${typeDescription} reported near you: ${description}`,
                 longitude,
                 latitude,
                 img,

@@ -15,6 +15,8 @@ const uploadMultiple = multer({
 export const handleMultipleUploads = async (req, res, next) => {
   uploadMultiple(req, res, async function (err) {
     if (err) {
+      console.log('debug');
+      console.log(err);
       return res.status(400).json({
         success: false,
         errors: [

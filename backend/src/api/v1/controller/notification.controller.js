@@ -24,17 +24,30 @@ export const getListNotificationByAccount = async (req, res, next) => {
         }
 
         // Chuyển đổi dữ liệu sang định dạng tương ứng với frontend
-        const formattedNotifications = notifications.map(notification => ({
-            title: 'Traffic jam notification', // Lấy nội dung của message cho title
-            content: notification.message, // Cũng có thể sử dụng message cho content, tùy thuộc vào yêu cầu
-            status: notification.status, // Giữ nguyên status
-            isRead: notification.status === NotificationStatus.READ, // Giả sử status "COMPLETED" là đã đọc
-            timestamp: notification.timestamp, // Thời gian notification
-            distance: "", // Thêm logic tính khoảng cách nếu cần
-            longitude: notification.longitude, // Kinh độ
-            latitude: notification.latitude, // Vĩ độ
-            img: notification.img, // Đường dẫn hình ảnh
-        }));
+        const formattedNotifications = notifications.map(notification => {
+            let title;
+            if (notification.message.startsWith('T')) {
+                title = 'Traffic jam notification';
+            } else if (notification.message.startsWith('F')) {
+                title = 'Flood notification';
+            } else if (notification.message.startsWith('A')) {
+                title = 'Accident notification';
+            } else {
+                title = 'Road Work Notification';
+            }
+        
+            return {
+                title: title, // Set title based on the condition
+                content: notification.message, // Cũng có thể sử dụng message cho content, tùy thuộc vào yêu cầu
+                status: notification.status, // Giữ nguyên status
+                isRead: notification.status === NotificationStatus.READ, // Giả sử status "COMPLETED" là đã đọc
+                timestamp: notification.timestamp, // Thời gian notification
+                distance: "", // Thêm logic tính khoảng cách nếu cần
+                longitude: notification.longitude, // Kinh độ
+                latitude: notification.latitude, // Vĩ độ
+                img: notification.img, // Đường dẫn hình ảnh
+            };
+        });
 
         return res.status(200).json({
             success: true,
