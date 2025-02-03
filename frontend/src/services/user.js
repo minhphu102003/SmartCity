@@ -1,7 +1,7 @@
 import * as request from '../utils/request'
 
 
-const USERS_ENDPOINT = '/api/users/current-user';
+const USERS_ENDPOINT = '/users/current-user';
 
 export const getCurrentUser = async(accessToken) =>{
     try{
@@ -16,7 +16,7 @@ export const getCurrentUser = async(accessToken) =>{
     }
 }
 
-const EDIT_PROFILE_ENDPOINT = '/api/users/edit-profile';
+const EDIT_PROFILE_ENDPOINT = '/users/edit-profile';
 
 export const editProfile = async(formData,accessToken) => {
     try{
@@ -39,7 +39,7 @@ export const editProfile = async(formData,accessToken) => {
 }
 
 
-const DELETE_ENDPOINT = "/api/users/delete-user";
+const DELETE_ENDPOINT = "/users/delete-user";
 
 export const deleteUserById = async (accessToken, id) => {
     try {

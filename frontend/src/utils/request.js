@@ -4,7 +4,7 @@ import {toast} from "react-toastify";
 let isRefreshing = false;
 
 const instance = axios.create({
-    baseURL:"http://localhost:8000",
+    baseURL:"http://localhost:8000/api/v1",
 });
 
 
