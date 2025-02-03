@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactMapGL, {
   GeolocateControl,
   FullscreenControl,
@@ -7,7 +7,12 @@ import ReactMapGL, {
 } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
+import {
+  faLocationDot,
+  faSearch,
+  faChevronRight,
+  faChevronLeft,
+} from '@fortawesome/free-solid-svg-icons';
 
 const Map = () => {
   const [viewport, setViewport] = useState({
@@ -17,9 +22,11 @@ const Map = () => {
   });
 
   const [userLocation, setUserLocation] = useState(null);
+  const scrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
-    // Lấy vị trí người dùng khi component mount
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -43,6 +50,33 @@ const Map = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const checkScroll = () => {
+      if (scrollRef.current) {
+        setCanScrollLeft(scrollRef.current.scrollLeft > 0);
+        
+        // Kiểm tra nếu scroll đã đến hết bên phải (có độ trễ nhỏ do giá trị có thể bị làm tròn)
+        setCanScrollRight(
+          scrollRef.current.scrollLeft <
+            scrollRef.current.scrollWidth - scrollRef.current.clientWidth - 1
+        );
+      }
+    };
+
+    checkScroll();
+    scrollRef.current?.addEventListener('scroll', checkScroll);
+
+    return () => {
+      scrollRef.current?.removeEventListener('scroll', checkScroll);
+    };
+  }, []);
+
+  const handleScroll = (direction) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: direction * 100, behavior: 'smooth' });
+    }
+  };
+
   const handleGeolocate = (event) => {
     const { latitude, longitude } = event.coords;
     setViewport({
@@ -54,28 +88,69 @@ const Map = () => {
   };
 
   return (
-    <div className="h-full w-full">
-      {/* Thanh tìm kiếm và các nút điều khiển */}
-      <div className="absolute left-1/2 top-4 flex w-[80%] max-w-xl -translate-x-1/2 transform gap-2 rounded-xl bg-white p-3 shadow-md">
-        <input
-          type="text"
-          placeholder="Tìm kiếm địa điểm..."
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-400"
-        />
-        <button className="rounded-lg bg-blue-600 px-4 py-2 text-white shadow-md hover:bg-blue-700">
-          Tìm kiếm
-        </button>
+    <div className="relative h-screen w-full">
+      {/* Thanh tìm kiếm + Nút cuộn */}
+      <div className="absolute left-[2%] top-4 z-50 flex w-[92%] items-center">
+        <div className="gap-4 rounded-xl bg-white px-2 shadow-md">
+          {/* Thanh tìm kiếm */}
+          <div className="flex w-[30%] items-center gap-2 rounded-xl bg-white px-2 py-1">
+            <input
+              type="text"
+              placeholder="Tìm kiếm địa điểm..."
+              className="flex-1 px-4 py-2 outline-none"
+            />
+            <button className="flex h-[5vh] w-[40px] items-center justify-center rounded-lg px-2 text-black hover:bg-blue-600">
+              <FontAwesomeIcon icon={faSearch} />
+            </button>
+          </div>
+        </div>
+
+        {/* Danh sách nút */}
+        <div className="relative ml-[4%] flex-1 overflow-hidden">
+          {/* Nút cuộn trái */}
+          {canScrollLeft && (
+            <button
+              className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-gray-300 p-2 shadow-md hover:bg-gray-400"
+              onClick={() => handleScroll(-1)}
+            >
+              <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+          )}
+
+          {/* Các nút cuộn */}
+          <div
+            ref={scrollRef}
+            className="scrollbar-hide flex gap-3 overflow-x-auto whitespace-nowrap transition-all duration-300"
+          >
+            <button className="rounded-lg bg-green-500 px-4 py-2 text-white shadow-md hover:bg-green-600">
+              Nút 1 Nút 1 Nút 1 Nút 1
+            </button>
+            <button className="rounded-lg bg-red-500 px-4 py-2 text-white shadow-md hover:bg-red-600">
+              Nút 2 Nút 1 Nút 1
+            </button>
+            <button className="rounded-lg bg-blue-500 px-4 py-2 text-white shadow-md hover:bg-blue-600">
+              Nút 3 Nút 1 Nút 1 Nút 1 Nút 1
+            </button>
+            <button className="rounded-lg bg-purple-500 px-4 py-2 text-white shadow-md hover:bg-purple-600">
+              Nút 4 Nút 1 Nút 1 Nút 1 Nút 1
+            </button>
+            <button className="rounded-lg bg-orange-500 px-4 py-2 text-white shadow-md hover:bg-orange-600">
+              Nút 5 Nút 1 Nút 1 Nút 1 Nút 1
+            </button>
+          </div>
+
+          {/* Nút cuộn phải */}
+          {canScrollRight && (
+            <button
+              className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-gray-300 px-2 py-1 shadow-md hover:bg-gray-400"
+              onClick={() => handleScroll(1)}
+            >
+              <FontAwesomeIcon icon={faChevronRight} />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Các nút tùy chỉnh ở góc phải */}
-      <div className="absolute right-4 top-20 flex flex-col gap-3">
-        <button className="rounded-lg bg-green-500 px-4 py-2 text-white shadow-md hover:bg-green-600">
-          Nút 1
-        </button>
-        <button className="rounded-lg bg-red-500 px-4 py-2 text-white shadow-md hover:bg-red-600">
-          Nút 2
-        </button>
-      </div>
       <ReactMapGL
         {...viewport}
         width="100%"
@@ -97,10 +172,9 @@ const Map = () => {
           </Marker>
         )}
         <GeolocateControl
-          style={{ top: 10, left: 10 }} // tùy chỉnh vị trí của control
-          positionOptions={{ enableHighAccuracy: true }} // Cải thiện độ chính xác
-          trackUserLocation={true} // Theo dõi vị trí người dùng
-          onGeolocate={handleGeolocate} // Cập nhật vị trí khi lấy được
+          style={{ top: 10, left: 10 }}
+          trackUserLocation={true}
+          onGeolocate={handleGeolocate}
         />
         <FullscreenControl />
         <NavigationControl />
