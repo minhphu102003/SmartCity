@@ -28,7 +28,7 @@ const ScrollableButtons = ({ data }) => {
   };
 
   return (
-    <div className="relative ml-[4%] flex-1 overflow-hidden">
+    <div className="relative ml-[4%] flex-1 overflow-hidden sm:block hidden">
       {/* Nút cuộn trái */}
       {canScrollLeft && (
         <button

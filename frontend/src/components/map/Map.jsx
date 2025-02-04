@@ -1,12 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import ReactMapGL, { GeolocateControl, FullscreenControl, NavigationControl, Marker } from 'react-map-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationDot, faCar, faBicycle, faBus } from '@fortawesome/free-solid-svg-icons';
+import React, { useEffect, useState } from "react";
+import ReactMapGL, {
+  GeolocateControl,
+  FullscreenControl,
+  NavigationControl,
+  Marker,
+} from "react-map-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faLocationDot,
+  faCar,
+  faBicycle,
+  faBus,
+} from "@fortawesome/free-solid-svg-icons";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Import các component
-import SearchBar from '../searchBar/SearchBar';
-import ScrollableButtons from '../scrollableButtons/ScrollableButtons';
+import SearchBar from "../searchBar/SearchBar";
+import ScrollableButtons from "../scrollableButtons/ScrollableButtons";
+import FindRoutes from "../route/FindRoutes"; // Import FindRoutes
 
 const Map = () => {
   const [viewport, setViewport] = useState({
@@ -17,16 +29,16 @@ const Map = () => {
 
   const [userLocation, setUserLocation] = useState(null);
   const [buttonsData, setButtonsData] = useState([]);
+  const [isRouteVisible, setIsRouteVisible] = useState(false);
 
   useEffect(() => {
-    // Giả lập dữ liệu từ API backend
     const fetchData = async () => {
       const dataFromAPI = [
-        { name: 'Ô tô', icon: faCar },
-        { name: 'Xe máy', icon: faBicycle },
-        { name: 'Xe bus', icon: faBus },
-        { name: 'Taxi VIP', icon: faCar },
-        { name: 'Đưa đón sân bay', icon: faCar },
+        { name: "Ô tô", icon: faCar },
+        { name: "Xe máy", icon: faBicycle },
+        { name: "Xe bus", icon: faBus },
+        { name: "Taxi VIP", icon: faCar },
+        { name: "Đưa đón sân bay", icon: faCar },
       ];
       setButtonsData(dataFromAPI);
     };
@@ -40,13 +52,35 @@ const Map = () => {
     setUserLocation({ latitude, longitude });
   };
 
+  const handleRouteClick = () => {
+    setIsRouteVisible(true);
+  };
+
+  const handleCloseRoute = () => {
+    setIsRouteVisible(false);
+  };
+
   return (
     <div className="relative h-screen w-full">
-      {/* Thanh tìm kiếm + Nút cuộn */}
-      <div className="absolute left-[2%] top-4 z-50 flex w-[92%] items-center gap-4">
-        <SearchBar />
-        <ScrollableButtons data={buttonsData} />
-      </div>
+      <AnimatePresence>
+        {!isRouteVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="absolute left-[2%] top-4 z-50 flex w-[92%] items-center gap-4"
+          >
+            <SearchBar onRouteClick={handleRouteClick} />
+            <ScrollableButtons data={buttonsData} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Component tìm đường */}
+      <AnimatePresence>
+        {isRouteVisible && <FindRoutes onClose={handleCloseRoute} />}
+      </AnimatePresence>
 
       <ReactMapGL
         {...viewport}
@@ -58,11 +92,21 @@ const Map = () => {
         onMove={(evt) => setViewport(evt.viewState)}
       >
         {userLocation && (
-          <Marker longitude={userLocation.longitude} latitude={userLocation.latitude}>
-            <FontAwesomeIcon icon={faLocationDot} style={{ color: '#388716', fontSize: '30px' }} />
+          <Marker
+            longitude={userLocation.longitude}
+            latitude={userLocation.latitude}
+          >
+            <FontAwesomeIcon
+              icon={faLocationDot}
+              style={{ color: "#388716", fontSize: "30px" }}
+            />
           </Marker>
         )}
-        <GeolocateControl style={{ top: 10, left: 10 }} trackUserLocation={true} onGeolocate={handleGeolocate} />
+        <GeolocateControl
+          style={{ top: 10, left: 10 }}
+          trackUserLocation={true}
+          onGeolocate={handleGeolocate}
+        />
         <FullscreenControl />
         <NavigationControl />
       </ReactMapGL>
