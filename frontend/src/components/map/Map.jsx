@@ -60,6 +60,23 @@ const Map = () => {
     setIsRouteVisible(false);
   };
 
+  const handleSelectLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ latitude, longitude });
+          setViewport({ latitude, longitude, zoom: 16 }); // Di chuyển đến vị trí hiện tại
+        },
+        (error) => {
+          console.error("Lỗi lấy vị trí:", error);
+        }
+      );
+    } else {
+      console.error("Trình duyệt không hỗ trợ Geolocation");
+    }
+  };
+
   return (
     <div className="relative h-screen w-full">
       <AnimatePresence>
@@ -79,7 +96,7 @@ const Map = () => {
 
       {/* Component tìm đường */}
       <AnimatePresence>
-        {isRouteVisible && <FindRoutes onClose={handleCloseRoute} />}
+        {isRouteVisible && <FindRoutes onClose={handleCloseRoute} onSelectLocation={handleSelectLocation} userLocation={userLocation} />}
       </AnimatePresence>
 
       <ReactMapGL
