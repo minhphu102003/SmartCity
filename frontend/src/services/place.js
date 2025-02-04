@@ -20,7 +20,7 @@ export const getNearestPlaces = async (accessToken, lat, lng, radius= 10, type =
             },
             params,
         });
-        return response.data;
+        return response;
     }catch (error){
         return error;
     }
@@ -43,7 +43,7 @@ export const searchPlaceByName = async (accessToken, name, limit = 10, page = 1)
             params,
         });
         
-        return response.data;
+        return response;
     } catch (error){
         return error;
     }

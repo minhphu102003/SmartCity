@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import polyline from '@mapbox/polyline';
 import ReactMapGL, {
   GeolocateControl,
   FullscreenControl,
   NavigationControl,
   Marker,
+  Source,
+  Layer,
 } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,7 +22,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Import các component
 import SearchBar from '../searchBar/SearchBar';
 import ScrollableButtons from '../scrollableButtons/ScrollableButtons';
-import FindRoutes from '../route/FindRoutes'; // Import FindRoutes
+import FindRoutes from '../route/FindRoutes';
+import { fetchRoutes } from '../../services/route'; // Import hàm gọi API
 
 const Map = () => {
   const [viewport, setViewport] = useState({
@@ -34,6 +38,8 @@ const Map = () => {
   const [startMarker, setStartMarker] = useState(null);
   const [endMarker, setEndMarker] = useState(null);
   const [focusedInput, setFocusedInput] = useState(null);
+  const [routes, setRoutes] = useState([]); // Lưu tuyến đường lấy từ API
+  const [geoJsonRoutes, setGeoJsonRoutes] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,6 +55,47 @@ const Map = () => {
 
     fetchData();
   }, []);
+
+  // Theo dõi khi cả startMarker và endMarker có giá trị để tự động gọi API tìm đường
+  useEffect(() => {
+    if (startMarker && endMarker) {
+      const start = `${startMarker.longitude},${startMarker.latitude}`;
+      const end = `${endMarker.longitude},${endMarker.latitude}`;
+
+      const getRoutes = async () => {
+        try {
+          const response = await fetchRoutes(start, end);
+          console.log('Danh sách tuyến đường:', response.data.routes);
+          setRoutes(response?.data?.routes); // Lưu danh sách tuyến đường gốc
+
+          // Chuyển đổi dữ liệu geometry thành GeoJSON
+          const geoJsonData = response.data.routes.map((route) => {
+            const decodedCoordinates = polyline.decode(route.geometry); // Giải mã geometry
+
+            return {
+              type: 'Feature',
+              properties: {
+                recommended: route.recommended, // Thêm thông tin có phải tuyến đề xuất không
+              },
+              geometry: {
+                type: 'LineString',
+                coordinates: decodedCoordinates.map((coord) => [
+                  coord[1],
+                  coord[0],
+                ]), // Đảo ngược tọa độ để phù hợp với GeoJSON
+              },
+            };
+          });
+
+          setGeoJsonRoutes(geoJsonData); // Cập nhật tuyến đường dạng GeoJSON
+        } catch (error) {
+          console.error('Lỗi khi gọi API tìm đường:', error);
+        }
+      };
+
+      getRoutes();
+    }
+  }, [startMarker, endMarker]);
 
   const handleGeolocate = (event) => {
     const { latitude, longitude } = event.coords;
@@ -76,9 +123,11 @@ const Map = () => {
 
   const handleCloseRoute = () => {
     setIsRouteVisible(false);
-    setStartMarker(null); // Xóa điểm bắt đầu
-    setEndMarker(null); // Xóa điểm kết thúc
+    setStartMarker(null);
+    setEndMarker(null);
     setUserLocation(null);
+    setRoutes([]); // Xóa tuyến đường khi đóng FindRoutes
+    setGeoJsonRoutes([]);
   };
 
   const handleSelectLocation = () => {
@@ -87,7 +136,7 @@ const Map = () => {
         (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
-          setViewport({ latitude, longitude, zoom: 16 }); // Di chuyển đến vị trí hiện tại
+          setViewport({ latitude, longitude, zoom: 16 });
         },
         (error) => {
           console.error('Lỗi lấy vị trí:', error);
@@ -115,7 +164,6 @@ const Map = () => {
         )}
       </AnimatePresence>
 
-      {/* Component tìm đường */}
       <AnimatePresence>
         {isRouteVisible && (
           <FindRoutes
@@ -125,6 +173,7 @@ const Map = () => {
             onInputFocus={handleInputFocus}
             startMarker={startMarker}
             endMarker={endMarker}
+            routes={routes} // Truyền danh sách tuyến đường xuống FindRoutes
           />
         )}
       </AnimatePresence>
@@ -139,6 +188,21 @@ const Map = () => {
         onMove={(evt) => setViewport(evt.viewState)}
         onClick={handleMapClick}
       >
+        {geoJsonRoutes.map((route, index) => (
+          <Source key={index} id={`route-${index}`} type="geojson" data={route}>
+            <Layer
+              id={`route-line-${index}`}
+              type="line"
+              paint={{
+                'line-color': route.properties.recommended
+                  ? '#00FF00'
+                  : '#FF0000', // Màu xanh nếu là tuyến đề xuất, đỏ nếu không
+                'line-width': 5,
+                'line-opacity': 0.8,
+              }}
+            />
+          </Source>
+        ))}
         {userLocation && (
           <Marker
             longitude={userLocation.longitude}
