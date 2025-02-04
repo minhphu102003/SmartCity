@@ -1,24 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import ReactMapGL, {
   GeolocateControl,
   FullscreenControl,
   NavigationControl,
   Marker,
-} from "react-map-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+} from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faLocationDot,
   faCar,
   faBicycle,
   faBus,
-} from "@fortawesome/free-solid-svg-icons";
-import { motion, AnimatePresence } from "framer-motion";
+  faMapMarkerAlt,
+} from '@fortawesome/free-solid-svg-icons';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Import các component
-import SearchBar from "../searchBar/SearchBar";
-import ScrollableButtons from "../scrollableButtons/ScrollableButtons";
-import FindRoutes from "../route/FindRoutes"; // Import FindRoutes
+import SearchBar from '../searchBar/SearchBar';
+import ScrollableButtons from '../scrollableButtons/ScrollableButtons';
+import FindRoutes from '../route/FindRoutes'; // Import FindRoutes
 
 const Map = () => {
   const [viewport, setViewport] = useState({
@@ -30,15 +31,18 @@ const Map = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [buttonsData, setButtonsData] = useState([]);
   const [isRouteVisible, setIsRouteVisible] = useState(false);
+  const [startMarker, setStartMarker] = useState(null);
+  const [endMarker, setEndMarker] = useState(null);
+  const [focusedInput, setFocusedInput] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       const dataFromAPI = [
-        { name: "Ô tô", icon: faCar },
-        { name: "Xe máy", icon: faBicycle },
-        { name: "Xe bus", icon: faBus },
-        { name: "Taxi VIP", icon: faCar },
-        { name: "Đưa đón sân bay", icon: faCar },
+        { name: 'Ô tô', icon: faCar },
+        { name: 'Xe máy', icon: faBicycle },
+        { name: 'Xe bus', icon: faBus },
+        { name: 'Taxi VIP', icon: faCar },
+        { name: 'Đưa đón sân bay', icon: faCar },
       ];
       setButtonsData(dataFromAPI);
     };
@@ -52,12 +56,29 @@ const Map = () => {
     setUserLocation({ latitude, longitude });
   };
 
+  const handleMapClick = (event) => {
+    const { lng, lat } = event.lngLat;
+
+    if (focusedInput === 'start') {
+      setStartMarker({ longitude: lng, latitude: lat });
+    } else if (focusedInput === 'end') {
+      setEndMarker({ longitude: lng, latitude: lat });
+    }
+  };
+
+  const handleInputFocus = (inputType) => {
+    setFocusedInput(inputType);
+  };
+
   const handleRouteClick = () => {
     setIsRouteVisible(true);
   };
 
   const handleCloseRoute = () => {
     setIsRouteVisible(false);
+    setStartMarker(null); // Xóa điểm bắt đầu
+    setEndMarker(null); // Xóa điểm kết thúc
+    setUserLocation(null);
   };
 
   const handleSelectLocation = () => {
@@ -69,11 +90,11 @@ const Map = () => {
           setViewport({ latitude, longitude, zoom: 16 }); // Di chuyển đến vị trí hiện tại
         },
         (error) => {
-          console.error("Lỗi lấy vị trí:", error);
+          console.error('Lỗi lấy vị trí:', error);
         }
       );
     } else {
-      console.error("Trình duyệt không hỗ trợ Geolocation");
+      console.error('Trình duyệt không hỗ trợ Geolocation');
     }
   };
 
@@ -85,7 +106,7 @@ const Map = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="absolute left-[2%] top-4 z-50 flex w-[92%] items-center gap-4"
           >
             <SearchBar onRouteClick={handleRouteClick} />
@@ -96,7 +117,16 @@ const Map = () => {
 
       {/* Component tìm đường */}
       <AnimatePresence>
-        {isRouteVisible && <FindRoutes onClose={handleCloseRoute} onSelectLocation={handleSelectLocation} userLocation={userLocation} />}
+        {isRouteVisible && (
+          <FindRoutes
+            onClose={handleCloseRoute}
+            onSelectLocation={handleSelectLocation}
+            userLocation={userLocation}
+            onInputFocus={handleInputFocus}
+            startMarker={startMarker}
+            endMarker={endMarker}
+          />
+        )}
       </AnimatePresence>
 
       <ReactMapGL
@@ -107,6 +137,7 @@ const Map = () => {
         mapboxAccessToken={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
         transitionDuration={200}
         onMove={(evt) => setViewport(evt.viewState)}
+        onClick={handleMapClick}
       >
         {userLocation && (
           <Marker
@@ -115,10 +146,31 @@ const Map = () => {
           >
             <FontAwesomeIcon
               icon={faLocationDot}
-              style={{ color: "#388716", fontSize: "30px" }}
+              style={{ color: '#388716', fontSize: '30px' }}
             />
           </Marker>
         )}
+        {startMarker && (
+          <Marker
+            longitude={startMarker.longitude}
+            latitude={startMarker.latitude}
+          >
+            <FontAwesomeIcon
+              icon={faMapMarkerAlt}
+              style={{ color: 'blue', fontSize: '30px' }}
+            />
+          </Marker>
+        )}
+
+        {endMarker && (
+          <Marker longitude={endMarker.longitude} latitude={endMarker.latitude}>
+            <FontAwesomeIcon
+              icon={faMapMarkerAlt}
+              style={{ color: 'red', fontSize: '30px' }}
+            />
+          </Marker>
+        )}
+
         <GeolocateControl
           style={{ top: 10, left: 10 }}
           trackUserLocation={true}
