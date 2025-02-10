@@ -37,7 +37,7 @@ const mergeReports = (cameraReports, accountReports) => {
   return [...formattedCameraReports, ...formattedAccountReports];
 };
 
-
+// Lấy các báo cáo gần đây trong 5 phút qua từ MongoDB 
 export const getRecentAccountReports = async (fiveMinutesAgo) => {
   try {
     return await AccountReport.find({
@@ -63,39 +63,35 @@ export const getRecentCameraReports = async (fiveMinutesAgo) => {
 };
 
 const calculateDistanceToLineManual = (pointCoords, lineCoords) => {
-  const DEG_TO_METERS = 111320;
-  const [x0, y0] = pointCoords;
-  const [[x1, y1], [x2, y2]] = lineCoords;
-
-  // Chuyển độ sang mét
+  const DEG_TO_METERS = 111320; // Conversion factor from degrees to meters
+  const [x0, y0] = pointCoords; // Coordinates of the point (P)
+  const [[x1, y1], [x2, y2]] = lineCoords; // Coordinates of the line (A to B)
+  // Convert degrees to meters for all coordinates
   const x0Meters = x0 * DEG_TO_METERS;
   const y0Meters = y0 * DEG_TO_METERS;
   const x1Meters = x1 * DEG_TO_METERS;
   const y1Meters = y1 * DEG_TO_METERS;
   const x2Meters = x2 * DEG_TO_METERS;
   const y2Meters = y2 * DEG_TO_METERS;
-
-  // Vector AB và AP
-  const ABx = x2Meters - x1Meters;
-  const ABy = y2Meters - y1Meters;
-  const APx = x0Meters - x1Meters;
-  const APy = y0Meters - y1Meters;
-
-  // Tính t (tỷ lệ chiếu điểm P lên đoạn AB)
+  // Vectors AB and AP
+  const ABx = x2Meters - x1Meters; // Vector AB in the x-direction
+  const ABy = y2Meters - y1Meters; // Vector AB in the y-direction
+  const APx = x0Meters - x1Meters; // Vector AP in the x-direction
+  const APy = y0Meters - y1Meters; // Vector AP in the y-direction
+  // Calculate t (the projection factor for projecting point P onto line AB)
   const dotProduct = APx * ABx + APy * ABy; // (AP) · (AB)
   const lengthSquared = ABx * ABx + ABy * ABy; // (AB) · (AB)
-  const t = Math.max(0, Math.min(1, dotProduct / lengthSquared)); // Giới hạn t trong [0, 1]
+  const t = Math.max(0, Math.min(1, dotProduct / lengthSquared)); // Clamp t within [0, 1]
 
-  // Tìm tọa độ điểm gần nhất trên đoạn thẳng
-  const nearestX = x1Meters + t * ABx;
-  const nearestY = y1Meters + t * ABy;
+  // Calculate the coordinates of the nearest point on the line segment AB
+  const nearestX = x1Meters + t * ABx; // x-coordinate of the nearest point
+  const nearestY = y1Meters + t * ABy; // y-coordinate of the nearest point
 
-  // Tính khoảng cách từ P đến điểm gần nhất
+  // Calculate the distance from point P to the nearest point on the line segment
   const distance = Math.sqrt(
     (x0Meters - nearestX) ** 2 + (y0Meters - nearestY) ** 2
   );
-
-  return distance; // Đơn vị mét
+  return distance; // Return the distance in meters
 };
 
 export const findAlternativeRoutes = async (route, fiveMinutesAgo, end) => {
