@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morganMiddleware from './config/morgan.config.js';
 import { UPLOAD_DIRECTORY } from "./api/v1/constants/uploadConstants.js";
 import v1Routes from "./api/v1/index.js";
+import v2Routes from "./api/v2/index.js";
 import Camera from './api/v1/models/camera.js';  
 import AccountReport from './api/v1/models/accountReport.js';
 import { consumeMessages } from "./config/kafka.config.js";
@@ -118,5 +119,6 @@ const startKafkaConsumer = async () => {
 startKafkaConsumer();
 
 app.use("/api/v1", v1Routes);
+app.use("/api/v2", v2Routes);
 
 export default app;
