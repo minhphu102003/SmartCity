@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import TransportModeSelector from '../transportMode/TransportModeSelector';
-import LocationInput from '../input/LocationInput';
+import LocationInput from '../inputs/LocationInput';
 import SearchHistory from '../history/SearchHistory';
 import {
   faTimes,

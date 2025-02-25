@@ -71,7 +71,7 @@ const Map = () => {
           // Chuyển đổi dữ liệu geometry thành GeoJSON
           const geoJsonData = response.data.routes.map((route) => {
             const decodedCoordinates = polyline.decode(route.geometry); // Giải mã geometry
-
+            console.log('recommended', route.recommended);
             return {
               type: 'Feature',
               properties: {
@@ -96,6 +96,7 @@ const Map = () => {
       getRoutes();
     }
   }, [startMarker, endMarker]);
+
 
   const handleGeolocate = (event) => {
     const { latitude, longitude } = event.coords;
@@ -188,21 +189,39 @@ const Map = () => {
         onMove={(evt) => setViewport(evt.viewState)}
         onClick={handleMapClick}
       >
-        {geoJsonRoutes.map((route, index) => (
-          <Source key={index} id={`route-${index}`} type="geojson" data={route}>
-            <Layer
-              id={`route-line-${index}`}
-              type="line"
-              paint={{
-                'line-color': route.properties.recommended
-                  ? '#00FF00'
-                  : '#FF0000', // Màu xanh nếu là tuyến đề xuất, đỏ nếu không
-                'line-width': 5,
-                'line-opacity': 0.8,
-              }}
-            />
-          </Source>
-        ))}
+{geoJsonRoutes.map((route, index) => {
+  // Tìm tuyến đề xuất đầu tiên
+  const firstRecommendedIndex = geoJsonRoutes.findIndex(
+    (r) => r.properties.recommended
+  );
+
+  return (
+    <Source key={index} id={`route-${index}`} type="geojson" data={route}>
+      <Layer
+        id={`route-line-${index}`}
+        type="line"
+        paint={{
+          'line-color':
+            route.properties.recommended && index === firstRecommendedIndex
+              ? '#1f618d' // Màu vàng cho tuyến đề xuất đầu tiên
+              : route.properties.recommended
+              ? '#3498db' // Màu xanh dương cho các tuyến đề xuất khác
+              : '#FF0000', // Màu đỏ cho tuyến không đề xuất
+          'line-width':
+            route.properties.recommended && index === firstRecommendedIndex
+              ? 6 // Độ dày lớn hơn cho tuyến đề xuất đầu tiên
+              : 5,
+          'line-opacity':
+            route.properties.recommended && index === firstRecommendedIndex
+              ? 1 // Độ đậm hơn cho tuyến đầu tiên
+              : 0.8,
+        }}
+      />
+    </Source>
+  );
+})}
+
+
         {userLocation && (
           <Marker
             longitude={userLocation.longitude}
