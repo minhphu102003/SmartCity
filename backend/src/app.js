@@ -1,14 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import morganMiddleware from './config/morgan.config.js';
+import morganMiddleware from '../src/api/v1/config/morgan.config.js';
 import { UPLOAD_DIRECTORY } from "./api/v1/constants/uploadConstants.js";
 import v1Routes from "./api/v1/index.js";
 import v2Routes from "./api/v2/index.js";
 import Camera from './api/v1/models/camera.js';  
 import AccountReport from './api/v1/models/accountReport.js';
-import { consumeMessages } from "./config/kafka.config.js";
-import { WebSocketServer } from 'ws';  // Correct way to import WebSocketServer
+import { consumeMessages } from "../src/api/v1/config/kafka.config.js";
+import { WebSocketServer } from 'ws';  
 import {handleLocationUpdate } from "./api/v1/services/readLocation.js";
 // import { produceMessage, consumeMessages, readConfig } from './kafkaOnline.config.js'; 
 

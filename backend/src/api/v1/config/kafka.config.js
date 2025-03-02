@@ -1,9 +1,9 @@
 import { Kafka } from "kafkajs";
-import CameraReport from '../api/v1/models/cameraReport.js';
-import User from "../api/v1/models/user.js";
-import Notification from "../api/v1/models/notification.js";
-import {NotificationStatus} from "../api/v1/constants/enum.js";
-import {calculateDistance} from "../api/v1/services/distance.js";
+import CameraReport from '../models/cameraReport.js';
+import User from "../models/user.js";
+import Notification from "../models/notification.js";
+import {NotificationStatus} from "../constants/enum.js";
+import {calculateDistance} from "../services/distance.js";
 import moment from "moment-timezone";
 
 const getVietnamTimestamp = () => {

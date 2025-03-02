@@ -3,8 +3,7 @@ import path from 'path';
 import AccountReport from "../models/accountReport.js";
 import RoadSegment from '../models/roadSegment.js';
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
-import {produceMessage} from "../../../config/kafka.config.js";
-// import {produceMessage} from '../../../kafkaOnline.config.js';
+import {produceMessage} from "../config/kafka.config.js";
 
 const PRODUCE_TOPIC = process.env.KAFKA_TOPIC_PRODUCER || 'express-topic';
 const DEMO_TOPIC = process.env.KAFKA_TOPIC_CONSUMER || 'python-topic';

@@ -1,6 +1,6 @@
-import Role from "../api/v1/models/role.js";
-import User from "../api/v1/models/user.js";
-import Account from "../api/v1/models/account.js";
+import Role from "../models/role.js";
+import User from "../models/user.js";
+import Account from "../models/account.js";
 
 import {config} from "dotenv";
 config();
@@ -8,10 +8,8 @@ config();
 
 export const createRoles = async() => {
     try{
-        // count Documents
         const count = await Role.estimatedDocumentCount();
 
-        // Check for existing roles
         if(count> 0){
             return;
         }

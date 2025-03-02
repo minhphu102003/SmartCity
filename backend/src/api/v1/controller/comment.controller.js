@@ -1,9 +1,7 @@
 import fs from "fs";
-import path from "path";
 import Comment from "../models/comment.js";
 import Place from "../models/place.js";
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
-import {produceMessage} from "../../../config/kafka.config.js";
 
 const PRODUCE_TOPIC = process.env.PRODUCE_TOPIC || 'express-topic';
 

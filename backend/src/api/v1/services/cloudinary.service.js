@@ -1,5 +1,5 @@
 import multer from "multer";
-import cloudinary from "../../../config/cloudinary.config.js";
+import cloudinary from "../config/cloudinary.config.js";
 import { MAX_FILE_SIZE, MAX_FILE_COUNT } from "../constants/uploadConstants.js";
 
 // Set up memory storage for Multer
