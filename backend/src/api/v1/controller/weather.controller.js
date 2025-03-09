@@ -1,4 +1,4 @@
-import { Weather, WeatherCondition } from "../models/weather.js";
+import { Weather, WeatherCondition } from "../models";
 import axios from "axios";
 
 

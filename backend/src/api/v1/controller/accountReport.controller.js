@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import AccountReport from "../models/accountReport.js";
-import RoadSegment from '../models/roadSegment.js';
+import { Account, RoadSegment } from '../models';
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
 import {produceMessage} from "../config/kafka.config.js";
 

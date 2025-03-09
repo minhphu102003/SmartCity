@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
-import Account from "../models/account.js";
-import Role from "../models/role.js";
-import AccountReport from "../models/accountReport.js";
+import {Account, AccountReport, Role } from '~/shared/models';
+import { ROLES } from "~/shared/constants";
 
 
 export const veriFyToken = async (req, res, next) => {
@@ -40,7 +39,7 @@ export const isAdmin = async (req, res, next) => {
       const account = await Account.findById(req.account_id);
       const roles = await Role.find({ _id: { $in: account.roles } });
   
-      const isAdmin = roles.some(role => role.name === "admin");
+      const isAdmin = roles.some(role => role.name === ROLES.ADMIN);
       if (isAdmin) return next();
   
       return res.status(403).json({ message: "Require Admin Role!" });
