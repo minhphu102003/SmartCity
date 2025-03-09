@@ -1,2 +1,2 @@
-import { CameraReport } from "~/shared/models"; 
+import { CameraReport } from "../../shared/models/index.js"; 
 export default CameraReport;

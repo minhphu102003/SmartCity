@@ -1,3 +1,3 @@
-import { Route } from "~/shared/models";
+import { Route } from "../../shared/models/index.js";
 
 export default Route;

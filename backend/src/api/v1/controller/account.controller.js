@@ -1,4 +1,4 @@
-import {Account, User, Role } from '../models'
+import {Account, User, Role } from '../models/index.js';
 
 export const getUserProfile = async (req, res) => {
   try {

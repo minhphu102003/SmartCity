@@ -1,5 +1,5 @@
 import { body, query } from "express-validator";
-import { CongestionLevels, ReportTypes } from "../constants/enum.js";
+import { CongestionLevels, ReportTypes } from "../../shared/constants/index.js";
 
 export const createAccountReportValidator = [
   body("description")

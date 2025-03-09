@@ -1,2 +1,2 @@
-import { Account } from "~/shared/models";
+import { Account } from "../../shared/models/index.js";
 export default Account;

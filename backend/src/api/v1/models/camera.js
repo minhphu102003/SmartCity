@@ -1,3 +1,3 @@
-import { Camera } from "~/shared/models";
+import { Camera } from "../../shared/models/index.js";
 
 export default Camera;

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-import { Role, User, Account} from '../models';
+import { Role, User, Account} from '../models/index.js';
 import sendMail from "../services/sendMail.js";
 
 export const signUpHandler = async(req, res ) => {

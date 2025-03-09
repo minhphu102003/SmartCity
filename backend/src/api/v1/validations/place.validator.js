@@ -1,6 +1,6 @@
 import { body, query } from "express-validator";
 import Place from  "../models/place.js";
-import {PlaceTypes} from "../constants/enum.js";
+import {PlaceTypes} from "../../shared/constants/index.js";
 
 export const nearestValidator = [
     query("latitude")

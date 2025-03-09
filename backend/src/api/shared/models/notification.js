@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { NotificationStatus } from "../constants"; 
+import { NotificationStatus } from "../constants/index.js"; 
 
 const notificationSchema = new mongoose.Schema(
     {

@@ -1,6 +1,6 @@
 import fs from "fs";
 
-import { Comment, Place} from '../models';
+import { Comment, Place} from '../models/index.js';
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
 
 const PRODUCE_TOPIC = process.env.PRODUCE_TOPIC || 'express-topic';

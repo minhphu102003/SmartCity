@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { CongestionLevels } from '../constants';
+import { CongestionLevels } from '../constants/index.js';
 
 const trafficAnalysisResultSchema = new mongoose.Schema(
   {

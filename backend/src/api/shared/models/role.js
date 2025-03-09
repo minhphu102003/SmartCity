@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { ROLES } from '~/shared/constants';
+import { ROLES } from '../constants/index.js';
 
 const roleSchema = new mongoose.Schema(
   {
