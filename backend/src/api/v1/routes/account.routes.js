@@ -37,12 +37,9 @@ router.use((req, res, next) => {
 
 router.get('/profile',[validateWithToken,handleValidationErrors],veriFyToken, getUserProfile);
 router.get("/", [searchAccountsValidator, handleValidationErrors], listOrSearchAccountsHandler); 
-// ? Ok test xong
 router.get("/:id", [validateById, handleValidationErrors], getAccountDetailsHandler); 
-// ? Test ok
 router.put("/:id", [validateById, validateWithToken, updateAccountValidator, handleValidationErrors], veriFyToken, updateAccountDetailsHandler); 
-// ! Chưa test chưa làm gì hết ở đây
-router.delete("/:id", [validateById, ...adminAuthMiddlewares], deleteAccountHandler); // Delete account
-router.put("/:id/roles", [validateById,validateManageAccountRoles, ...adminAuthMiddlewares], manageAccountRolesHandler); // Manage account roles (optional)
+router.delete("/:id", [validateById, ...adminAuthMiddlewares], deleteAccountHandler);
+router.put("/:id/roles", [validateById,validateManageAccountRoles, ...adminAuthMiddlewares], manageAccountRolesHandler);
 
 export default router;

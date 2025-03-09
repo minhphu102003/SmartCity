@@ -10,7 +10,7 @@ import AccountReport from './api/v1/models/accountReport.js';
 import { consumeMessages } from "../src/api/v1/config/kafka.config.js";
 import { WebSocketServer } from 'ws';  
 import {handleLocationUpdate } from "./api/v1/services/readLocation.js";
-// import { produceMessage, consumeMessages, readConfig } from './kafkaOnline.config.js'; 
+
 
 const app = express();
 

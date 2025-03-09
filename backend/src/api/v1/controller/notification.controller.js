@@ -1,5 +1,5 @@
-import Notification from "../models/notification.js"; // Import model Notification
-import { NotificationStatus } from "../constants/enum.js"; 
+import { Notification } from '../models';
+import { NotificationStatus } from '~/shared/constants';
 
 export const getListNotificationByAccount = async (req, res, next) => {
     try {

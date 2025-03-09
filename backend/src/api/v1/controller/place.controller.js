@@ -1,8 +1,8 @@
-import Place from '../models/place.js';
 import fs from 'fs';
 import path from 'path';
-import { calculateDistance } from '../services/distance.js';
-import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
+
+import { Place } from '../models';
+import { UPLOAD_DIRECTORY } from "../constants";
 
 const flattenPlace = (place) => {
     return {

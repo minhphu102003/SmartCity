@@ -4,10 +4,10 @@ import { UPLOAD_DIRECTORY, MAX_FILE_SIZE, MAX_FILE_COUNT } from "../constants/up
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, UPLOAD_DIRECTORY); // Directory for storing images
+    cb(null, UPLOAD_DIRECTORY); 
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 

@@ -1,13 +1,10 @@
-import Account from "../models/account.js"; // Adjust the path as needed
-import User from "../models/user.js"; // Adjust the path as needed
-import Role from "../models/role.js";
+import {Account, User, Role } from '../models'
 
 export const getUserProfile = async (req, res) => {
   try {
-    // Lấy account_id từ middleware
+
     const account_id = req.account_id;
 
-    // Tìm tài khoản từ collection Account (loại trừ password)
     const account = await Account.findById(account_id, { password: 0 }).populate("roles", "name");
     if (!account) {
       return res.status(404).json({ message: "No account found" });
