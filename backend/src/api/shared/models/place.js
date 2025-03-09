@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import {PlaceTypes} from "../constants";
+import {PlaceTypes} from "../constants/index.js";
 
 const placeSchema = new mongoose.Schema(
   {

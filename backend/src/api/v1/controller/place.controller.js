@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-import { Place } from '../models';
-import { UPLOAD_DIRECTORY } from "../constants";
+import { Place } from '../models/index.js';
+import { UPLOAD_DIRECTORY } from "../constants/index.js";
 
 const flattenPlace = (place) => {
     return {

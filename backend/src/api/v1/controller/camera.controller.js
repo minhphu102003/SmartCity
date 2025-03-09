@@ -1,4 +1,4 @@
-import { Camera, RoadSegment } from '../models';
+import { Camera, RoadSegment } from '../models/index.js';
 
 const flatCameraDate = (camera) => {
     if (!camera.location || !camera.location.coordinates || camera.location.coordinates.length < 2) {

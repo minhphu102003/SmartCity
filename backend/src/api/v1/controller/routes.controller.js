@@ -2,7 +2,7 @@ import {
   fetchOSRMData,
   findAlternativeRoutes
 } from "../services/routes.service.js";
-import { Route } from '../models';
+import { Route } from '../models/index.js';
 
 
 export const findRoutesHandler = async (req, res, next) => {

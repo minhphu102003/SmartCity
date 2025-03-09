@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { CongestionLevels, ReportTypes } from "../constants";
+import { CongestionLevels, ReportTypes } from "../constants/index.js";
 
 const cameraReportSchema = new mongoose.Schema(
     {

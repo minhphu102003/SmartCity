@@ -1,5 +1,5 @@
-import { Notification } from '../models';
-import { NotificationStatus } from '~/shared/constants';
+import { Notification } from '../models/index.js';
+import { NotificationStatus } from '../../shared/constants/index.js';
 
 export const getListNotificationByAccount = async (req, res, next) => {
     try {

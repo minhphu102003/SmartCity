@@ -2,7 +2,7 @@ import { Kafka } from "kafkajs";
 import CameraReport from '../models/cameraReport.js';
 import User from "../models/user.js";
 import Notification from "../models/notification.js";
-import {NotificationStatus} from "../constants/enum.js";
+import {NotificationStatus} from "../../shared/constants/index.js";
 import {calculateDistance} from "../services/distance.js";
 import moment from "moment-timezone";
 

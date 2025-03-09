@@ -1,3 +1,3 @@
-import { Place } from "~/shared/models";
+import { Place } from "../../shared/models/index.js";
 
 export default Place;

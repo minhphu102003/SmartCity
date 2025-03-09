@@ -1,8 +1,10 @@
 import Account from "./account.js";
 import AccountReport from "./accountReport.js";
+import AccountReportReview from "./accountReportReview.js";
 import Camera from "./camera.js";
 import CameraReport from "./cameraReport.js";
 import Comment from "./comment.js";
+import FloodAnalysisResult from "./floodAnalysisResult.js";
 import Notification from "./notification.js";
 import Place from "./place.js";
 import RoadSegment from "./roadSegment.js";
@@ -27,4 +29,6 @@ export {
   User,
   Weather,
   WeatherCondition,
+  AccountReportReview,
+  FloodAnalysisResult
 };

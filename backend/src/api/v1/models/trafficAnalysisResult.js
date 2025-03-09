@@ -1,3 +1,3 @@
-import { TrafficAnalysisResult } from "~/shared/models";
+import { TrafficAnalysisResult } from "../../shared/models/index.js";
 
 export default TrafficAnalysisResult;
