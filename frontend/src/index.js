@@ -16,7 +16,6 @@ root.render(
         <App/>
       </MethodProvider>
      </AuthProvider>
-  
     <ToastContainer/>
   </Router>
 );

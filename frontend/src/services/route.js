@@ -1,6 +1,5 @@
 import * as requests from '../utils/request';
-
-const ROUTE_ENDPOINT = '/routes';
+import { ROUTE_ENDPOINT } from '../constants/endPoints';
 
 /**
  * Gọi API để lấy danh sách tuyến đường từ backend
@@ -16,7 +15,7 @@ export const fetchRoutes = async (start, end, vehicleType = 'drive') => {
       params: { start, end, vehicleType },
     });
 
-    return response; // Trả về dữ liệu nhận được từ API
+    return response;
   } catch (error) {
     console.error('Lỗi khi lấy tuyến đường:', error);
     throw error;

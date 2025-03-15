@@ -10,6 +10,7 @@ import {
   faMapMarkerAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { TRANSPORT_MODE_TYPES } from '../../constants/transportModes';
 
 const FindRoutes = ({
   onClose,
@@ -19,7 +20,7 @@ const FindRoutes = ({
   startMarker,
   endMarker,
 }) => {
-  const [selectedMode, setSelectedMode] = useState('direction');
+  const [selectedMode, setSelectedMode] = useState(TRANSPORT_MODE_TYPES.DIRECTION);
   const [startLocation, setStartLocation] = useState('');
   const [endLocation, setEndLocation] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
@@ -30,7 +31,7 @@ const FindRoutes = ({
       id: 0,
       content: 'Vị trí hiện tại',
       icon: faMapMarkerAlt,
-      isCurrentLocation: true, // Đánh dấu đây là vị trí hiện tại
+      isCurrentLocation: true,
     },
     { id: 1, content: 'Hà Nội', icon: faClock },
     { id: 2, content: 'TP.HCM', icon: faClock },
@@ -79,14 +80,12 @@ const FindRoutes = ({
       transition={{ duration: 0.6, ease: 'easeInOut' }}
       className="absolute left-0 top-0 z-40 h-full w-[30%] bg-white p-4 shadow-lg"
     >
-      {/* Thanh chọn phương tiện */}
       <div className="flex items-center border-b pb-5">
         <TransportModeSelector
           selectedMode={selectedMode}
           onSelectMode={setSelectedMode}
         />
 
-        {/* Nút đóng */}
         <button
           onClick={onClose}
           className="ml-auto rounded-full p-2 text-black transition-all duration-300 hover:bg-gray-300 hover:bg-opacity-50"
@@ -95,7 +94,6 @@ const FindRoutes = ({
         </button>
       </div>
 
-      {/* Ô input cho điểm đi và điểm đến */}
       <div className="align-center mt-5 flex items-center justify-between">
         <div className="mr-2 w-[90%]">
           <LocationInput
@@ -109,7 +107,7 @@ const FindRoutes = ({
               onInputFocus('start');
             }}
             onBlur={() => setFocusStart(false)}
-            isStart={true} // Điểm bắt đầu
+            isStart={true}
           />
 
           <LocationInput
@@ -123,11 +121,10 @@ const FindRoutes = ({
               onInputFocus('end');
             }}
             onBlur={() => setFocusEnd(false)}
-            isStart={false} // Điểm kết thúc
+            isStart={false} 
           />
         </div>
 
-        {/* Nút hoán đổi vị trí */}
         <div className="flex items-center justify-between">
           <button
             onClick={handleSwapLocations}
@@ -138,7 +135,6 @@ const FindRoutes = ({
         </div>
       </div>
 
-      {/* Phần danh sách lịch sử tìm kiếm (Hiển thị liên tục) */}
       <div className="mt-4 border-t border-black pt-4">
         <SearchHistory
           searchHistory={searchHistory}
