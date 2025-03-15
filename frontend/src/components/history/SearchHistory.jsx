@@ -7,18 +7,17 @@ const SearchHistory = ({ searchHistory, onClearHistory, onSelectLocation }) => (
       <div
         key={history.id}
         className="flex items-center justify-between mb-3 cursor-pointer hover:bg-gray-200 p-2 rounded"
-        onClick={history.isCurrentLocation ? onSelectLocation : null} // Nếu là vị trí hiện tại thì gọi hàm lấy tọa độ
+        onClick={history.isCurrentLocation ? onSelectLocation : null}
       >
         <div className="flex items-center space-x-2">
           <FontAwesomeIcon icon={history.icon} className="text-gray-500" />
           <span className="text-sm">{history.content}</span>
         </div>
 
-        {/* Nút xóa chỉ hiển thị khi không phải "Vị trí hiện tại" */}
         {!history.isCurrentLocation && (
           <button
             onClick={(e) => {
-              e.stopPropagation(); // Ngăn sự kiện click lan lên cha
+              e.stopPropagation();
               onClearHistory(history.id);
             }}
             className="text-red-500 hover:text-red-700"

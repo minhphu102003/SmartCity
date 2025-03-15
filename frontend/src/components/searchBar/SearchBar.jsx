@@ -23,7 +23,6 @@ const SearchBar = ({ onRouteClick }) => {
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
-    // Bạn có thể gọi API để tìm kiếm theo giá trị này
   };
 
   const handleRemoveItem = (location) => {
@@ -47,15 +46,13 @@ const SearchBar = ({ onRouteClick }) => {
       <button className="flex h-[5vh] w-[40px] items-center justify-center rounded-lg px-2 text-black hover:text-blue-600">
         <FontAwesomeIcon icon={faSearch} />
       </button>
-      {/* Nút tìm đường đi */}
       <button
         className="flex h-[5vh] w-[40px] items-center justify-center rounded-lg px-2 text-black hover:text-green-600"
-        onClick={onRouteClick} // Gọi hàm khi click
+        onClick={onRouteClick}
       >
         <FontAwesomeIcon icon={faRoute} className="text-blue-500 text-lg" />
       </button>
 
-      {/* Hiển thị danh sách địa điểm khi focus */}
       {(isFocused || searchQuery) && (
         <div className="absolute top-full left-0 w-full max-h-60 z-50 overflow-y-auto bg-white border border-gray-300 shadow-md mt-1 rounded-lg">
           {suggestedLocations
@@ -65,10 +62,8 @@ const SearchBar = ({ onRouteClick }) => {
                 key={index}
                 className="group flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer"
               >
-                {/* Icon time */}
                 <FontAwesomeIcon icon={faClock} className="text-gray-500 mr-2" />
                 {location}
-                {/* Icon x để xóa */}
                 <FontAwesomeIcon
                   icon={faTimes}
                   className="text-black-100 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300"

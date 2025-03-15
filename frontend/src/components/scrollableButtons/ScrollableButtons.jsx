@@ -29,7 +29,6 @@ const ScrollableButtons = ({ data }) => {
 
   return (
     <div className="relative ml-[4%] flex-1 overflow-hidden sm:block hidden">
-      {/* Nút cuộn trái */}
       {canScrollLeft && (
         <button
           className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-gray-300 p-2 shadow-md hover:bg-gray-400"
@@ -39,14 +38,12 @@ const ScrollableButtons = ({ data }) => {
         </button>
       )}
 
-      {/* Danh sách các nút cuộn */}
       <div ref={scrollRef} className="scrollbar-hide flex gap-3 overflow-x-auto whitespace-nowrap transition-all duration-300">
         {data.map((item, index) => (
           <ButtonItem key={index} name={item.name} icon={item.icon} />
         ))}
       </div>
 
-      {/* Nút cuộn phải */}
       {canScrollRight && (
         <button
           className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-gray-300 px-2 py-1 shadow-md hover:bg-gray-400"
