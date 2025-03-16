@@ -19,6 +19,7 @@ import useRoutes from '../../hooks/useRoutes';
 import { DEFAULT_VIEWPORT, MAP_STYLE, TRANSPORT_OPTIONS } from '../../constants';
 import { getRouteLineStyle, getUserLocation } from '../../utils/mapUtils';
 import { MapIcon } from '../icons';
+import { AuthButton } from '../button';
 
 const Map = () => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -73,10 +74,11 @@ const Map = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="absolute left-[2%] top-4 z-20 flex w-[92%] items-center gap-4"
+            className="absolute left-[2%] top-4 z-20 flex w-[95%] items-center gap-2"
           >
             <SearchBar onRouteClick={handleRouteClick} />
             <ScrollableButtons data={TRANSPORT_OPTIONS} />
+            <AuthButton />
           </motion.div>
         )}
       </AnimatePresence>

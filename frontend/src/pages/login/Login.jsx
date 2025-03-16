@@ -1,83 +1,135 @@
-import React, { useState, useContext, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
-import AuthContext from "../../context/authProvider";
-import MethodContext from "../../context/methodProvider";
-import * as authServices from "../../services/auth";
-import { AuthForm } from "../../components/forms";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import useLogin from '../../hooks/useLogin';
+import { AuthForm } from '../../components/forms';
+import { PATHS } from '../../constants';
 
 const LogIn = () => {
-    const { setAuth, auth } = useContext(AuthContext);
-    const { notify } = useContext(MethodContext);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [hiddenPassword, setHiddenPassword] = useState(true);
-    const navigate = useNavigate();
-    const location = useLocation();
+  const {
+    register,
+    handleSubmit,
+    onSubmit,
+    errors,
+    hiddenPassword,
+    setHiddenPassword,
+    navigate,
+  } = useLogin();
 
-    useEffect(() => {
-        if (location.state?.toastMessage) {
-            notify(location.state.toastMessage, location.state.statusMessage);
-            navigate(location.pathname, { replace: true, state: {} });
-        }
-    }, []);
+  const formFields = [
+    {
+      label: 'Email',
+      id: 'email',
+      type: 'email',
+      placeholder: 'email@gmail.com',
+      ...register('email'),
+      error: errors.email?.message,
+    },
+    {
+      label: 'Mật Khẩu',
+      id: 'password',
+      type: hiddenPassword ? 'password' : 'text',
+      placeholder: 'password',
+      ...register('password'),
+      error: errors.password?.message,
+      icon: (
+        <FontAwesomeIcon
+          onClick={() => setHiddenPassword(!hiddenPassword)}
+          icon={hiddenPassword ? faEyeSlash : faEye}
+          className="absolute bottom-4 right-4 hover:cursor-pointer"
+        />
+      ),
+    },
+  ];
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        const loginResponse = await authServices.login(email, password);
-        if (loginResponse?.status === 200) {
-            setAuth({ ...auth, roles: loginResponse.data.roles });
-            localStorage.setItem("auth", JSON.stringify(auth));
-            navigate("/", { state: { toastMessage: "Đăng nhập thành công!", statusMessage: "success" } });
-        } else {
-            notify("Đăng nhập thất bại!", "error");
-        }
-    };
+  const formFooter = (
+    <motion.p
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1, delay: 0.5 }}
+    >
+      Chưa có tài khoản?{' '}
+      <Link to={PATHS.REGISTER} className="text-primaryColor">
+        Đăng Ký
+      </Link>
+    </motion.p>
+  );
 
-    return (
-        <div className="mx-auto grid grid-cols-12">
-            <div className="h-screen col-span-12 md:col-span-6 lg:col-span-5">
-                <div className="pb-12 w-[90%] mx-auto pl-5 pr-10">
-                    <h1 className="pt-12 text-4xl text-primaryColor font-bold text-center">Đăng Nhập</h1>
-                    <div className="w-full h-[200px] mb-9 overflow-hidden">
-                        <Link to={"/"}>
-                            <img className="w-[300px] h-full object-cover ml-12"
-                                 src={require('../../assets/images/logo.png')} alt="Logo"/>
-                        </Link>
-                    </div>
-                    <AuthForm
-                        title=""
-                        fields={[
-                            { label: "Email", id: "email", type: "email", placeholder: "email@gmail.com", value: email, onChange: (e) => setEmail(e.target.value), required: true },
-                            { label: "Mật Khẩu", id: "password", type: hiddenPassword ? "password" : "text", placeholder: "password", value: password, onChange: (e) => setPassword(e.target.value), required: true,
-                                icon: (
-                                    <FontAwesomeIcon 
-                                        onClick={() => setHiddenPassword(!hiddenPassword)}
-                                        icon={hiddenPassword ? faEyeSlash : faEye}
-                                        className="absolute bottom-4 right-4 hover:cursor-pointer"
-                                    />
-                                )
-                            }
-                        ]}
-                        onSubmit={handleLogin}
-                        submitText="Đăng Nhập"
-                        footer={<p>Chưa có tài khoản? <Link to="/register" className="text-primaryColor">Đăng Ký</Link></p>}
-                    />
-                    <div className="mt-5 text-center">
-                        <p className="text-primaryColor hover:cursor-pointer" onClick={() => navigate("/forgot-password")}>Quên mật khẩu!</p>
-                    </div>
-                </div>
-            </div>
-            <div className="h-screen hidden md:block lg:block md:col-span-6 lg:col-span-7">
-                <img
-                    className="w-full h-full object-cover"
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQA2cxDsQBnpXracds8wRvY_hY52kRjVkGHrg&s"
-                    alt="ảnh smart city"
-                />
-            </div>
+  return (
+    <motion.div
+      className="mx-auto grid grid-cols-12"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+    >
+      <motion.div
+        className="col-span-12 h-screen md:col-span-6 lg:col-span-5"
+        initial={{ x: -50, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+      >
+        <div className="mx-auto w-[90%]">
+          <h1 className="py-4 text-center text-4xl font-bold text-primaryColor">
+            Đăng Nhập
+          </h1>
+          <motion.div
+            className="mb-9 h-[200px] w-full overflow-hidden"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Link to={PATHS.HOME} className="flex items-center justify-center">
+              <img
+                className="h-full w-[200px] object-cover"
+                src={require('../../assets/images/logo.png')}
+                alt="Logo"
+              />
+            </Link>
+          </motion.div>
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+          >
+            <AuthForm
+              title=""
+              fields={formFields}
+              onSubmit={handleSubmit(onSubmit)}
+              submitText="Đăng Nhập"
+              footer={formFooter}
+              register={register}
+            />
+          </motion.div>
+          <motion.div
+            className="mt-5 text-center"
+            whileHover={{ scale: 1.1 }}
+            transition={{ type: 'spring', stiffness: 200 }}
+          >
+            <p
+              className="text-primaryColor hover:cursor-pointer"
+              onClick={() => navigate(PATHS.FORGOT_PASSWORD)}
+            >
+              Quên mật khẩu!
+            </p>
+          </motion.div>
         </div>
-    );
+      </motion.div>
+      <motion.div
+        className="hidden h-screen md:col-span-6 md:block lg:col-span-7 lg:block"
+        initial={{ x: 50, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+      >
+        <img
+          className="h-full w-full object-fit"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQA2cxDsQBnpXracds8wRvY_hY52kRjVkGHrg&s"
+          alt="ảnh smart city"
+        />
+      </motion.div>
+    </motion.div>
+  );
 };
 
 export default LogIn;
