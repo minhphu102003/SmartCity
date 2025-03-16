@@ -1,6 +1,5 @@
 import React from "react";
-import InputField from "../inputs/InputField";
-import PasswordField from "../inputs/PasswordField";
+import { InputField, PasswordField } from "../inputs";
 
 const AuthForm = ({ title, fields, onSubmit, submitText, footer }) => {
     return (

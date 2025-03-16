@@ -1,5 +1,5 @@
 import * as request from '../utils/request'
-import { PLACES_NEAREST_ENDPOINT, PLACE_SEARCH_ENDPOINT } from '../constants/endPoints'
+import { PLACES_NEAREST_ENDPOINT, PLACE_SEARCH_ENDPOINT } from '../constants'
 
 export const getNearestPlaces = async (accessToken, lat, lng, radius= 10, type = null, limit = 20, page = 1, minStar = null, maxStar = null) => {
     try{

@@ -42,7 +42,7 @@ const SearchBar = ({ onRouteClick }) => {
         placeholder="Tìm kiếm địa điểm..."
         className="flex-1 px-4 py-2 outline-none"
       />
-      {/* Nút tìm kiếm */}
+
       <button className="flex h-[5vh] w-[40px] items-center justify-center rounded-lg px-2 text-black hover:text-blue-600">
         <FontAwesomeIcon icon={faSearch} />
       </button>

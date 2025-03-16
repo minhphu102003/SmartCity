@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MethodContext from "../../context/methodProvider";
 import * as authService from "../../services/auth";
-import AuthForm from "../../components/forms/AuthForm";
+import { AuthForm } from "../../components/forms";
 
 const RegisterForm = () => {
     const [email, setEmail] = useState("");
