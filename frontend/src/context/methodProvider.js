@@ -34,7 +34,6 @@ export const MethodProvider = ({children}) => {
     };
 
     const filteredKeyNull = (state) => {
-        // Filters out null or undefined values from the object
         return Object.fromEntries(
             Object.entries(state).filter(([_, value]) => value !== null && value !== undefined)
         );

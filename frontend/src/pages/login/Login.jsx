@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import AuthContext from "../../context/authProvider";
 import MethodContext from "../../context/methodProvider";
 import * as authServices from "../../services/auth";
-import AuthForm from "../../components/forms/AuthForm";
+import { AuthForm } from "../../components/forms";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 

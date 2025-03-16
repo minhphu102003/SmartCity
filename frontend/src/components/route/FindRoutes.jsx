@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import TransportModeSelector from '../transportMode/TransportModeSelector';
-import LocationInput from '../inputs/LocationInput';
-import SearchHistory from '../history/SearchHistory';
+import { TransportModeSelector } from '../transportMode';
+import { LocationInput } from '../inputs';
+import { SearchHistory } from '../history';
 import {
   faTimes,
   faExchangeAlt,
@@ -10,7 +10,7 @@ import {
   faMapMarkerAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { TRANSPORT_MODE_TYPES } from '../../constants/transportModes';
+import { TRANSPORT_MODE_TYPES } from '../../constants';
 
 const FindRoutes = ({
   onClose,

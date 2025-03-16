@@ -1,5 +1,5 @@
 import * as requests from '../utils/request';
-import { ROUTE_ENDPOINT } from '../constants/endPoints';
+import { ROUTE_ENDPOINT } from '../constants';
 
 /**
  * Gọi API để lấy danh sách tuyến đường từ backend

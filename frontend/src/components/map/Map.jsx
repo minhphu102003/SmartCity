@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import ReactMapGL, {
   GeolocateControl,
-  FullscreenControl,
   NavigationControl,
   Marker,
   Source,
@@ -13,14 +12,13 @@ import {
   faMapMarkerAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import SearchBar from '../searchBar/SearchBar';
-import ScrollableButtons from '../scrollableButtons/ScrollableButtons';
-import FindRoutes from '../route/FindRoutes';
+import { SearchBar } from '../searchBar';
+import { ScrollableButtons } from '../scrollableButtons';
+import { FindRoutes } from '../route';
 import useRoutes from '../../hooks/useRoutes';
-import { TRANSPORT_OPTIONS } from '../../constants/transportOptions';
-import { DEFAULT_VIEWPORT, MAP_STYLE } from '../../constants/mapConfig';
+import { DEFAULT_VIEWPORT, MAP_STYLE, TRANSPORT_OPTIONS } from '../../constants';
 import { getRouteLineStyle, getUserLocation } from '../../utils/mapUtils';
-import MapIcon from '../icons/MapIcon';
+import { MapIcon } from '../icons';
 
 const Map = () => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -75,7 +73,7 @@ const Map = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="absolute left-[2%] top-4 z-50 flex w-[92%] items-center gap-4"
+            className="absolute left-[2%] top-4 z-20 flex w-[92%] items-center gap-4"
           >
             <SearchBar onRouteClick={handleRouteClick} />
             <ScrollableButtons data={TRANSPORT_OPTIONS} />
@@ -142,13 +140,12 @@ const Map = () => {
           </Marker>
         )}
 
+        <NavigationControl position="bottom-right" />
         <GeolocateControl
-          style={{ top: 10, left: 10 }}
+          position="bottom-right"
           trackUserLocation={true}
           onGeolocate={handleGeolocate}
         />
-        <FullscreenControl />
-        <NavigationControl />
       </ReactMapGL>
     </div>
   );

@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { TRANSPORT_MODE_ITEMS } from '../../constants/transportModes';
+import { TRANSPORT_MODE_ITEMS } from '../../constants';
 
 const TransportModeSelector = ({ selectedMode, onSelectMode }) => (
   <div className="flex gap-2">

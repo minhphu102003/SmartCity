@@ -1,5 +1,5 @@
 import * as request from '../utils/request'
-import { USERS_ENDPOINT, EDIT_PROFILE_ENDPOINT, DELETE_ENDPOINT } from '../constants/endPoints'
+import { USERS_ENDPOINT, EDIT_PROFILE_ENDPOINT, DELETE_ENDPOINT } from '../constants'
 
 
 export const getCurrentUser = async(accessToken) =>{
