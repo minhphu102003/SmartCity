@@ -1,1 +1,1 @@
-export { default as SiderBar } from './SiderBar';
+export { default as SiderBar } from './Siderbar';

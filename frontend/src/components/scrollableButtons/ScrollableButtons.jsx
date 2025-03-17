@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { ButtonItem } from '../button';
+import { getPlace } from '../../utils/placeUtils';
 
-const ScrollableButtons = ({ data }) => {
+const ScrollableButtons = ({ data, setPlaces, longitude, latitude }) => {
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -12,7 +13,9 @@ const ScrollableButtons = ({ data }) => {
     const checkScroll = () => {
       if (scrollRef.current) {
         setCanScrollLeft(scrollRef.current.scrollLeft > 0);
-        setCanScrollRight(scrollRef.current.scrollLeft < scrollRef.current.scrollWidth - scrollRef.current.clientWidth - 1);
+        setCanScrollRight(
+          scrollRef.current.scrollLeft < scrollRef.current.scrollWidth - scrollRef.current.clientWidth - 1
+        );
       }
     };
 
@@ -25,6 +28,13 @@ const ScrollableButtons = ({ data }) => {
     if (scrollRef.current) {
       scrollRef.current.scrollBy({ left: direction * 100, behavior: 'smooth' });
     }
+  };
+
+  const handleButtonClick = async (type) => {
+    console.log(longitude);
+    console.log(latitude);
+    const places = await getPlace(latitude, longitude, type);
+    if (places) setPlaces(places);
   };
 
   return (
@@ -40,7 +50,7 @@ const ScrollableButtons = ({ data }) => {
 
       <div ref={scrollRef} className="scrollbar-hide flex gap-3 overflow-x-auto whitespace-nowrap transition-all duration-300">
         {data.map((item, index) => (
-          <ButtonItem key={index} name={item.name} icon={item.icon} />
+          <ButtonItem key={index} name={item.name} icon={item.icon} onClick={() => handleButtonClick(item.name)} />
         ))}
       </div>
 

@@ -16,10 +16,12 @@ import { SearchBar } from '../searchBar';
 import { ScrollableButtons } from '../scrollableButtons';
 import { FindRoutes } from '../route';
 import useRoutes from '../../hooks/useRoutes';
-import { DEFAULT_VIEWPORT, MAP_STYLE, TRANSPORT_OPTIONS } from '../../constants';
+import { DEFAULT_VIEWPORT, MAP_STYLE, PLACE_OPTIONS } from '../../constants';
 import { getRouteLineStyle, getUserLocation } from '../../utils/mapUtils';
 import { MapIcon } from '../icons';
 import { AuthButton } from '../button';
+import { getPlace } from '../../utils/placeUtils';
+import { PlacesMarkers } from '../marker';
 
 const Map = () => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -29,15 +31,19 @@ const Map = () => {
   const [endMarker, setEndMarker] = useState(null);
   const [focusedInput, setFocusedInput] = useState(null);
 
+  const [places, setPlaces] = useState([]);
+
   const { routes, geoJsonRoutes, loading, error, resetRoutes } = useRoutes(
     startMarker,
     endMarker
   );
 
-  const handleGeolocate = (event) => {
+  const handleGeolocate = async (event) => {
     const { latitude, longitude } = event.coords;
     setViewport({ latitude, longitude, zoom: 16 });
     setUserLocation({ latitude, longitude });
+    const places = await getPlace(latitude, longitude);
+    setPlaces(places);
   };
 
   const handleMapClick = (event) => {
@@ -77,7 +83,12 @@ const Map = () => {
             className="absolute left-[2%] top-4 z-20 flex w-[95%] items-center gap-2"
           >
             <SearchBar onRouteClick={handleRouteClick} />
-            <ScrollableButtons data={TRANSPORT_OPTIONS} />
+            <ScrollableButtons
+              data={PLACE_OPTIONS}
+              setPlaces={setPlaces}
+              longitude={userLocation ? userLocation.longitude : null}
+              latitude={userLocation ? userLocation.latitude : null}
+            />
             <AuthButton />
           </motion.div>
         )}
@@ -141,6 +152,8 @@ const Map = () => {
             <MapIcon icon={faMapMarkerAlt} className="text-3xl text-red-500" />
           </Marker>
         )}
+
+        <PlacesMarkers places={places} />
 
         <NavigationControl position="bottom-right" />
         <GeolocateControl
