@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMapGL, {
   GeolocateControl,
   NavigationControl,
@@ -22,6 +22,9 @@ import { MapIcon } from '../icons';
 import { AuthButton } from '../button';
 import { getPlace } from '../../utils/placeUtils';
 import { PlacesMarkers } from '../marker';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Map = () => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -30,6 +33,18 @@ const Map = () => {
   const [startMarker, setStartMarker] = useState(null);
   const [endMarker, setEndMarker] = useState(null);
   const [focusedInput, setFocusedInput] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state?.toastMessage) {
+      toast(location.state.toastMessage, {
+        type: location.state.statusMessage === 'success' ? 'success' : 'error',
+      });
+
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   const [places, setPlaces] = useState([]);
 

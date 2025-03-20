@@ -38,9 +38,10 @@ const useLogin = () => {
   const onSubmit = async (data) => {
     const { email, password } = data;
     const loginResponse = await authServices.login(email, password);
+    console.log(loginResponse);
 
     if (loginResponse?.status === 200) {
-      setAuth({ ...auth, roles: loginResponse.data.roles });
+      setAuth({ ...auth, roles: loginResponse.data?.data?.roles });
       localStorage.setItem('auth', JSON.stringify(auth));
       navigate(PATHS.HOME, {
         state: {

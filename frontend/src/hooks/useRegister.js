@@ -32,11 +32,11 @@ const useRegister = () => {
   const onSubmit = async (data) => {
     const { name, email, password } = data;
     const registerResponse = await authServices.register(name, email, password);
-
-    if (registerResponse?.status === 200) {
-      navigate(PATHS.VERIFY_EMAIL, {
+    console.log(registerResponse);
+    if (registerResponse?.status === 201) {
+      navigate(PATHS.LOGIN, {
         state: {
-          toastMessage: 'Vui lòng nhập mã OTP!',
+          toastMessage: 'Đăng kí thành công',
           statusMessage: 'success',
         },
       });
