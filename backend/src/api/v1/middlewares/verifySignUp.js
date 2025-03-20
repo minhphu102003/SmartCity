@@ -1,5 +1,6 @@
 import User from "../models/user.js";
-import { ROLES } from "../../shared/constants/index.js";
+
+export const ROLES = ["user", "admin"];
 
 export const checkExistingUser = async (req, res, next) => {
   try {
