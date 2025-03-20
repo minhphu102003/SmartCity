@@ -41,7 +41,7 @@ const AuthButton = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
     >
-      {!user ? (
+      {user ? (
         <div className="relative" ref={menuRef}>
           <button onClick={() => setMenuOpen((prev) => !prev)}>
             <img

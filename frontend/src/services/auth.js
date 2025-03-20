@@ -1,12 +1,11 @@
-import * as request from '../utils/request'
-
-const REGISTER_ENDPOINT = '/api/auth/register'
+import * as request from '../utils/request';
+import { REGISTER_ENDPOINT, VERIFY_EMAIL_ENDPOINT, LOGIN_ENDPOINT, LOGOUT_ENDPOINT, REFRESHTOKE_ENDPOINT, FORGOT_PASS_ENDPOINT, RESET_PASS_ENDPOINT } from '../constants';
 
 export const register = async (name, email, password) =>{
     try{
         const response = await request.post(REGISTER_ENDPOINT,
             {
-                name,
+                username: name,
                 email,
                 password,
             },
@@ -22,8 +21,6 @@ export const register = async (name, email, password) =>{
         return error;
     }
 }
-
-const VERIFY_EMAIL_ENDPOINT = '/api/auth/verify-email';
 
 export const verifyEmail = async (name, email, password, otp) =>{
     try{
@@ -45,9 +42,6 @@ export const verifyEmail = async (name, email, password, otp) =>{
     }
 }
 
-
-const LOGIN_ENDPOINT = '/api/auth/login';
-
 export const login = async (email, password) => {
     try{
         const response = await request.post(LOGIN_ENDPOINT,
@@ -67,8 +61,6 @@ export const login = async (email, password) => {
     }
 }
 
-const LOGOUT_ENDPOINT = '/api/auth/logout';
-
 export const logout = async () => {
     try{
         return await request.post(LOGOUT_ENDPOINT);
@@ -76,8 +68,6 @@ export const logout = async () => {
         return error;
     }
 }
-
-const REFRESHTOKE_ENDPOINT = '/api/auth/refresh-token';
 
 export const refreshToken = async (refreshToken) => {
     try{
@@ -97,8 +87,6 @@ export const refreshToken = async (refreshToken) => {
     }
 }
 
-const FORGOT_PASS_ENDPOINT = "/api/auth/forgot-password"
-
 export const forgotPassword = async (email) => {
     try {
         return await request.post(FORGOT_PASS_ENDPOINT,
@@ -116,8 +104,6 @@ export const forgotPassword = async (email) => {
         return error
     }
 };
-
-const RESET_PASS_ENDPOINT = "/api/auth/reset-password"
 
 export const resetPass = async (password, otp, email) => {
     try {

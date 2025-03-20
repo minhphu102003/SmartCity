@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthForm } from '../../components/forms';
@@ -6,8 +6,25 @@ import useRegister from '../../hooks/useRegister';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { PATHS } from '../../constants';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const RegisterForm = () => {
+
+    const location = useLocation();
+    const navigate = useNavigate();
+  
+    useEffect(() => {
+      if (location.state?.toastMessage) {
+        toast(location.state.toastMessage, {
+          type: location.state.statusMessage === 'success' ? 'success' : 'error',
+        });
+  
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }, [location, navigate]);
+
   const {
     register,
     handleSubmit,
