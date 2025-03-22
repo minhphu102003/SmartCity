@@ -25,6 +25,8 @@ import { PlacesMarkers } from '../marker';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import WeatherModal from '../modals/WeatherModal';
+import useWeatherSuggest from '../../hooks/userWeather';
 
 const Map = () => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -33,8 +35,29 @@ const Map = () => {
   const [startMarker, setStartMarker] = useState(null);
   const [endMarker, setEndMarker] = useState(null);
   const [focusedInput, setFocusedInput] = useState(null);
+  const [places, setPlaces] = useState([]);
+  const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      await getUserLocation(setUserLocation, setViewport);
+    };
+    fetchUserLocation();
+  }, []);
+
+  const {
+    data: weatherData,
+    loading,
+    error,
+  } = useWeatherSuggest(userLocation?.latitude, userLocation?.longitude);
+
+  useEffect(() => {
+    if (weatherData) {
+      setIsWeatherModalOpen(true);
+    }
+  }, [weatherData]);
 
   useEffect(() => {
     if (location.state?.toastMessage) {
@@ -46,9 +69,7 @@ const Map = () => {
     }
   }, [location, navigate]);
 
-  const [places, setPlaces] = useState([]);
-
-  const { routes, geoJsonRoutes, loading, error, resetRoutes } = useRoutes(
+  const { routes, geoJsonRoutes, resetRoutes } = useRoutes(
     startMarker,
     endMarker
   );
@@ -88,6 +109,14 @@ const Map = () => {
 
   return (
     <div className="relative h-screen w-full">
+      {isWeatherModalOpen && weatherData && (
+        <div>
+          <WeatherModal
+            onClose={() => setIsWeatherModalOpen(false)}
+            weather={weatherData}
+          />
+        </div>
+      )}
       <AnimatePresence>
         {!isRouteVisible && (
           <motion.div
