@@ -7,4 +7,5 @@ export const PATHS = {
   SHARE_LOCATION: '/share-location',
   VERIFY_EMAIL: '/verify-email',
   PROFILE: '/profile',
+  CAMERA: '/camera',
 };

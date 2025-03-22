@@ -12,3 +12,4 @@ export const REFRESHTOKE_ENDPOINT = '/auth/refresh-token';
 export const FORGOT_PASS_ENDPOINT = "/auth/forgot-password";
 export const RESET_PASS_ENDPOINT = "/auth/reset-password";
 export const WEATHER_SUGGET_ENDPOINT = '/weather/suggestion';
+export const CAMERA_ENDPOINT='/camera';
