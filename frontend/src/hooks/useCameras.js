@@ -20,7 +20,7 @@ const useCameras = (queryParams) => {
     };
 
     loadCameras();
-  }, [JSON.stringify(queryParams)]);
+  }, [queryParams]);
 
   return { cameras, loading, error };
 };

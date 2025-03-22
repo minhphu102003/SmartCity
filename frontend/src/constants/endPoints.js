@@ -13,3 +13,5 @@ export const FORGOT_PASS_ENDPOINT = "/auth/forgot-password";
 export const RESET_PASS_ENDPOINT = "/auth/reset-password";
 export const WEATHER_SUGGET_ENDPOINT = '/weather/suggestion';
 export const CAMERA_ENDPOINT='/camera';
+export const PLACE_AUTO_COMPLETE_ENDPOINT = '/Place/AutoComplete';
+export const PLACE_DETAIL_ENDPOINT = "/Place/Detail";

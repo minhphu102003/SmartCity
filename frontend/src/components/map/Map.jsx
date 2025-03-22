@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactMapGL, {
   GeolocateControl,
   NavigationControl,
@@ -16,7 +16,12 @@ import { SearchBar } from '../searchBar';
 import { ScrollableButtons } from '../scrollableButtons';
 import { FindRoutes } from '../route';
 import useRoutes from '../../hooks/useRoutes';
-import { DEFAULT_VIEWPORT, MAP_STYLE, PLACE_OPTIONS } from '../../constants';
+import {
+  DEFAULT_VIEWPORT,
+  MAP_STYLE,
+  PLACE_OPTIONS,
+  MAP_BOX_API,
+} from '../../constants';
 import { getRouteLineStyle, getUserLocation } from '../../utils/mapUtils';
 import { MapIcon } from '../icons';
 import { AuthButton } from '../button';
@@ -37,14 +42,12 @@ const Map = () => {
   const [focusedInput, setFocusedInput] = useState(null);
   const [places, setPlaces] = useState([]);
   const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
+  const mapRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserLocation = async () => {
-      await getUserLocation(setUserLocation, setViewport);
-    };
-    fetchUserLocation();
+    (async () => await getUserLocation(setUserLocation, setViewport))();
   }, []);
 
   const {
@@ -53,10 +56,13 @@ const Map = () => {
     error,
   } = useWeatherSuggest(userLocation?.latitude, userLocation?.longitude);
 
+  const { routes, geoJsonRoutes, resetRoutes } = useRoutes(
+    startMarker,
+    endMarker
+  );
+
   useEffect(() => {
-    if (weatherData) {
-      setIsWeatherModalOpen(true);
-    }
+    if (weatherData) setIsWeatherModalOpen(true);
   }, [weatherData]);
 
   useEffect(() => {
@@ -69,54 +75,44 @@ const Map = () => {
     }
   }, [location, navigate]);
 
-  const { routes, geoJsonRoutes, resetRoutes } = useRoutes(
-    startMarker,
-    endMarker
-  );
+  const handleSelectLocation = (lat, lng, description) => {
+    const newLocation = { latitude: lat, longitude: lng, description };
+  
+    if (focusedInput === 'start') {
+      setStartMarker(newLocation);
+    } else if (focusedInput === 'end') {
+      setEndMarker(newLocation);
+    } else {
+      setUserLocation(newLocation);
+    }
+    if (mapRef.current) {
+      mapRef.current.flyTo({
+        center: [lng, lat],
+        zoom: 16,
+        speed: 1.2,  
+        curve: 1.5, 
+        essential: true
+      });
+    }
+    setViewport({ latitude: lat, longitude: lng, zoom: 16 });
+  };
 
   const handleGeolocate = async (event) => {
     const { latitude, longitude } = event.coords;
     setViewport({ latitude, longitude, zoom: 16 });
     setUserLocation({ latitude, longitude });
-    const places = await getPlace(latitude, longitude);
-    setPlaces(places);
-  };
-
-  const handleMapClick = (event) => {
-    const { lng, lat } = event.lngLat;
-    if (focusedInput === 'start') {
-      setStartMarker({ longitude: lng, latitude: lat });
-    } else if (focusedInput === 'end') {
-      setEndMarker({ longitude: lng, latitude: lat });
-    }
-  };
-
-  const handleInputFocus = (inputType) => {
-    setFocusedInput(inputType);
-  };
-
-  const handleRouteClick = () => {
-    setIsRouteVisible(true);
-  };
-
-  const handleCloseRoute = () => {
-    setIsRouteVisible(false);
-    setStartMarker(null);
-    setEndMarker(null);
-    setUserLocation(null);
-    resetRoutes();
+    setPlaces(await getPlace(latitude, longitude));
   };
 
   return (
     <div className="relative h-screen w-full">
       {isWeatherModalOpen && weatherData && (
-        <div>
-          <WeatherModal
-            onClose={() => setIsWeatherModalOpen(false)}
-            weather={weatherData}
-          />
-        </div>
+        <WeatherModal
+          onClose={() => setIsWeatherModalOpen(false)}
+          weather={weatherData}
+        />
       )}
+
       <AnimatePresence>
         {!isRouteVisible && (
           <motion.div
@@ -126,12 +122,16 @@ const Map = () => {
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="absolute left-[2%] top-4 z-20 flex w-[95%] items-center gap-2"
           >
-            <SearchBar onRouteClick={handleRouteClick} />
+          <SearchBar
+            onRouteClick={() => setIsRouteVisible(true)}
+            onSelectLocation={handleSelectLocation}
+            userLocation={userLocation}            
+          />
             <ScrollableButtons
               data={PLACE_OPTIONS}
               setPlaces={setPlaces}
-              longitude={userLocation ? userLocation.longitude : null}
-              latitude={userLocation ? userLocation.latitude : null}
+              longitude={userLocation?.longitude}
+              latitude={userLocation?.latitude}
             />
             <AuthButton />
           </motion.div>
@@ -141,12 +141,18 @@ const Map = () => {
       <AnimatePresence>
         {isRouteVisible && (
           <FindRoutes
-            onClose={handleCloseRoute}
+            onClose={() => {
+              setIsRouteVisible(false);
+              setStartMarker(null);
+              setEndMarker(null);
+              setUserLocation(null);
+              resetRoutes();
+            }}
             onSelectLocation={() =>
               getUserLocation(setUserLocation, setViewport)
             }
             userLocation={userLocation}
-            onInputFocus={handleInputFocus}
+            onInputFocus={setFocusedInput}
             startMarker={startMarker}
             endMarker={endMarker}
             routes={routes}
@@ -156,13 +162,21 @@ const Map = () => {
 
       <ReactMapGL
         {...viewport}
+        ref={mapRef} 
         width="100%"
         height="100%"
         mapStyle={MAP_STYLE}
-        mapboxAccessToken={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+        mapboxAccessToken={MAP_BOX_API}
         transitionDuration={200}
         onMove={(evt) => setViewport(evt.viewState)}
-        onClick={handleMapClick}
+        onClick={(event) => {
+          const { lng, lat } = event.lngLat;
+          if (focusedInput === "start") {
+            setStartMarker({ longitude: lng, latitude: lat });
+          } else if (focusedInput === "end") {
+            setEndMarker({ longitude: lng, latitude: lat });
+          }
+        }}
       >
         {geoJsonRoutes.map((route, index) => (
           <Source key={index} id={`route-${index}`} type="geojson" data={route}>
@@ -190,7 +204,6 @@ const Map = () => {
             <MapIcon icon={faMapMarkerAlt} className="text-3xl text-blue-500" />
           </Marker>
         )}
-
         {endMarker && (
           <Marker longitude={endMarker.longitude} latitude={endMarker.latitude}>
             <MapIcon icon={faMapMarkerAlt} className="text-3xl text-red-500" />
