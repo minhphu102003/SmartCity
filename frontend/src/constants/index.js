@@ -6,3 +6,4 @@ export * from './transportModes';
 export * from './places';
 export * from './message';
 export * from './places';
+export * from './cities';
