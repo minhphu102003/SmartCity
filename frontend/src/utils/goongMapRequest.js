@@ -1,5 +1,5 @@
 import axios from "axios";
-import { GOONG_MAP_BASE_URL, GOONG_MAP_KEY } from "../constants";
+import { GOONG_MAP_BASE_URL } from "../constants";
 
 const goongInstance = axios.create({
     baseURL: GOONG_MAP_BASE_URL,

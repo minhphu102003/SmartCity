@@ -1,8 +1,8 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLocationArrow, faSearch } from '@fortawesome/free-solid-svg-icons';
 
-const LocationInput = ({ value, onChange, placeholder, focus, onFocus, onBlur, isStart }) => {
-  const iconColor = isStart ? 'text-blue-600' : 'text-red-600'; // Màu icon
+const LocationInput = ({ value, onChange, onSearch, placeholder, focus, onFocus, onBlur, isStart }) => {
+  const iconColor = isStart ? 'text-blue-600' : 'text-red-600';
 
   return (
     <div className="mb-4 flex items-center space-x-3 relative">
@@ -12,7 +12,10 @@ const LocationInput = ({ value, onChange, placeholder, focus, onFocus, onBlur, i
       <input
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value);
+          onSearch(e.target.value); 
+        }}
         onFocus={onFocus}
         onBlur={onBlur}
         placeholder={placeholder}

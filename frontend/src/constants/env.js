@@ -1,2 +1,4 @@
-export const GOONG_MAP_KEY = process.env.REACT_APP_GOONG_KEY;
-export const MAP_BOX_API = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+import * as config from './config';
+export const GOONG_MAP_KEY = config.GOONG_MAP_KEY;
+export const MAP_BOX_API = config.MAP_BOX_API;
+export const OPENCAGE_KEY = config.OPENCAGE_KEY;
