@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRoute, faSearch, faClock, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faRoute, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { getGoongMapSuggestions, getPlaceCoordinates } from '../../services/location';
+import LocationSuggestions from './LocationSuggestions';
 
 const SearchBar = ({ onRouteClick, onSelectLocation, userLocation }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -25,11 +26,10 @@ const SearchBar = ({ onRouteClick, onSelectLocation, userLocation }) => {
       }
     };
 
-    const delayDebounce = setTimeout(fetchSuggestions, 300); // Debounce để tránh spam API
+    const delayDebounce = setTimeout(fetchSuggestions, 300); 
     return () => clearTimeout(delayDebounce);
   }, [searchQuery, userLocation]);
 
-  // Xử lý khi chọn một gợi ý
   const handleSelectSuggestion = async (placeId, description) => {
     const coordinates = await getPlaceCoordinates(placeId);
     if (coordinates) {
@@ -39,13 +39,17 @@ const SearchBar = ({ onRouteClick, onSelectLocation, userLocation }) => {
     setSuggestedLocations([]);
   };
 
+  const handleRemoveSuggestion = (placeId) => {
+    setSuggestedLocations((prev) => prev.filter((item) => item.place_id !== placeId));
+  };
+
   return (
     <div className="relative flex w-[30%] items-center gap-2 rounded-xl bg-white px-2 py-1 shadow-md">
       <input
         type="text"
         value={searchQuery}
         onFocus={() => setIsFocused(true)}
-        onBlur={() => setTimeout(() => setIsFocused(false), 200)} // Delay để chọn gợi ý không bị mất
+        onBlur={() => setTimeout(() => setIsFocused(false), 200)}
         onChange={(e) => setSearchQuery(e.target.value)}
         placeholder="Search for a place..."
         className="flex-1 px-4 py-2 outline-none"
@@ -62,27 +66,12 @@ const SearchBar = ({ onRouteClick, onSelectLocation, userLocation }) => {
         <FontAwesomeIcon icon={faRoute} className="text-lg text-blue-500" />
       </button>
 
-      {isFocused && suggestedLocations.length > 0 && (
-        <div className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-300 bg-white shadow-md">
-          {suggestedLocations.map((location, index) => (
-            <div
-              key={index}
-              className="group flex cursor-pointer items-center justify-between px-4 py-2 hover:bg-gray-100"
-              onClick={() => handleSelectSuggestion(location.place_id, location.description)}
-            >
-              <FontAwesomeIcon icon={faClock} className="mr-2 text-gray-500" />
-              {location.description}
-              <FontAwesomeIcon
-                icon={faTimes}
-                className="text-black-100 cursor-pointer opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSuggestedLocations((prev) => prev.filter((item) => item.place_id !== location.place_id));
-                }}
-              />
-            </div>
-          ))}
-        </div>
+      {isFocused && (
+        <LocationSuggestions
+          suggestions={suggestedLocations}
+          onSelect={handleSelectSuggestion}
+          onRemove={handleRemoveSuggestion}
+        />
       )}
     </div>
   );

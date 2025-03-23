@@ -9,3 +9,4 @@ export * from './places';
 export * from './cities';
 export * from './url';
 export * from './env';
+export * from './searchHistory';

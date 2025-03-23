@@ -77,7 +77,7 @@ const Map = () => {
 
   const handleSelectLocation = (lat, lng, description) => {
     const newLocation = { latitude: lat, longitude: lng, description };
-  
+
     if (focusedInput === 'start') {
       setStartMarker(newLocation);
     } else if (focusedInput === 'end') {
@@ -85,12 +85,12 @@ const Map = () => {
     } else {
       setUserLocation(newLocation);
     }
-    if (mapRef.current) {
+    if (mapRef.current && lat && lng) {
       mapRef.current.flyTo({
         center: [lng, lat],
         zoom: 16,
-        speed: 1.2,  
-        curve: 1.5, 
+        speed: 1.2,
+        curve: 1.5,
         essential: true
       });
     }
@@ -122,11 +122,11 @@ const Map = () => {
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="absolute left-[2%] top-4 z-20 flex w-[95%] items-center gap-2"
           >
-          <SearchBar
-            onRouteClick={() => setIsRouteVisible(true)}
-            onSelectLocation={handleSelectLocation}
-            userLocation={userLocation}            
-          />
+            <SearchBar
+              onRouteClick={() => setIsRouteVisible(true)}
+              onSelectLocation={handleSelectLocation}
+              userLocation={userLocation}
+            />
             <ScrollableButtons
               data={PLACE_OPTIONS}
               setPlaces={setPlaces}
@@ -148,7 +148,8 @@ const Map = () => {
               setUserLocation(null);
               resetRoutes();
             }}
-            onSelectLocation={() =>
+            onSelectLocation={handleSelectLocation}
+            onSelectLocationUser={() =>
               getUserLocation(setUserLocation, setViewport)
             }
             userLocation={userLocation}
@@ -162,7 +163,7 @@ const Map = () => {
 
       <ReactMapGL
         {...viewport}
-        ref={mapRef} 
+        ref={mapRef}
         width="100%"
         height="100%"
         mapStyle={MAP_STYLE}
@@ -171,22 +172,28 @@ const Map = () => {
         onMove={(evt) => setViewport(evt.viewState)}
         onClick={(event) => {
           const { lng, lat } = event.lngLat;
-          if (focusedInput === "start") {
+          if (focusedInput === 'start') {
             setStartMarker({ longitude: lng, latitude: lat });
-          } else if (focusedInput === "end") {
+          } else if (focusedInput === 'end') {
             setEndMarker({ longitude: lng, latitude: lat });
           }
         }}
       >
-        {geoJsonRoutes.map((route, index) => (
-          <Source key={index} id={`route-${index}`} type="geojson" data={route}>
-            <Layer
-              id={`route-line-${index}`}
-              type="line"
-              paint={getRouteLineStyle(route, index, geoJsonRoutes)}
-            />
-          </Source>
-        ))}
+        {geoJsonRoutes?.length > 0 &&
+          geoJsonRoutes.map((route, index) => (
+            <Source
+              key={index}
+              id={`route-${index}`}
+              type="geojson"
+              data={route}
+            >
+              <Layer
+                id={`route-line-${index}`}
+                type="line"
+                paint={getRouteLineStyle(route, index, geoJsonRoutes)}
+              />
+            </Source>
+          ))}
 
         {userLocation && (
           <Marker
@@ -210,7 +217,7 @@ const Map = () => {
           </Marker>
         )}
 
-        <PlacesMarkers places={places} />
+        { places && <PlacesMarkers places={places} />}
 
         <NavigationControl position="bottom-right" />
         <GeolocateControl
