@@ -35,11 +35,13 @@ router.use((req, res, next) => {
   next();
 });
 
-router.get('/profile',[validateWithToken,handleValidationErrors],veriFyToken, getUserProfile);
-router.get("/", [searchAccountsValidator, handleValidationErrors], listOrSearchAccountsHandler); 
-router.get("/:id", [validateById, handleValidationErrors], getAccountDetailsHandler); 
-router.put("/:id", [validateById, validateWithToken, updateAccountValidator, handleValidationErrors], veriFyToken, updateAccountDetailsHandler); 
+router.get('/profile',[validateWithToken],veriFyToken, getUserProfile);
+router.get("/", [searchAccountsValidator], listOrSearchAccountsHandler); 
+router.get("/:id", [validateById,], getAccountDetailsHandler); 
+router.put("/:id", [validateById, validateWithToken, updateAccountValidator,], veriFyToken, updateAccountDetailsHandler); 
 router.delete("/:id", [validateById, ...adminAuthMiddlewares], deleteAccountHandler);
 router.put("/:id/roles", [validateById,validateManageAccountRoles, ...adminAuthMiddlewares], manageAccountRolesHandler);
+
+router.use(handleValidationErrors);
 
 export default router;

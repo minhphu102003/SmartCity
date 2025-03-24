@@ -37,13 +37,11 @@ export const getClothingSuggestion = async (req, res, next) => {
         if (!longitude || !latitude) {
             return res.status(400).json({ success: false, message: 'Missing longitude and latitude information' });
         }
-
         const lat = parseFloat(latitude);
         const lon = parseFloat(longitude);
-        const currentTime = Date.now() / 1000; // Current time in seconds
-        const twelveHoursAgo = currentTime - 12 * 3600; // Time 12 hours ago in seconds
+        const currentTime = Date.now() / 1000; 
+        const twelveHoursAgo = currentTime - 12 * 3600; 
 
-        // Define the query to check for existing weather data
         const query = {
             location: {
                 $near: {
@@ -51,16 +49,14 @@ export const getClothingSuggestion = async (req, res, next) => {
                     $maxDistance: 5000 // 1000 meters
                 }
             },
-            dt: { $gte: twelveHoursAgo } // Only consider entries from the last 12 hours
+            dt: { $gte: twelveHoursAgo } 
         };
 
-        // Check if there's existing weather data
         const existingWeatherData = await Weather.find(query).populate("weather_conditions").sort({ dt: -1 }).limit(1);
 
-        let suggestion, code, temp; // Declare variables here
+        let suggestion, code, temp; 
 
         if (existingWeatherData.length > 0) {
-            // Use the existing weather data to generate a clothing suggestion
             const latestWeather = existingWeatherData[0];
             ({ suggestion, code, temp } = suggestClothing(
                 latestWeather.temp,
@@ -69,13 +65,11 @@ export const getClothingSuggestion = async (req, res, next) => {
                 latestWeather.weather_conditions[0].main
             ));
         } else {
-            // Fetch new weather data from the external API
             const apikey = process.env.API_KEY;
             const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apikey}&units=metric`;
             const response = await axios.get(url);
             const weatherData = response.data;
 
-            // Create and save WeatherCondition entries
             const weatherConditions = await Promise.all(
                 weatherData.weather.map(async (condition) => {
                     const weatherCondition = new WeatherCondition({
@@ -88,7 +82,6 @@ export const getClothingSuggestion = async (req, res, next) => {
                 })
             );
 
-            // Create and save Weather entry with geospatial data
             const weather = new Weather({
                 dt: weatherData.dt,
                 temp: weatherData.main.temp,
@@ -112,7 +105,6 @@ export const getClothingSuggestion = async (req, res, next) => {
 
             await weather.save();
 
-            // Generate clothing suggestion
             ({ suggestion, code, temp } = suggestClothing(
                 weatherData.main.temp,
                 weatherData.clouds.all,

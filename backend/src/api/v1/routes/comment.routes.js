@@ -23,21 +23,12 @@ router.use((req, res, next) => {
     next();
 });
 
-// Lấy comment dựa trên id place
-router.get("/listByPlace/:id", [validateById, handleValidationErrors], getListCommentByPlace);
-// Lấy comment dựa trên id user
+router.get("/listByPlace/:id", [validateById], getListCommentByPlace);
+router.get("/listByAccount/:id", [validateById], getListCommentByAccount);
+router.post("/",[handleMultipleUploads], [validateWithToken, validateCreateComment],veriFyToken, createComment);
+router.put("/:id",[handleMultipleUploads],[validateById, validateWithToken, validateUpdateComment], veriFyToken, updateComment);
+router.delete("/:id", [validateById, validateWithToken], veriFyToken, deleteComment);
 
-// ? ok 
-router.get("/listByAccount/:id", [validateById, handleValidationErrors], getListCommentByAccount);
-
-// ? Test ok
-router.post("/",[handleMultipleUploads], [validateWithToken, validateCreateComment, handleValidationErrors],veriFyToken, createComment);
-
-// Chỉnh sửa comment
-// ? test ok 
-router.put("/:id",[handleMultipleUploads],[validateById, validateWithToken, validateUpdateComment, handleValidationErrors], veriFyToken, updateComment);
-// Xóa comment
-// ? test ok 
-router.delete("/:id", [validateById, validateWithToken, handleValidationErrors], veriFyToken, deleteComment);
+router.use(handleValidationErrors);
 
 export default router;

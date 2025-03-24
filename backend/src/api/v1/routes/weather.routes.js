@@ -15,10 +15,11 @@ router.use((req, res, next) => {
     );
     next(); 
 });
-// Test ok 
-router.get("/suggestion",[coordinatesQueryValidator, handleValidationErrors], getClothingSuggestion);
+router.get("/suggestion",[coordinatesQueryValidator], getClothingSuggestion);
 router.get("/conditions", getWeatherConditions);
-router.get("/", [coordinatesQueryValidator, validateDateRange, validateDistance, handleValidationErrors], getWeatherData);
-router.delete("/:id", [validateById, validateWithToken, handleValidationErrors],veriFyToken, isAdmin, deleteWeatherRecord);
+router.get("/", [coordinatesQueryValidator, validateDateRange, validateDistance], getWeatherData);
+router.delete("/:id", [validateById, validateWithToken],veriFyToken, isAdmin, deleteWeatherRecord);
+
+router.use(handleValidationErrors);
 
 export default router;
