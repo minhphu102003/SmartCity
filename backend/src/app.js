@@ -10,7 +10,7 @@ import AccountReport from './api/v1/models/accountReport.js';
 import { consumeMessages } from "../src/api/v1/config/kafka.config.js";
 import { WebSocketServer } from 'ws';  
 import {handleLocationUpdate } from "./api/v1/services/readLocation.js";
-
+import { initializeWebSocket } from "./api/v1/websockets/websocketServer.js";
 
 const app = express();
 
@@ -33,16 +33,6 @@ app.use('/uploads', express.static(UPLOAD_DIRECTORY));
 
 
 const wsClients = [];
-// Middleware to measure response time
-app.use((req, res, next) => {
-    console.log('Request body:', req.body);
-    const start = Date.now(); // Lấy thời gian bắt đầu khi yêu cầu đến
-    res.on('finish', () => {
-        const duration = Date.now() - start; // Tính toán thời gian phản hồi
-        console.log(`Request to ${req.originalUrl} took ${duration} ms`); // In ra thời gian phản hồi
-    });
-    next();
-});
 let cachedCameras = [];
 let cachedReports = [];
 
@@ -50,8 +40,6 @@ const preload = async () => {
     try {
         cachedCameras = await Camera.find({ roadSegments: { $exists: true, $size: 0 } });
         cachedReports = await AccountReport.find({ roadSegment_ids: { $exists: false } });
-        console.log(`${cachedCameras.length} cameras without road segments loaded into cache`);
-        console.log(`${cachedReports.length} reports without road segment references loaded into cache`);
     } catch (error) {
         console.error("Error loading data into cache:", error);
     }
@@ -64,46 +52,49 @@ app.use((req, res, next) => {
     next();
 });
 
+// app.server = app.listen(app.get("port"), () => {
+//     const wss = new WebSocketServer({ server: app.server });
+//     wss.on('connection', (ws) => {
+//         console.log('Client connected');
+//         ws.send('Welcome to the WebSocket server!');
+//         // Add the new client to the list
+//         wsClients.push(ws);
+//         // Handle incoming messages from the client
+//         ws.on('message', async (message) => {
+//             const decodedMessage = message.toString();
+//             console.log('Received message:', decodedMessage);
+//             try {
+//                 const parsedMessage = JSON.parse(decodedMessage);
+//                 if (parsedMessage.type === 'update location') {
+//                     const result = await handleLocationUpdate(parsedMessage);
+//                     console.log(result);
+//                 } else {
+//                     console.log("Unknown message type");
+//                 }
+//             } catch (error) {
+//                 console.error('Error parsing message:', error);
+//             }
+//         });
+
+//         ws.on('close', () => {
+//             console.log('Client disconnected');
+//             const index = wsClients.indexOf(ws);
+//             if (index > -1) {
+//                 wsClients.splice(index, 1);
+//             }
+//         });
+//     });
+// });
+
 app.server = app.listen(app.get("port"), () => {
-    const wss = new WebSocketServer({ server: app.server });
-    wss.on('connection', (ws) => {
-        console.log('Client connected');
-        ws.send('Welcome to the WebSocket server!');
-        // Add the new client to the list
-        wsClients.push(ws);
-        // Handle incoming messages from the client
-        ws.on('message', async (message) => {
-            const decodedMessage = message.toString();
-            console.log('Received message:', decodedMessage);
-            try {
-                const parsedMessage = JSON.parse(decodedMessage);
-                if (parsedMessage.type === 'update location') {
-                    const result = await handleLocationUpdate(parsedMessage);
-                    console.log(result);
-                } else {
-                    console.log("Unknown message type");
-                }
-            } catch (error) {
-                console.error('Error parsing message:', error);
-            }
-        });
-        // Handle client disconnection
-        ws.on('close', () => {
-            console.log('Client disconnected');
-            // Remove the client from the list
-            const index = wsClients.indexOf(ws);
-            if (index > -1) {
-                wsClients.splice(index, 1);
-            }
-        });
-    });
+    console.log(`Server is running on port ${app.get("port")}`);
+    initializeWebSocket(app.server);
 });
 
-// Function to send a message to all connected WebSocket clients
 const sendMessageToFrontend = (message) => {
     wsClients.forEach(client => {
-        if (client.readyState === client.OPEN) { // Check if client is still connected
-            client.send(JSON.stringify(message)); // Send message as JSON string
+        if (client.readyState === client.OPEN) { 
+            client.send(JSON.stringify(message)); 
             console.log('Message sent to client:', message);
         }
     });
@@ -115,7 +106,7 @@ const startKafkaConsumer = async () => {
         // const config = readConfig("./src/client.properties");
         // await produce(topic, config);
         await consumeMessages(topic, sendMessageToFrontend);
-        // await consume(topic, config); // Kafka consumer setup
+        // await consume(topic, config);
         console.log(`Kafka consumer started on topic: ${topic}`);
     } catch (error) {
         console.error("Error starting Kafka consumer:", error);

@@ -36,22 +36,11 @@ router.use((req, res, next) => {
   next();
 });
 
-// Chưa test api cũng như chưa validate lại cho đúng  
-// Lấy danh sách router từ admin
-// ? Chưa test được roadsegment 
 router.get("/road-segment/:id",[validateById, handleValidationErrors],getCamerasByRoadSegment);
-// ? Ok test xong
 router.get("/:id",[validateById, handleValidationErrors], getCameraById );
-// ? OK test xong
 router.get("/", [getCameraValidator, handleValidationErrors], getCameras);
-// Tạo mới một camera từ admin
-// ? test ok
 router.post('/', [validateCreateCamera, ...adminAuthMiddlewares], createCamera);
-// Cập nhật camera từ admin
-// ? Test ok
 router.put("/:id", [validateById, validateUpdateCamera, ...adminAuthMiddlewares], updateCamera);
-// Xóa camera từ admin
-// ? Test ok 
 router.delete("/:id", [validateById, ...adminAuthMiddlewares], deleteCamera);
 
 export default router;

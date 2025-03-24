@@ -26,7 +26,6 @@ import {handleSingleUpload} from "../services/cloudinary.service.js";
 
 const router = Router();
 
-// Middleware kết hợp
 const verifyTokenAndAdmin = [veriFyToken, isAdmin];
 
 router.use((req, res, next) => {
@@ -36,25 +35,16 @@ router.use((req, res, next) => {
   );
   next();
 });
-// OK test done Và chỉ có quyền thêm sửa xóa nếu admin 
-//  Có thể cập nhật database sau để cho người dùng có thể thêm sửa place của chính mình như chắc phải để version sau  đón chờ ở api/v2
-// Route với middleware và controller
-// ? Test ok
-router.get("/nearest", [nearestValidator, handleValidationErrors], searchNearest);
-// ? Test ok
-router.get("/search", [findPlaceNameValidator, handleValidationErrors], findPlaceName);
-// ? Test ok
-router.get("/:id", [validateById, handleValidationErrors], findPlaceById);
 
-router.post("/",[handleSingleUpload], [validateWithToken, addPlaceValidator, handleValidationErrors, ...verifyTokenAndAdmin], createPlace);
-// Test cái này trước 
-// Ok
-// Thiếu upload ảnh để cập nhật  
-router.put("/:id",[handleSingleUpload], [validateById, validateWithToken, updatePlaceValidator, handleValidationErrors, ...verifyTokenAndAdmin], updatePlace);
-// Bỏ các api dưới này đi 
-router.patch("/:id", [validateById, updateStatusValidator, handleValidationErrors, ...verifyTokenAndAdmin], updateStatusPlace);
-// ? OK
 
-router.delete("/:id", [validateById, validateWithToken, handleValidationErrors, ...verifyTokenAndAdmin], deletePlace);
+router.get("/nearest", [nearestValidator], searchNearest);
+router.get("/search", [findPlaceNameValidator], findPlaceName);
+router.get("/:id", [validateById], findPlaceById);
+router.post("/",[handleSingleUpload], [validateWithToken, addPlaceValidator, ...verifyTokenAndAdmin], createPlace);
+router.put("/:id",[handleSingleUpload], [validateById, validateWithToken, updatePlaceValidator, ...verifyTokenAndAdmin], updatePlace);
+router.patch("/:id", [validateById, updateStatusValidator, ...verifyTokenAndAdmin], updateStatusPlace);
+router.delete("/:id", [validateById, validateWithToken, ...verifyTokenAndAdmin], deletePlace);
+
+router.use(handleValidationErrors);
 
 export default router;

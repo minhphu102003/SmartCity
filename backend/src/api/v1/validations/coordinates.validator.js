@@ -1,6 +1,5 @@
 import { check } from "express-validator";
 
-// Reusable validation for coordinates
 const coordinatesValidator = [
     check('longitude')
         .exists().withMessage('Missing longitude')
@@ -10,6 +9,5 @@ const coordinatesValidator = [
         .isFloat({ min: -90, max: 90 }).withMessage('Latitude must be a number between -90 and 90')
 ];
 
-// Exported validators for query and body
 export const coordinatesQueryValidator = [...coordinatesValidator];
 export const coordinatesBodyValidator = [...coordinatesValidator];
