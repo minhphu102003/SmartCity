@@ -1,19 +1,17 @@
 import { Notification } from '../models/index.js';
 import { NotificationStatus } from '../../shared/constants/index.js';
+import { formatNotification } from '../utils/notificationUtils.js';
 
 export const getListNotificationByAccount = async (req, res, next) => {
     try {
-        const accountId = req.account_id; // Lấy account_id từ params
-        const { page = 1, limit = 10 } = req.query; // Lấy page và limit từ query
+        const accountId = req.account_id; 
+        const { page = 1, limit = 10 } = req.query;
 
-        // Tìm tất cả các notification theo account_id, sắp xếp theo thời gian (timestamp)
         const notifications = await Notification.find({ account_id: accountId })
             .sort({ timestamp: -1 }) // Sắp xếp theo thời gian giảm dần
             .skip((page - 1) * limit) // Bỏ qua các notification trước đó dựa trên page
             .limit(parseInt(limit)) // Giới hạn số lượng notification
             .exec();
-
-        // Tính tổng số notification của account này
         const totalNotifications = await Notification.countDocuments({ account_id: accountId });
 
         if (!notifications || notifications.length === 0) {
@@ -23,39 +21,15 @@ export const getListNotificationByAccount = async (req, res, next) => {
             });
         }
 
-        // Chuyển đổi dữ liệu sang định dạng tương ứng với frontend
-        const formattedNotifications = notifications.map(notification => {
-            let title;
-            if (notification.message.startsWith('T')) {
-                title = 'Traffic jam notification';
-            } else if (notification.message.startsWith('F')) {
-                title = 'Flood notification';
-            } else if (notification.message.startsWith('A')) {
-                title = 'Accident notification';
-            } else {
-                title = 'Road Work Notification';
-            }
-        
-            return {
-                title: title, // Set title based on the condition
-                content: notification.message, // Cũng có thể sử dụng message cho content, tùy thuộc vào yêu cầu
-                status: notification.status, // Giữ nguyên status
-                isRead: notification.status === NotificationStatus.READ, // Giả sử status "COMPLETED" là đã đọc
-                timestamp: notification.timestamp, // Thời gian notification
-                distance: "", // Thêm logic tính khoảng cách nếu cần
-                longitude: notification.longitude, // Kinh độ
-                latitude: notification.latitude, // Vĩ độ
-                img: notification.img, // Đường dẫn hình ảnh
-            };
-        });
+        const formattedNotifications = notifications.map(formatNotification);
 
         return res.status(200).json({
             success: true,
-            total: totalNotifications, // Tổng số notification
-            count: notifications.length, // Số lượng notification hiện tại
-            totalPages: Math.ceil(totalNotifications / limit), // Tổng số trang
-            currentPage: parseInt(page), // Trang hiện tại
-            data: formattedNotifications, // Danh sách notification đã chuyển đổi
+            total: totalNotifications, 
+            count: notifications.length, 
+            totalPages: Math.ceil(totalNotifications / limit), 
+            currentPage: parseInt(page), 
+            data: formattedNotifications,
         });
     } catch (err) {
         return res.status(500).json({
@@ -64,3 +38,76 @@ export const getListNotificationByAccount = async (req, res, next) => {
         });
     }
 };
+
+
+export const createNotification = async (req, res) => {
+    try {
+        const { message, longitude, latitude, img } = req.body;
+        const account_id = req.account_id;
+        const notification = new Notification({
+            account_id,
+            message,
+            longitude,
+            latitude,
+            img,
+            status: NotificationStatus.PENDING,
+        });
+
+        await notification.save();
+
+        return res.status(201).json({
+            success: true,
+            message: "Notification created successfully",
+            data: formatNotification(notification),
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const updateNotification = async (req, res) => {
+    try {
+        const { notification_id } = req.params;
+        const { message, longitude, latitude, img, status } = req.body;
+
+        const notification = await Notification.findById(notification_id);
+        if (!notification) {
+            return res.status(404).json({ success: false, message: "Notification not found" });
+        }
+
+        notification.message = message || notification.message;
+        notification.longitude = longitude || notification.longitude;
+        notification.latitude = latitude || notification.latitude;
+        notification.img = img || notification.img;
+        if (status) notification.status = status;
+
+        await notification.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Notification updated successfully",
+            data: formatNotification(notification),
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const deleteNotification = async (req, res) => {
+    try {
+        const { notification_id } = req.params;
+
+        const notification = await Notification.findById(notification_id);
+        if (!notification) {
+            return res.status(404).json({ success: false, message: "Notification not found" });
+        }
+        await Notification.findByIdAndDelete(notification_id);
+
+        return res.status(200).json({ success: true, message: "Notification deleted successfully" });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}

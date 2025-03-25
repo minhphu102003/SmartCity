@@ -1,6 +1,9 @@
 import { Router } from "express";
-import {getListNotificationByAccount} from "../controller/notification.controller.js";
-import {veriFyToken} from "../middlewares/authJwt.js";
+import {getListNotificationByAccount, createNotification, updateNotification, deleteNotification} from "../controller/notification.controller.js";
+import {veriFyToken, isAdmin} from "../middlewares/authJwt.js";
+import { validateWithToken } from '../validations/commonField.validator.js';
+import { handleValidationErrors } from '../validations/result.validator.js'; 
+import { notificationValidator } from '../validations/notification.validator.js'
 
 const router = Router();
 
@@ -13,6 +16,11 @@ router.use((req, res, next) => {
     next();
 });
 
-router.get("/",veriFyToken,getListNotificationByAccount ); 
+router.get("/",veriFyToken,getListNotificationByAccount );
+router.post("/",validateWithToken, notificationValidator, handleValidationErrors, veriFyToken, isAdmin , createNotification);
+router.put("/:notification_id",validateWithToken,handleValidationErrors , veriFyToken, isAdmin, updateNotification);
+router.delete("/:notification_id",validateWithToken, handleValidationErrors, veriFyToken, isAdmin, deleteNotification);
+
+
 
 export default router;

@@ -1,6 +1,7 @@
 import { body, query } from "express-validator";
 import Place from  "../models/place.js";
 import {PlaceTypes} from "../../shared/constants/index.js";
+import { coordinatesBodyValidator } from './coordinates.validator.js';
 
 export const nearestValidator = [
     query("latitude")
@@ -73,19 +74,7 @@ export const addPlaceValidator = [
         .notEmpty()
         .withMessage("Name is required"),
 
-    body("longitude")
-        .notEmpty()
-        .withMessage("Longitude is required")
-        .bail()
-        .isFloat({ min: -180, max: 180 })
-        .withMessage("Longitude must be a number between -180 and 180"),
-
-    body("latitude")
-        .notEmpty()
-        .withMessage("Latitude is required")
-        .bail()
-        .isFloat({ min: -90, max: 90 })
-        .withMessage("Latitude must be a number between -90 and 90"),
+    ...coordinatesBodyValidator,
 
     // Custom validator to check unique coordinate pairs after both latitude and longitude are present
     body()
