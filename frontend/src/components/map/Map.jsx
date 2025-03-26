@@ -32,6 +32,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import WeatherModal from '../modals/WeatherModal';
 import useWeatherSuggest from '../../hooks/userWeather';
+import { useWebSocket } from "../../websocket/hooks";
 
 const Map = () => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -50,10 +51,10 @@ const Map = () => {
     (async () => await getUserLocation(setUserLocation, setViewport))();
   }, []);
 
+  const { messages, sendMessage } = useWebSocket();
+
   const {
     data: weatherData,
-    loading,
-    error,
   } = useWeatherSuggest(userLocation?.latitude, userLocation?.longitude);
 
   const { routes, geoJsonRoutes, resetRoutes } = useRoutes(
