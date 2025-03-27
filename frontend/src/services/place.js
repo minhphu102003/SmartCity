@@ -29,7 +29,7 @@ export const getNearestPlaces = async (
     return response;
   } catch (error) {
     console.error("API Error:", error.response || error.message);
-    return { data: { data: [] } }; 
+    return { data: { data: [] } };
   }
 };
 
@@ -58,3 +58,4 @@ export const searchPlaceByName = async (
     return error;
   }
 };
+ 
