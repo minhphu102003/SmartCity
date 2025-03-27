@@ -2,15 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMapGL, {
   GeolocateControl,
   NavigationControl,
-  Marker,
   Source,
   Layer,
 } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import {
-  faLocationDot,
-  faMapMarkerAlt,
-} from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SearchBar } from '../searchBar';
 import { ScrollableButtons } from '../scrollableButtons';
@@ -23,16 +18,17 @@ import {
   MAP_BOX_API,
 } from '../../constants';
 import { getRouteLineStyle, getUserLocation } from '../../utils/mapUtils';
-import { MapIcon } from '../icons';
 import { AuthButton } from '../button';
 import { getPlace } from '../../utils/placeUtils';
-import { PlacesMarkers } from '../marker';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import WeatherModal from '../modals/WeatherModal';
 import useWeatherSuggest from '../../hooks/userWeather';
-import { useWebSocket } from "../../websocket/hooks";
+import { useWebSocket } from '../../websocket/hooks';
+import { getRecentReports } from '../../services/report';
+import { formatReports } from '../../utils/formatReports';
+import MapMarkers from '../marker/MapMarkers';
 
 const Map = () => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -46,16 +42,41 @@ const Map = () => {
   const mapRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const [reports, setReports] = useState([]);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [zoom, setZoom] = useState(DEFAULT_VIEWPORT.zoom);
 
   useEffect(() => {
-    (async () => await getUserLocation(setUserLocation, setViewport))();
+    getUserLocation(setUserLocation, setViewport);
   }, []);
 
+  useEffect(() => {
+    if (!userLocation) return;
+    const fetchReports = async () => {
+      try {
+        const response = await getRecentReports();
+        const formattedReports = formatReports(response?.data, userLocation);
+        setReports(formattedReports);
+      } catch (error) {
+        console.error('Error while fetching report: ', error.message);
+      }
+    };
+
+    fetchReports();
+  }, [userLocation]);
+
+  // TODO: Handle real time for reports and notifications
   const { messages, sendMessage } = useWebSocket();
 
-  const {
-    data: weatherData,
-  } = useWeatherSuggest(userLocation?.latitude, userLocation?.longitude);
+  const handleViewportChange = (evt) => {
+    setViewport(evt.viewState);
+    setZoom(evt.viewState.zoom);
+  };
+
+  const { data: weatherData } = useWeatherSuggest(
+    userLocation?.latitude,
+    userLocation?.longitude
+  );
 
   const { routes, geoJsonRoutes, resetRoutes } = useRoutes(
     startMarker,
@@ -92,7 +113,7 @@ const Map = () => {
         zoom: 16,
         speed: 1.2,
         curve: 1.5,
-        essential: true
+        essential: true,
       });
     }
     setViewport({ latitude: lat, longitude: lng, zoom: 16 });
@@ -170,7 +191,7 @@ const Map = () => {
         mapStyle={MAP_STYLE}
         mapboxAccessToken={MAP_BOX_API}
         transitionDuration={200}
-        onMove={(evt) => setViewport(evt.viewState)}
+        onMove={handleViewportChange}
         onClick={(event) => {
           const { lng, lat } = event.lngLat;
           if (focusedInput === 'start') {
@@ -196,29 +217,16 @@ const Map = () => {
             </Source>
           ))}
 
-        {userLocation && (
-          <Marker
-            longitude={userLocation.longitude}
-            latitude={userLocation.latitude}
-          >
-            <MapIcon icon={faLocationDot} className="text-3xl text-green-600" />
-          </Marker>
-        )}
-        {startMarker && (
-          <Marker
-            longitude={startMarker.longitude}
-            latitude={startMarker.latitude}
-          >
-            <MapIcon icon={faMapMarkerAlt} className="text-3xl text-blue-500" />
-          </Marker>
-        )}
-        {endMarker && (
-          <Marker longitude={endMarker.longitude} latitude={endMarker.latitude}>
-            <MapIcon icon={faMapMarkerAlt} className="text-3xl text-red-500" />
-          </Marker>
-        )}
-
-        { places && <PlacesMarkers places={places} />}
+          <MapMarkers
+            userLocation={userLocation}
+            startMarker={startMarker}
+            endMarker={endMarker}
+            places={places}
+            reports={reports}
+            selectedReport={selectedReport}
+            setSelectedReport={setSelectedReport}
+            zoom={zoom}
+          />
 
         <NavigationControl position="bottom-right" />
         <GeolocateControl

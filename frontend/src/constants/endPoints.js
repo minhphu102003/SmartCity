@@ -15,3 +15,4 @@ export const WEATHER_SUGGET_ENDPOINT = '/weather/suggestion';
 export const CAMERA_ENDPOINT='/camera';
 export const PLACE_AUTO_COMPLETE_ENDPOINT = '/Place/AutoComplete';
 export const PLACE_DETAIL_ENDPOINT = "/Place/Detail";
+export const REPORT_ENDPOINT = '/account-report';
