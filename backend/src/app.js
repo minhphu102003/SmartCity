@@ -7,7 +7,8 @@ import v1Routes from "./api/v1/index.js";
 import v2Routes from "./api/v2/index.js";
 import Camera from './api/v1/models/camera.js';  
 import AccountReport from './api/v1/models/accountReport.js';
-import { consumeMessages } from "../src/api/v1/config/kafka.config.js";
+// import { consumeMessages } from "../src/api/v1/config/kafka.config.js";
+import { consumeMessages } from './kafkaOnline.config.js';
 import { WebSocketServer } from 'ws';  
 import {handleLocationUpdate } from "./api/v1/services/readLocation.js";
 import { initializeWebSocket } from "./api/v1/websockets/websocketServer.js";
@@ -52,44 +53,44 @@ app.use((req, res, next) => {
     next();
 });
 
-// app.server = app.listen(app.get("port"), () => {
-//     const wss = new WebSocketServer({ server: app.server });
-//     wss.on('connection', (ws) => {
-//         console.log('Client connected');
-//         ws.send('Welcome to the WebSocket server!');
-//         // Add the new client to the list
-//         wsClients.push(ws);
-//         // Handle incoming messages from the client
-//         ws.on('message', async (message) => {
-//             const decodedMessage = message.toString();
-//             console.log('Received message:', decodedMessage);
-//             try {
-//                 const parsedMessage = JSON.parse(decodedMessage);
-//                 if (parsedMessage.type === 'update location') {
-//                     const result = await handleLocationUpdate(parsedMessage);
-//                     console.log(result);
-//                 } else {
-//                     console.log("Unknown message type");
-//                 }
-//             } catch (error) {
-//                 console.error('Error parsing message:', error);
-//             }
-//         });
-
-//         ws.on('close', () => {
-//             console.log('Client disconnected');
-//             const index = wsClients.indexOf(ws);
-//             if (index > -1) {
-//                 wsClients.splice(index, 1);
-//             }
-//         });
-//     });
-// });
-
 app.server = app.listen(app.get("port"), () => {
-    console.log(`Server is running on port ${app.get("port")}`);
-    initializeWebSocket(app.server);
+    const wss = new WebSocketServer({ server: app.server });
+    wss.on('connection', (ws) => {
+        console.log('Client connected');
+        ws.send('Welcome to the WebSocket server!');
+        // Add the new client to the list
+        wsClients.push(ws);
+        // Handle incoming messages from the client
+        ws.on('message', async (message) => {
+            const decodedMessage = message.toString();
+            console.log('Received message:', decodedMessage);
+            try {
+                const parsedMessage = JSON.parse(decodedMessage);
+                if (parsedMessage.type === 'update location') {
+                    const result = await handleLocationUpdate(parsedMessage);
+                    console.log(result);
+                } else {
+                    console.log("Unknown message type");
+                }
+            } catch (error) {
+                console.error('Error parsing message:', error);
+            }
+        });
+
+        ws.on('close', () => {
+            console.log('Client disconnected');
+            const index = wsClients.indexOf(ws);
+            if (index > -1) {
+                wsClients.splice(index, 1);
+            }
+        });
+    });
 });
+
+// app.server = app.listen(app.get("port"), () => {
+//     console.log(`Server is running on port ${app.get("port")}`);
+//     initializeWebSocket(app.server);
+// });
 
 const sendMessageToFrontend = (message) => {
     wsClients.forEach(client => {

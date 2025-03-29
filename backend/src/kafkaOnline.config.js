@@ -3,7 +3,7 @@ import { Kafka } from 'kafkajs'; // Import Kafka from kafkajs
 import CameraReport from './api/v1/models/cameraReport.js';
 import User from "./api/v1/models/user.js";
 import Notification from "./api/v1/models/notification.js";
-import {NotificationStatus} from "./api/v1/constants/enum.js";
+import {NotificationStatus} from "./api/shared/constants/notification.js";
 import {calculateDistance} from "./api/v1/services/distance.js";
 import {config} from "dotenv";
 config();
@@ -24,6 +24,7 @@ const buildNotificationMessage = (type, typeReport, description, timestamp, lati
   const baseMessage = {
     title: `${typeDescription} notification`,
     content: `${typeDescription} reported near you: ${description}`,
+    typeReport: typeReport,
     status: 'PENDING', // Default to 'read' or handle as per your logic
     isRead: false, // If the notification is read or not
     timestamp,
@@ -78,9 +79,9 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
     brokers: [process.env.bootstrap_servers],
     ssl: true,
     sasl: {
-      mechanism: 'plain', // Phương thức xác thực
-      username: process.env.sasl_username, // Thay bằng username của bạn
-      password: process.env.sasl_password, // Thay bằng password của bạn
+      mechanism: 'plain', 
+      username: process.env.sasl_username, 
+      password: process.env.sasl_password,
     },
   });
   const consumer = kafka.consumer({ groupId: 'express-group1' });
@@ -95,11 +96,9 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
 
         const { type, latitude, camera_id, longitude, account_id, typeReport, trafficVolume, timestamp, congestionLevel, img, description } = data;
 
-        // Gửi dữ liệu đến frontend (WebSocket hoặc phương thức khác)
         const notificationMessage = buildNotificationMessage(type, typeReport, description, timestamp, latitude, longitude, img);
         sendMessageToFrontend(notificationMessage);
 
-        // Xử lý logic tương tự như cũ, dựa trên `type`
         if (type === "camera report") {
           const report = new CameraReport({ camera_id, trafficVolume, congestionLevel, typeReport, img, timestamp });
           await report.save();
@@ -111,9 +110,7 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
             'ROADWORK': 'Road Work',
           };
         
-          // Chuyển đổi typeReport thành dạng thân thiện với người dùng
           const typeDescription = reportTypeMap[typeReport] || 'Unknown';
-          // Lọc và xử lý thông báo như trước 
           const allUsers = await User.find({ latitude: { $exists: true }, longitude: { $exists: true } });
           const usersInRange = allUsers.filter((user) => calculateDistance(latitude, longitude, user.latitude, user.longitude) <= 10);
           for (const user of usersInRange) {
@@ -138,5 +135,4 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
 };
 
 
-// Use ES module exports
 export { produceMessage, consumeMessages, readConfig };
