@@ -36,8 +36,8 @@ router.use((req, res, next) => {
 });
 
 // ? Ok test xong
-router.get("/", [getAccountReportValidator], getAccountReports); // ? Ok Test xong
-router.get("/:id", [validateById], getAccountReportById); // ? Thiếu gửi lên kafka để python xử lý tiếp
+router.get("/", [getAccountReportValidator], getAccountReports);
+router.get("/:id", [validateById], getAccountReportById);
 router.post("/", handleMultipleUploads, [validateWithToken, createAccountReportValidator], veriFyToken, createAccountReport); // ? Đã test
 router.put("/:id",[handleMultipleUploads], [validateById, validateWithToken, updateAccountReportValidator], veriFyToken, isAdminOrOwner, updateAccountReport); // Test cả 2 role done, Xóa thành công ảnh trên server
 router.delete("/:id", [validateById, validateWithToken], [veriFyToken, isAdmin], deleteAccountReport);

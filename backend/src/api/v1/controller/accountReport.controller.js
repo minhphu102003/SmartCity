@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { Account, RoadSegment } from '../models/index.js';
+import { AccountReport, RoadSegment } from '../models/index.js';
 import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
-import {produceMessage} from "../config/kafka.config.js";
+import {produceMessage} from "../../../kafkaOnline.config.js";
 
 const PRODUCE_TOPIC = process.env.KAFKA_TOPIC_PRODUCER || 'express-topic';
 const DEMO_TOPIC = process.env.KAFKA_TOPIC_CONSUMER || 'python-topic';
@@ -20,13 +20,10 @@ export const getAccountReports = async (req, res) => {
       analysisStatus,
     } = req.query;
     const query = {};
-    // Thiết lập các điều kiện lọc
     if (typeReport) query.typeReport = typeReport;
     if (congestionLevel) query.congestionLevel = congestionLevel;
     if (account_id) query.account_id = account_id;
     if (analysisStatus) query.analysisStatus = analysisStatus === "true";
-
-    // Lọc theo khoảng thời gian
     
     if (startDate || endDate) {
       query.timestamp = {};
@@ -34,7 +31,6 @@ export const getAccountReports = async (req, res) => {
       if (endDate) query.timestamp.$lte = new Date(endDate);
     }
 
-    // Tìm và populate dữ liệu với phân trang
     const reports = await AccountReport.find(query)
       .sort({ timestamp: -1 })
       .skip((page - 1) * limit)
@@ -48,7 +44,6 @@ export const getAccountReports = async (req, res) => {
 
     const totalReports = await AccountReport.countDocuments(query);
 
-    // Tạo cấu trúc JSON đơn giản và làm phẳng
     const formattedReports = reports.map(report => ({
       reportId: report._id,
       description: report.description,
@@ -130,7 +125,6 @@ export const createAccountReport = async (req, res) => {
     const { description, typeReport, congestionLevel, longitude, latitude } = req.body;
     const account_id = req.account_id;
 
-    // Lấy danh sách ảnh được tải lên từ Multer
     // const uploadedImages = req.files.map((file) => ({ img: file.filename }));
     const uploadedImages = Array.isArray(req.body.uploadedImages)
     ? req.body.uploadedImages.map((url) => ({ img: url }))
@@ -139,7 +133,6 @@ export const createAccountReport = async (req, res) => {
     // Bán kính tìm kiếm tối đa (10m)
     const searchRadiusInMeters = 10;
 
-    // Tìm các đoạn đường gần tọa độ báo cáo
     const nearbyRoadSegments = await RoadSegment.find({
       roadSegmentLine: {
         $near: {
@@ -151,7 +144,6 @@ export const createAccountReport = async (req, res) => {
         },
       },
     });
-    // Tạo báo cáo mới
     const newReport = new AccountReport({
       account_id,
       description,
@@ -176,7 +168,6 @@ export const createAccountReport = async (req, res) => {
       console.log("Nearby RoadSegment(s) found, report not cached.");
     }
 
-    // Tạo response
     const { location, ...rest } = newReport._doc;
     const responseReport = {
       latitude: location.coordinates[1],
@@ -198,6 +189,8 @@ export const createAccountReport = async (req, res) => {
     };
     produceMessage(PRODUCE_TOPIC, messageObject, "create");
 
+    // ? Cái này sau này python trả về sẽ đọc dữ liệu từ đây 
+    
     const messageObjectSendDemo = {
       reportId: newReport._id,
       account_id,
