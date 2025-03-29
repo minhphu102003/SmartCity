@@ -18,6 +18,7 @@ import {
   MAP_BOX_API,
 } from '../../constants';
 import { getRouteLineStyle, getUserLocation } from '../../utils/mapUtils';
+import { haversineDistance } from '../../utils/distances';
 import { AuthButton } from '../button';
 import { getPlace } from '../../utils/placeUtils';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -66,7 +67,26 @@ const Map = () => {
   }, [userLocation]);
 
   // TODO: Handle real time for reports and notifications
-  const { messages, sendMessage } = useWebSocket();
+  const { messages } = useWebSocket();
+
+  useEffect(() => {
+    if (!userLocation || messages.length === 0) return;
+  
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage.latitude || !lastMessage.longitude) return;
+  
+    const distance = haversineDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      lastMessage.latitude,
+      lastMessage.longitude
+    );
+  
+    const newReport = { ...lastMessage, distance };
+  
+    setReports((prevReports) => [...prevReports, newReport]);
+  }, [messages, userLocation]);
+  
 
   const handleViewportChange = (evt) => {
     setViewport(evt.viewState);
