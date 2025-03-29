@@ -8,7 +8,12 @@ export const useWebSocket = () => {
     wsService.connect();
 
     const handleMessage = (event) => {
-      setMessages((prev) => [...prev, event.data]);
+      try {
+        const message = JSON.parse(event.data);
+        setMessages((prev) => [...prev, message]);
+      } catch (error) {
+        console.error("Failed to parse message:", event.data, error);
+      }
     };
 
     wsService.socket?.addEventListener("message", handleMessage);

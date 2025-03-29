@@ -15,6 +15,5 @@ export const haversineDistance = (lat1, lon1, lat2, lon2) => {
     return R * c * 1000; 
   };
 
-  // ? Trả về đơn vị meters
 
 

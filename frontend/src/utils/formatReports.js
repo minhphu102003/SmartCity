@@ -25,7 +25,7 @@ export const formatReports = (data, userLocation) => {
       timestamp: report.timestamp,
       createdAt: report.createdAt,
       updatedAt: report.updatedAt,
-      imgs: report.imgs || [],
+      img: report.imgs[0].img || [],
       distance,
       accountId: report.accountId,
       username: report.username,
