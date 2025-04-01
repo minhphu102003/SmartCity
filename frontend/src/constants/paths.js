@@ -8,4 +8,6 @@ export const PATHS = {
   VERIFY_EMAIL: '/verify-email',
   PROFILE: '/profile',
   CAMERA: '/camera',
+  NOTIFICATIONS: '/notification',
+  ADMIN: '/admin',
 };

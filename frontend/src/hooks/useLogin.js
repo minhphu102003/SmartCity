@@ -7,6 +7,7 @@ import MethodContext from '../context/methodProvider';
 import * as authServices from '../services/auth';
 import { PATHS } from '../constants';
 import { loginSchema } from '../schemas/loginSchema';
+import { ROLES } from '../constants';
 
 const useLogin = () => {
   const { setAuth, auth } = useContext(AuthContext);
@@ -38,17 +39,27 @@ const useLogin = () => {
   const onSubmit = async (data) => {
     const { email, password } = data;
     const loginResponse = await authServices.login(email, password);
-    console.log(loginResponse);
 
     if (loginResponse?.status === 200) {
-      setAuth({ ...auth, roles: loginResponse.data?.data?.roles });
+      const roles = loginResponse.data?.data?.roles;
+      setAuth({ ...auth, roles: roles });
       localStorage.setItem('auth', JSON.stringify(auth));
-      navigate(PATHS.HOME, {
-        state: {
-          toastMessage: 'Đăng nhập thành công!',
-          statusMessage: 'success',
-        },
-      });
+      console.log(roles);
+      if (roles.includes(ROLES.ADMIN)) {
+        navigate(PATHS.ADMIN, {
+          state: {
+            toastMessage: 'Đăng nhập thành công với quyền Admin!',
+            statusMessage: 'success',
+          },
+        });
+      } else if (roles.includes(ROLES.USER)) {
+        navigate(PATHS.HOME, {
+          state: {
+            toastMessage: 'Đăng nhập thành công!',
+            statusMessage: 'success',
+          },
+        });
+      }
     } else {
       setError("email", { type: "manual", message: "Email hoặc mật khẩu không đúng!" });
       notify('Đăng nhập thất bại!', 'error');

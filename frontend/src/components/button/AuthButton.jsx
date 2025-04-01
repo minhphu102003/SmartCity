@@ -63,7 +63,7 @@ const AuthButton = () => {
               whileTap={{ scale: 0.95 }}
               className="rounded-lg bg-blue-600 px-4 py-2 text-white shadow-md transition duration-300 hover:bg-blue-500"
             >
-              Đăng Nhập
+              Sign In
             </motion.button>
           </Link>
           <Link to={PATHS.REGISTER}>
@@ -72,7 +72,7 @@ const AuthButton = () => {
               whileTap={{ scale: 0.95 }}
               className="rounded-lg bg-primary-500 px-4 py-2 text-white shadow-md transition duration-300 hover:bg-primary-600"
             >
-              Đăng Ký
+              Sign Up
             </motion.button>
           </Link>
         </div>

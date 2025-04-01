@@ -1,12 +1,15 @@
-import React, { useState } from "react";
-import { FaBars } from "react-icons/fa";
-import { MENU_ITEMS } from "../../constants";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { FaBars } from 'react-icons/fa';
+import { MENU_ITEMS } from '../../constants';
+import { useNavigate } from 'react-router-dom';
+import { useWebSocket } from '../../websocket/hooks';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const navigate = useNavigate();
+
+  const { messages } = useWebSocket();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -14,16 +17,15 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full ${
-        isOpen ? "w-64" : "w-20"
-      } bg-gray-800 text-white transition-all duration-300 z-50`}
+      className={`fixed left-0 top-0 h-full ${
+        isOpen ? 'w-64' : 'w-20'
+      } z-50 bg-gray-800 text-white transition-all duration-300`}
     >
-
-      <div className="flex items-center justify-center h-16 border-b border-gray-700">
+      <div className="flex h-16 items-center justify-center border-b border-gray-700">
         <FaBars className="cursor-pointer" size={24} onClick={toggleSidebar} />
       </div>
 
-      <div className="flex flex-col items-center space-y-2 m-1">
+      <div className="m-1 flex flex-col items-center space-y-2">
         {MENU_ITEMS.map((item, index) => (
           <div
             key={index}
@@ -31,16 +33,20 @@ const Sidebar = () => {
               setActiveIndex(index);
               navigate(item.path);
             }}
-            className={`flex w-full items-center cursor-pointer p-2 rounded-lg transition-all duration-200
-              ${isOpen ? "pl-10" : "justify-center"}
-              ${
-                activeIndex === index
-                  ? "bg-gray-400 text-primaryColor"
-                  : "hover:bg-gray-400 hover:text-primaryColor"
-              }
-            `}
+            className={`flex w-full cursor-pointer items-center rounded-lg p-2 transition-all duration-200 ${isOpen ? 'pl-10' : 'justify-center'} ${
+              activeIndex === index
+                ? 'bg-gray-400 text-primaryColor'
+                : 'hover:bg-gray-400 hover:text-primaryColor'
+            } `}
           >
-            {item.icon}
+            <div className="relative">
+              {item.icon}
+              {item.label === 'Notifications' && messages.length > 0 && (
+                <span className="absolute -right-2 -top-2 rounded-full bg-red-500 px-2 py-1 text-xs text-white">
+                  {messages.length}
+                </span>
+              )}
+            </div>
             {isOpen && <span className="ml-4 text-sm">{item.label}</span>}
           </div>
         ))}
