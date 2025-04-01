@@ -1,4 +1,4 @@
-import { FaBookmark, FaHistory, FaUser, FaCamera, FaHome } from "react-icons/fa";
+import { FaBookmark, FaHistory, FaUser, FaCamera, FaHome, FaBell } from "react-icons/fa";
 import { PATHS } from "./paths";
 
 export const MENU_ITEMS = [
@@ -7,4 +7,5 @@ export const MENU_ITEMS = [
   { icon: <FaHistory size={24} />, label: "Recent", path: PATHS.RECENT },
   { icon: <FaUser size={24} />, label: "Share Location", path: PATHS.SHARE_LOCATION },
   { icon: <FaCamera size={24} />, label: "Camera", path: PATHS.CAMERA },
+  { icon: <FaBell size={24} />, label: "Notifications", path: PATHS.NOTIFICATIONS },
 ];

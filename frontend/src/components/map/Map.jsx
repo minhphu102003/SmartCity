@@ -66,7 +66,6 @@ const Map = () => {
     fetchReports();
   }, [userLocation]);
 
-  // TODO: Handle real time for reports and notifications
   const { messages } = useWebSocket();
 
   useEffect(() => {
@@ -86,6 +85,38 @@ const Map = () => {
   
     setReports((prevReports) => [...prevReports, newReport]);
   }, [messages, userLocation]);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (reports.length === 0) {
+        console.log("⏳ Không có reports để kiểm tra.");
+        return;
+      }
+  
+      const currentTime = Date.now();
+  
+      console.log("📊 Danh sách reports trước khi lọc:", reports);
+  
+      const filteredReports = reports.filter((report) => {
+        const reportTime = new Date(report.timestamp).getTime();
+        const elapsedTime = (currentTime - reportTime) / 1000 / 60; // Chuyển đổi sang phút
+  
+        console.log(`🔎 Kiểm tra report ${report.typeReport} | Thời gian đã trôi qua: ${elapsedTime.toFixed(2)} phút`);
+  
+        if (report.typeReport.startsWith("t")) {
+          return elapsedTime <= 10; // Giữ lại nếu chưa quá 10 phút
+        } else {
+          return elapsedTime <= 45; // Giữ lại nếu chưa quá 45 phút
+        }
+      });
+  
+      console.log("✅ Danh sách reports sau khi lọc:", filteredReports);
+  
+      setReports(filteredReports);
+    }, 60000);
+  
+    return () => clearInterval(interval);
+  }, [reports]);
   
 
   const handleViewportChange = (evt) => {

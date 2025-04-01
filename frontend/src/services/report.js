@@ -19,7 +19,7 @@ export const getAccountReport = async (page = 1, limit=50) => {
 export const getRecentReports = async () => {
     try{
         const now = new Date();
-        const tenMinutesAgo = new Date(now.getTime() - 10 * 60000 * 60);
+        const tenMinutesAgo = new Date(now.getTime() - 10 * 60000 );
         const params = {
             startDate: tenMinutesAgo.toISOString(),
             limit: 50,
