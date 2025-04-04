@@ -10,4 +10,9 @@ export const PATHS = {
   CAMERA: '/camera',
   NOTIFICATIONS: '/notification',
   ADMIN: '/admin',
+  MANAGE_USERS: '/manage-users',
+  MANAGE_REPORTS: '/manage-reports',
+  MANAGE_PLACES: '/manage-places',
+  CREATE_NOTIFICATION: '/create-notification',
+  CREATE_CAMERA: '/create-camera',
 };

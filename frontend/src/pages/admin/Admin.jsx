@@ -14,13 +14,11 @@ const StatBox = ({ title, subtitle, progress, increase, icon }) => (
 const Dashboard = () => {
   return (
     <div className="p-5">
-      {/* GRID & CHARTS */}
       <div className="grid grid-cols-12 gap-5">
-        {/* ROW 1 */}
         <div className="col-span-3">
           <StatBox
             title="12,361"
-            subtitle="Emails Sent"
+            subtitle="User"
             progress="0.75"
             increase="+14%"
             icon={<Email className="text-green-500 text-2xl" />}
@@ -29,7 +27,7 @@ const Dashboard = () => {
         <div className="col-span-3">
           <StatBox
             title="431,225"
-            subtitle="Sales Obtained"
+            subtitle="User Report"
             progress="0.50"
             increase="+21%"
             icon={<PointOfSale className="text-green-500 text-2xl" />}
@@ -38,7 +36,7 @@ const Dashboard = () => {
         <div className="col-span-3">
           <StatBox
             title="32,441"
-            subtitle="New Clients"
+            subtitle="Places"
             progress="0.30"
             increase="+5%"
             icon={<PersonAdd className="text-green-500 text-2xl" />}

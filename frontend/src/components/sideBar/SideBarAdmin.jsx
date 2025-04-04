@@ -1,19 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { FiHome, FiUsers, FiClipboard, FiFileText, FiMenu } from "react-icons/fi";
-
-const SidebarItem = ({ title, to, icon, selected, setSelected, collapsed }) => (
-  <Link
-    to={to}
-    className={`flex items-center gap-3 px-4 py-2 rounded-md transition-all duration-200 ${
-      selected === title ? "bg-blue-500 text-white" : "text-gray-300 hover:bg-gray-700"
-    }`}
-    onClick={() => setSelected(title)}
-  >
-    {icon}
-    {!collapsed && <span className="text-sm">{title}</span>}
-  </Link>
-);
+import { FiHome, FiUsers, FiClipboard, FiMapPin, FiBell, FiCamera, FiMenu } from "react-icons/fi";
+import { PATHS } from '../../constants/paths';
+import SidebarItem from './SidebarItem';
 
 const SidebarComponent = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -43,35 +31,55 @@ const SidebarComponent = () => {
       <nav className="px-2 space-y-2">
         <SidebarItem
           title="Dashboard"
-          to="/"
+          to={PATHS.ADMIN}
           icon={<FiHome className="w-5 h-5" />}
           selected={selected}
           setSelected={setSelected}
           collapsed={isCollapsed}
         />
         {!isCollapsed && (
-          <p className="text-gray-500 px-4 mt-4 uppercase text-sm">Data</p>
+          <p className="text-gray-500 px-4 mt-4 uppercase text-sm">Manage</p>
         )}
         <SidebarItem
-          title="Manage Team"
-          to="/team"
+          title="Manage User"
+          to={PATHS.MANAGE_USERS}
           icon={<FiUsers className="w-5 h-5" />}
           selected={selected}
           setSelected={setSelected}
           collapsed={isCollapsed}
         />
         <SidebarItem
-          title="Contacts"
-          to="/contacts"
+          title="Manage Report"
+          to={PATHS.MANAGE_REPORTS}
           icon={<FiClipboard className="w-5 h-5" />}
           selected={selected}
           setSelected={setSelected}
           collapsed={isCollapsed}
         />
         <SidebarItem
-          title="Invoices"
-          to="/invoices"
-          icon={<FiFileText className="w-5 h-5" />}
+          title="Manage Places"
+          to={PATHS.MANAGE_PLACES}
+          icon={<FiMapPin className="w-5 h-5" />}
+          selected={selected}
+          setSelected={setSelected}
+          collapsed={isCollapsed}
+        />
+
+        {!isCollapsed && (
+          <p className="text-gray-500 px-4 mt-4 uppercase text-sm">Custom Notification</p>
+        )}
+        <SidebarItem
+          title="Create Notification"
+          to={PATHS.CREATE_NOTIFICATION}
+          icon={<FiBell className="w-5 h-5" />}
+          selected={selected}
+          setSelected={setSelected}
+          collapsed={isCollapsed}
+        />
+        <SidebarItem
+          title="Create Camera"
+          to={PATHS.CREATE_CAMERA}
+          icon={<FiCamera className="w-5 h-5" />}
           selected={selected}
           setSelected={setSelected}
           collapsed={isCollapsed}
