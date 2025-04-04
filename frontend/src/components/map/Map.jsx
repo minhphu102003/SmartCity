@@ -30,8 +30,10 @@ import { useWebSocket } from '../../websocket/hooks';
 import { getRecentReports } from '../../services/report';
 import { formatReports } from '../../utils/formatReports';
 import MapMarkers from '../marker/MapMarkers';
+import ContextMenu from '../menu/ContextMenu';
+import NotificationPopup from '../popup/NotificationPopup';
 
-const Map = () => {
+const Map = ({ isAuth = false }) => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
   const [userLocation, setUserLocation] = useState(null);
   const [isRouteVisible, setIsRouteVisible] = useState(false);
@@ -46,10 +48,26 @@ const Map = () => {
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [zoom, setZoom] = useState(DEFAULT_VIEWPORT.zoom);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [notificationPopup, setNotificationPopup] = useState(null);
 
   useEffect(() => {
     getUserLocation(setUserLocation, setViewport);
   }, []);
+
+  const handleCreateNotification = (longitude, latitude) => {
+    setNotificationPopup({
+      x: contextMenu.x,
+      y: contextMenu.y,
+      longitude,
+      latitude,
+    });
+  };
+
+  const handleSubmitNotification = (data) => {
+    console.log('Notification created:', data);
+    // TODO: Gửi lên backend hoặc thêm vào danh sách notification
+  };
 
   useEffect(() => {
     if (!userLocation) return;
@@ -70,54 +88,55 @@ const Map = () => {
 
   useEffect(() => {
     if (!userLocation || messages.length === 0) return;
-  
+
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage.latitude || !lastMessage.longitude) return;
-  
+
     const distance = haversineDistance(
       userLocation.latitude,
       userLocation.longitude,
       lastMessage.latitude,
       lastMessage.longitude
     );
-  
+
     const newReport = { ...lastMessage, distance };
-  
+
     setReports((prevReports) => [...prevReports, newReport]);
   }, [messages, userLocation]);
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       if (reports.length === 0) {
-        console.log("⏳ Không có reports để kiểm tra.");
+        console.log('⏳ Không có reports để kiểm tra.');
         return;
       }
-  
+
       const currentTime = Date.now();
-  
-      console.log("📊 Danh sách reports trước khi lọc:", reports);
-  
+
+      console.log('📊 Danh sách reports trước khi lọc:', reports);
+
       const filteredReports = reports.filter((report) => {
         const reportTime = new Date(report.timestamp).getTime();
         const elapsedTime = (currentTime - reportTime) / 1000 / 60; // Chuyển đổi sang phút
-  
-        console.log(`🔎 Kiểm tra report ${report.typeReport} | Thời gian đã trôi qua: ${elapsedTime.toFixed(2)} phút`);
-  
-        if (report.typeReport.startsWith("t")) {
+
+        console.log(
+          `🔎 Kiểm tra report ${report.typeReport} | Thời gian đã trôi qua: ${elapsedTime.toFixed(2)} phút`
+        );
+
+        if (report.typeReport.startsWith('t')) {
           return elapsedTime <= 10; // Giữ lại nếu chưa quá 10 phút
         } else {
           return elapsedTime <= 45; // Giữ lại nếu chưa quá 45 phút
         }
       });
-  
-      console.log("✅ Danh sách reports sau khi lọc:", filteredReports);
-  
+
+      console.log('✅ Danh sách reports sau khi lọc:', filteredReports);
+
       setReports(filteredReports);
     }, 60000);
-  
+
     return () => clearInterval(interval);
   }, [reports]);
-  
 
   const handleViewportChange = (evt) => {
     setViewport(evt.viewState);
@@ -178,8 +197,8 @@ const Map = () => {
   };
 
   return (
-    <div className="relative h-screen w-full">
-      {isWeatherModalOpen && weatherData && (
+    <div className="relative h-full w-full">
+      {isWeatherModalOpen && weatherData && !isAuth && (
         <WeatherModal
           onClose={() => setIsWeatherModalOpen(false)}
           weather={weatherData}
@@ -206,7 +225,7 @@ const Map = () => {
               longitude={userLocation?.longitude}
               latitude={userLocation?.latitude}
             />
-            <AuthButton />
+            {!isAuth && <AuthButton />}
           </motion.div>
         )}
       </AnimatePresence>
@@ -251,7 +270,37 @@ const Map = () => {
             setEndMarker({ longitude: lng, latitude: lat });
           }
         }}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          if (!isAuth) return;
+          const { lng, lat } = event.lngLat;
+          setContextMenu({
+            x: event.point.x,
+            y: event.point.y,
+            longitude: lng,
+            latitude: lat,
+          });
+        }}
       >
+        {contextMenu && (
+          <ContextMenu
+            contextMenu={contextMenu}
+            setStartMarker={setStartMarker}
+            setEndMarker={setEndMarker}
+            onClose={() => setContextMenu(null)}
+            onCreateNotification={handleCreateNotification}
+          />
+        )}
+        {notificationPopup && (
+          <NotificationPopup
+            x={notificationPopup.x}
+            y={notificationPopup.y}
+            longitude={notificationPopup.longitude}
+            latitude={notificationPopup.latitude}
+            onClose={() => setNotificationPopup(null)}
+            onSubmit={handleSubmitNotification}
+          />
+        )}
         {geoJsonRoutes?.length > 0 &&
           geoJsonRoutes.map((route, index) => (
             <Source
@@ -268,16 +317,16 @@ const Map = () => {
             </Source>
           ))}
 
-          <MapMarkers
-            userLocation={userLocation}
-            startMarker={startMarker}
-            endMarker={endMarker}
-            places={places}
-            reports={reports}
-            selectedReport={selectedReport}
-            setSelectedReport={setSelectedReport}
-            zoom={zoom}
-          />
+        <MapMarkers
+          userLocation={userLocation}
+          startMarker={startMarker}
+          endMarker={endMarker}
+          places={places}
+          reports={reports}
+          selectedReport={selectedReport}
+          setSelectedReport={setSelectedReport}
+          zoom={zoom}
+        />
 
         <NavigationControl position="bottom-right" />
         <GeolocateControl

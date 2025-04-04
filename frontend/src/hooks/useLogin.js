@@ -41,10 +41,15 @@ const useLogin = () => {
     const loginResponse = await authServices.login(email, password);
 
     if (loginResponse?.status === 200) {
-      const roles = loginResponse.data?.data?.roles;
-      setAuth({ ...auth, roles: roles });
-      localStorage.setItem('auth', JSON.stringify(auth));
-      console.log(roles);
+      const { roles, token } = loginResponse.data?.data;
+      const authData = {
+        roles: roles,
+        token: token,
+      };
+  
+      setAuth(authData);
+      localStorage.setItem("auth", JSON.stringify(authData));
+  
       if (roles.includes(ROLES.ADMIN)) {
         navigate(PATHS.ADMIN, {
           state: {

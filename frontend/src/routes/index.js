@@ -1,5 +1,5 @@
 import { LayoutAuth, LayoutAdmin } from '../layouts/index';
-import { Home, LogIn, Register, Camera, Admin } from '../pages/index';
+import { Home, LogIn, Register, Camera, Admin, CustomMap } from '../pages/index';
 import { PATHS } from '../constants';
 import MyProfile from '../pages/myPage/MyProfile';
 
@@ -10,6 +10,7 @@ const router = [
     { path: PATHS.PROFILE, component: MyProfile },
     { path: PATHS.CAMERA, component: Camera},
     { path: PATHS.ADMIN, layout: LayoutAdmin, component: Admin},
+    { path: PATHS.CREATE_NOTIFICATION, layout: LayoutAdmin, component: CustomMap}
 ];
 
 export { router };
