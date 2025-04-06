@@ -1,6 +1,10 @@
 import { Notification } from '../models/index.js';
 import { NotificationStatus } from '../../shared/constants/index.js';
 import { formatNotification } from '../utils/notificationUtils.js';
+import {produceMessage} from "../../../kafkaOnline.config.js";
+
+const PRODUCE_TOPIC = process.env.KAFKA_TOPIC_PRODUCER || 'express-topic';
+const DEMO_TOPIC = process.env.KAFKA_TOPIC_CONSUMER || 'python-topic';
 
 export const getListNotificationByAccount = async (req, res, next) => {
     try {
@@ -49,11 +53,12 @@ export const createNotification = async (req, res) => {
             message,
             longitude,
             latitude,
-            img,
+            img: img || null,
             status: NotificationStatus.PENDING,
         });
-
         await notification.save();
+
+        produceMessage(DEMO_TOPIC, formatNotification(notification), "create notification");
 
         return res.status(201).json({
             success: true,

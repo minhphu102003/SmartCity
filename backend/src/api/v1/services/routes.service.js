@@ -63,35 +63,33 @@ export const getRecentCameraReports = async (fiveMinutesAgo) => {
 };
 
 const calculateDistanceToLineManual = (pointCoords, lineCoords) => {
-  const DEG_TO_METERS = 111320; // Conversion factor from degrees to meters
-  const [x0, y0] = pointCoords; // Coordinates of the point (P)
-  const [[x1, y1], [x2, y2]] = lineCoords; // Coordinates of the line (A to B)
-  // Convert degrees to meters for all coordinates
+  const DEG_TO_METERS = 111320; 
+  const [x0, y0] = pointCoords;
+  const [[x1, y1], [x2, y2]] = lineCoords;
+
   const x0Meters = x0 * DEG_TO_METERS;
   const y0Meters = y0 * DEG_TO_METERS;
   const x1Meters = x1 * DEG_TO_METERS;
   const y1Meters = y1 * DEG_TO_METERS;
   const x2Meters = x2 * DEG_TO_METERS;
   const y2Meters = y2 * DEG_TO_METERS;
-  // Vectors AB and AP
-  const ABx = x2Meters - x1Meters; // Vector AB in the x-direction
-  const ABy = y2Meters - y1Meters; // Vector AB in the y-direction
-  const APx = x0Meters - x1Meters; // Vector AP in the x-direction
-  const APy = y0Meters - y1Meters; // Vector AP in the y-direction
-  // Calculate t (the projection factor for projecting point P onto line AB)
-  const dotProduct = APx * ABx + APy * ABy; // (AP) · (AB)
-  const lengthSquared = ABx * ABx + ABy * ABy; // (AB) · (AB)
-  const t = Math.max(0, Math.min(1, dotProduct / lengthSquared)); // Clamp t within [0, 1]
 
-  // Calculate the coordinates of the nearest point on the line segment AB
-  const nearestX = x1Meters + t * ABx; // x-coordinate of the nearest point
-  const nearestY = y1Meters + t * ABy; // y-coordinate of the nearest point
+  const ABx = x2Meters - x1Meters;
+  const ABy = y2Meters - y1Meters; 
+  const APx = x0Meters - x1Meters;
+  const APy = y0Meters - y1Meters;
 
-  // Calculate the distance from point P to the nearest point on the line segment
+  const dotProduct = APx * ABx + APy * ABy; 
+  const lengthSquared = ABx * ABx + ABy * ABy; 
+  const t = Math.max(0, Math.min(1, dotProduct / lengthSquared));
+
+  const nearestX = x1Meters + t * ABx; 
+  const nearestY = y1Meters + t * ABy; 
+
   const distance = Math.sqrt(
     (x0Meters - nearestX) ** 2 + (y0Meters - nearestY) ** 2
   );
-  return distance; // Return the distance in meters
+  return distance; 
 };
 
 export const findAlternativeRoutes = async (route, fiveMinutesAgo, end) => {
@@ -161,53 +159,52 @@ export const findAlternativeRoutes = async (route, fiveMinutesAgo, end) => {
     }
 
     // Tìm đường thay thế
-    let alternativeRoute = [];
-    for (const avoidSegmentJson of avoidSegments) {
-      const avoidSegment = JSON.parse(avoidSegmentJson);
+    // let alternativeRoute = [];
+    // for (const avoidSegmentJson of avoidSegments) {
+    //   const avoidSegment = JSON.parse(avoidSegmentJson);
     
-      while (stack.length > 0) {
-        const from = stack.pop();
-        const responseRoutes = await fetchOSRMData(
-          `${from[0]},${from[1]}`,
-          `${end[0]},${end[1]}`,
-          "drive"
-        );
+    //   while (stack.length > 0) {
+    //     const from = stack.pop();
+    //     const responseRoutes = await fetchOSRMData(
+    //       `${from[0]},${from[1]}`,
+    //       `${end[0]},${end[1]}`,
+    //       "drive"
+    //     );
     
-        for (const route of responseRoutes) {
-          const newRouteCoordinates = polyline.decode(route.geometry);
-          const isValidRoute = newRouteCoordinates.every((coord) =>
-            avoidSegment.every(
-              (segCoord) =>
-                // Kiểm tra sự trùng lặp với đoạn đường tránh (avoidSegment)
-                JSON.stringify([coord[1], coord[0]]) !== JSON.stringify(segCoord)
-            )
-          );
+    //     for (const route of responseRoutes) {
+    //       const newRouteCoordinates = polyline.decode(route.geometry);
+    //       const isValidRoute = newRouteCoordinates.every((coord) =>
+    //         avoidSegment.every(
+    //           (segCoord) =>
+    //             // Kiểm tra sự trùng lặp với đoạn đường tránh (avoidSegment)
+    //             JSON.stringify([coord[1], coord[0]]) !== JSON.stringify(segCoord)
+    //         )
+    //       );
     
-          if (isValidRoute) {
-            alternativeRoute = [
-              ...allCoordinates.flat(),
-              ...newRouteCoordinates,
-            ];
-            break;
-          }
-        }
+    //       if (isValidRoute) {
+    //         alternativeRoute = [
+    //           ...allCoordinates.flat(),
+    //           ...newRouteCoordinates,
+    //         ];
+    //         break;
+    //       }
+    //     }
     
-        if (alternativeRoute.length > 0) {
-          break;
-        }
-      }
+    //     if (alternativeRoute.length > 0) {
+    //       break;
+    //     }
+    //   }
     
-      if (alternativeRoute.length > 0) {
-        break;
-      }
-    }
-    console.log(`Alternative routes ${alternativeRoute}`);
-    const encodedGeometry = alternativeRoute.length === 0 
-    ? '' // Nếu không có tuyến thay thế, trả về geometry rỗng
-    : polyline.encode(alternativeRoute); // Nếu có, mã hóa lại geometry mới
-  
+    //   if (alternativeRoute.length > 0) {
+    //     break;
+    //   }
+    // }
+    // console.log(`Alternative routes ${alternativeRoute}`);
+    // const encodedGeometry = alternativeRoute.length === 0 
+    // ? '' // Nếu không có tuyến thay thế, trả về geometry rỗng
+    // : polyline.encode(alternativeRoute); // Nếu có, mã hóa lại geometry mới
     return {
-      geometry: encodedGeometry,
+      geometry: '',
       recentReports: relevantReports,
     };
   } catch (error) {

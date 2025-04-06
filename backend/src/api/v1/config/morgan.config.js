@@ -20,6 +20,10 @@
 import morgan from 'morgan';
 
 // Cấu hình morgan để ghi logs vào console (stdout)
-const morganMiddleware = morgan('combined', { stream: process.stdout });
+// const morganMiddleware = morgan('combined', { stream: process.stdout });
+const morganMiddleware = morgan(
+    ':remote-addr - :remote-user [:date[iso]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time ms',
+    { stream: process.stdout }
+  );
 
 export default morganMiddleware;

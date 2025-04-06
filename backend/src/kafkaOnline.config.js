@@ -6,11 +6,11 @@ import Notification from "./api/v1/models/notification.js";
 import {NotificationStatus} from "./api/shared/constants/notification.js";
 import {calculateDistance} from "./api/v1/services/distance.js";
 import {config} from "dotenv";
+import notification from './api/shared/models/notification.js';
 config();
 
 
 const buildNotificationMessage = (type, typeReport, description, timestamp, latitude, longitude, img) => {
-  // Định nghĩa bản đồ ánh xạ từ typeReport
   const reportTypeMap = {
     'TRAFFIC_JAM': 'Traffic Jam',
     'FLOOD': 'Flood',
@@ -18,17 +18,16 @@ const buildNotificationMessage = (type, typeReport, description, timestamp, lati
     'ROADWORK': 'Road Work',
   };
 
-  // Chuyển đổi typeReport thành dạng thân thiện với người dùng
   const typeDescription = reportTypeMap[typeReport] || 'Unknown';
 
   const baseMessage = {
     title: `${typeDescription} notification`,
     content: `${typeDescription} reported near you: ${description}`,
     typeReport: typeReport,
-    status: 'PENDING', // Default to 'read' or handle as per your logic
-    isRead: false, // If the notification is read or not
+    status: 'PENDING',
+    isRead: false,
     timestamp,
-    distance: '', // Leave this empty for frontend to calculate
+    distance: '',
     longitude,
     latitude,
     img
@@ -54,22 +53,21 @@ const produceMessage = async (topic, messageObject, type) => {
     brokers: [process.env.bootstrap_servers],
     ssl: true,
     sasl: {
-      mechanism: 'plain', // Phương thức xác thực
-      username: process.env.sasl_username, // Thay bằng username của bạn
-      password: process.env.sasl_password, // Thay bằng password của bạn
+      mechanism: 'plain',
+      username: process.env.sasl_username, 
+      password: process.env.sasl_password,
     },
   });
 
   const producer = kafka.producer();
   await producer.connect();
 
-  const message = JSON.stringify({ type, ...messageObject }); // Thêm `type` vào message
+  const message = JSON.stringify({ type, ...messageObject });
   await producer.send({
     topic,
     messages: [{ value: message }],
   });
 
-  console.log(`Produced message to topic ${topic}: ${message}`);
   await producer.disconnect();
 };
 
@@ -92,17 +90,18 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
     eachMessage: async ({ topic, partition, message }) => {
       try {
         const data = JSON.parse(message.value.toString());
-        console.log(`Consumed message from topic ${topic}:`, data);
-
+        
         const { type, latitude, camera_id, longitude, account_id, typeReport, trafficVolume, timestamp, congestionLevel, img, description } = data;
-
-        const notificationMessage = buildNotificationMessage(type, typeReport, description, timestamp, latitude, longitude, img);
-        sendMessageToFrontend(notificationMessage);
 
         if (type === "camera report") {
           const report = new CameraReport({ camera_id, trafficVolume, congestionLevel, typeReport, img, timestamp });
           await report.save();
+          const notificationMessage = buildNotificationMessage(type, typeReport, description, timestamp, latitude, longitude, img);
+          sendMessageToFrontend(notificationMessage);
         } else if (type === "user report") {
+          const notificationMessage = buildNotificationMessage(type, typeReport, description, timestamp, latitude, longitude, img);
+          sendMessageToFrontend(notificationMessage);
+
           const reportTypeMap = {
             'TRAFFIC_JAM': 'Traffic Jam',
             'FLOOD': 'Flood',
@@ -126,6 +125,10 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
               await notification.save();
             }
           }
+        } else if (type === "create notification"){
+          const { type, ...notification} = data;
+          notification.typeReport = 'create notification';
+          sendMessageToFrontend(notification);
         }
       } catch (error) {
         console.error('Error processing message:', error);

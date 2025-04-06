@@ -1,5 +1,4 @@
 import { body } from "express-validator";
-import mongoose from "mongoose";
 import { coordinatesBodyValidator } from './coordinates.validator.js';
 
 
@@ -14,12 +13,4 @@ export const notificationValidator = [
     .withMessage("Message cannot be empty"),
 
     ...coordinatesBodyValidator,
-
-  body("img")
-    .exists()
-    .withMessage("Missing img")
-    .isString()
-    .withMessage("Image URL must be a string")
-    .notEmpty()
-    .withMessage("Image URL cannot be empty"),
 ];
