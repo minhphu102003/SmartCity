@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PATHS } from "../../constants";
 import ProfileMenu from "../profile/ProfileMenu";
 
-const AuthButton = () => {
+const AuthButton = ({ onSelectLocation }) => {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -52,7 +52,7 @@ const AuthButton = () => {
           </button>
 
           <AnimatePresence>
-            {menuOpen && <ProfileMenu onClose={() => setMenuOpen(false)} />}
+            {menuOpen && <ProfileMenu onClose={() => setMenuOpen(false)} onSelectLocation={onSelectLocation} />}
           </AnimatePresence>
         </div>
       ) : (

@@ -225,7 +225,7 @@ const Map = ({ isAuth = false }) => {
               longitude={userLocation?.longitude}
               latitude={userLocation?.latitude}
             />
-            {!isAuth && <AuthButton />}
+            {!isAuth && <AuthButton onSelectLocation={handleSelectLocation} />}
           </motion.div>
         )}
       </AnimatePresence>
