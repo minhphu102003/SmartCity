@@ -29,15 +29,6 @@ const MapMarkers = ({
     setGeojsonData(newGeoJSON);
   }, [reports]);
 
-  const circleLayer = {
-    id: 'circle-layer',
-    type: 'fill',
-    paint: {
-      'fill-color': 'rgba(255, 0, 0, 0.3)',
-      'fill-opacity': 0.5,
-    },
-  };
-
   const getCircleGeoJSON = (longitude, latitude, radiusInKm = 0.1) => {
     const center = turf.point([longitude, latitude]);
     const radius = radiusInKm;

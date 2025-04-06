@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { PATHS } from "../../constants";
 import Notifications from "../notifications/Notifications.jsx";
 
-const ProfileMenu = ({ onClose }) => {
+const ProfileMenu = ({ onClose, onSelectLocation }) => {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const dropdownRef = useRef(null);
@@ -67,8 +67,8 @@ const ProfileMenu = ({ onClose }) => {
       </motion.div>
 
       {showNotifications && (
-        <div ref={notifRef} className="absolute left-[-280px] top-0">
-          <Notifications onClose={() => setShowNotifications(false)} />
+        <div ref={notifRef} className="absolute left-[-135px] top-[-15px]">
+          <Notifications onClose={() => setShowNotifications(false)} onSelectLocation={onSelectLocation} />
         </div>
       )}
     </div>

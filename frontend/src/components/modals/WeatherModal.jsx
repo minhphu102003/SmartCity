@@ -22,13 +22,6 @@ const WeatherModal = ({ onClose, weather }) => {
     image = imageMap2[weather.code];
   }
 
-  const getTextColorByTemp = (temp) => {
-    if (temp < 10) return 'text-blue-300';
-    if (temp >= 10 && temp <= 20) return 'text-green-400';
-    if (temp > 20 && temp <= 30) return 'text-yellow-200'; 
-    return 'text-orange-500';
-  };
-
   const getTextColor = (temp) => {
     return temp > 20 ? 'text-black' : 'text-white';
   };
