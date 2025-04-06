@@ -5,7 +5,7 @@ import {
   faMapMarkerAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import MapIcon from '../icons/MapIcon';
-import { faCar, faWater } from '@fortawesome/free-solid-svg-icons';
+import { faCar, faWater, faBell } from '@fortawesome/free-solid-svg-icons';
 import PlacesMarkers from './PlacesMarkers';
 import * as turf from '@turf/turf';
 
@@ -35,6 +35,10 @@ const MapMarkers = ({
     const options = { steps: 64, units: 'kilometers' };
     const circle = turf.circle(center, radius, options);
     return circle;
+  };
+
+  const getScaledSize = (zoom, base = 10, min = 24, max = 60) => {
+    return Math.max(min, Math.min(max, base * zoom));
   };
 
   return (
@@ -67,11 +71,20 @@ const MapMarkers = ({
 
       {reports.length > 0 &&
         reports.map((report) => {
-          const isTrafficJam = report.typeReport.toLowerCase().startsWith('t');
-          const iconColor = isTrafficJam ? 'text-red-600' : 'text-blue-600';
-          const borderColor = isTrafficJam
-            ? 'border-red-500'
-            : 'border-blue-500';
+          const type = report?.typeReport?.toLowerCase() || '';
+          let iconColor = 'text-blue-600';
+          let borderColor = 'border-blue-600';
+          let icon = faWater;
+
+          if (type.startsWith('t')) {
+            iconColor = 'text-red-600';
+            borderColor = 'border-red-600';
+            icon = faCar;
+          } else if (type.startsWith('c')) {
+            iconColor = 'text-yellow-600';
+            borderColor = 'border-yellow-600';
+            icon = faBell;
+          }
 
           return (
             <Marker
@@ -95,15 +108,18 @@ const MapMarkers = ({
                     alt="Report"
                     className={`rounded-md border-2 ${borderColor} shadow-lg`}
                     style={{
-                      width: '150px',
-                      height: '150px',
+                      width: `${getScaledSize(zoom, 15, 80, 200)}px`,
+                      height: `${getScaledSize(zoom, 15, 80, 200)}px`,
                       objectFit: 'cover',
                     }}
                   />
                 ) : (
                   <MapIcon
-                    icon={isTrafficJam ? faCar : faWater}
-                    className={`text-xl ${iconColor}`}
+                    icon={icon}
+                    className={`${iconColor}`}
+                    style={{
+                      fontSize: `${getScaledSize(zoom, 2, 16, 48)}px`,
+                    }}
                   />
                 )}
               </div>
@@ -112,12 +128,13 @@ const MapMarkers = ({
         })}
 
       {geojsonData.map((geo, index) => {
-        const isTrafficJam = reports[index]?.typeReport
-          .toLowerCase()
-          .startsWith('t');
-        const fillColor = isTrafficJam
-          ? 'rgba(255, 0, 0, 0.3)'
-          : 'rgba(0, 0, 255, 0.3)';
+        const type = reports[index]?.typeReport?.toLowerCase() || '';
+        let fillColor = 'rgba(0, 0, 255, 0.3)';
+        if (type.startsWith('t')) {
+          fillColor = 'rgba(255, 0, 0, 0.3)';
+        } else if (type.startsWith('c')) {
+          fillColor = 'rgba(255, 255, 0, 0.3)';
+        }
 
         return (
           <Source key={geo.id} id={geo.id} type="geojson" data={geo.data}>

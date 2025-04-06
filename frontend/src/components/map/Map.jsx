@@ -32,6 +32,7 @@ import { formatReports } from '../../utils/formatReports';
 import MapMarkers from '../marker/MapMarkers';
 import ContextMenu from '../menu/ContextMenu';
 import NotificationPopup from '../popup/NotificationPopup';
+import { createNotification } from '../../services/notification';
 
 const Map = ({ isAuth = false }) => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -64,9 +65,15 @@ const Map = ({ isAuth = false }) => {
     });
   };
 
-  const handleSubmitNotification = (data) => {
-    console.log('Notification created:', data);
-    // TODO: Gửi lên backend hoặc thêm vào danh sách notification
+  const handleSubmitNotification = async (data) => {
+    try {
+      const response = await createNotification(data);
+      console.log('Notification created:', response);
+      toast.success('Notification created successfully!');
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      toast.error('Failed to create notification. Please try again.');
+    }
   };
 
   useEffect(() => {
@@ -107,26 +114,20 @@ const Map = ({ isAuth = false }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       if (reports.length === 0) {
-        console.log('⏳ Không có reports để kiểm tra.');
         return;
       }
 
       const currentTime = Date.now();
 
-      console.log('📊 Danh sách reports trước khi lọc:', reports);
 
       const filteredReports = reports.filter((report) => {
         const reportTime = new Date(report.timestamp).getTime();
-        const elapsedTime = (currentTime - reportTime) / 1000 / 60; // Chuyển đổi sang phút
-
-        console.log(
-          `🔎 Kiểm tra report ${report.typeReport} | Thời gian đã trôi qua: ${elapsedTime.toFixed(2)} phút`
-        );
+        const elapsedTime = (currentTime - reportTime) / 1000 / 60;
 
         if (report.typeReport.startsWith('t')) {
-          return elapsedTime <= 10; // Giữ lại nếu chưa quá 10 phút
+          return elapsedTime <= 10;
         } else {
-          return elapsedTime <= 45; // Giữ lại nếu chưa quá 45 phút
+          return elapsedTime <= 45; 
         }
       });
 
