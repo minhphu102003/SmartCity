@@ -95,10 +95,8 @@ export const createCamera = async (req, res) => {
     try {
       const { longitude, latitude, link, status = true, installation_date } = req.body;
   
-      // Chuẩn hóa tọa độ
       const cameraCoordinates = [parseFloat(longitude), parseFloat(latitude)];
   
-      // Tìm kiếm đoạn đường gần nhất trong phạm vi 10m
       const roadSegment = await RoadSegment.findOne({
         roadSegmentLine: {
           $near: {
@@ -111,7 +109,6 @@ export const createCamera = async (req, res) => {
         },
       });
   
-      // Tạo camera mới
       const newCamera = new Camera({
         location: {
           type: "Point",
@@ -120,15 +117,10 @@ export const createCamera = async (req, res) => {
         status,
         link,
         installation_date,
-        roadSegments: roadSegment ? [roadSegment._id] : [], // Lưu đoạn đường nếu tìm thấy
+        roadSegments: roadSegment ? [roadSegment._id] : [], 
       });
   
       const savedCamera = await newCamera.save();
-  
-      if (!roadSegment) {
-        // Nếu không có đoạn đường, thêm vào cache
-        req.cameraCache.push(savedCamera.toObject());
-      }
   
       return res.status(201).json({
         success: true,

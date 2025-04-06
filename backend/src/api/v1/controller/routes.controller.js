@@ -8,15 +8,12 @@ import { Route } from '../models/index.js';
 export const findRoutesHandler = async (req, res, next) => {
   try {
     const { start, end, vehicleType = "drive" } = req.query;
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const fiveMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
 
-    // Parse start and end coordinates from the query
     const [startLongitude, startLatitude] = start.split(',').map(Number);
     const [endLongitude, endLatitude] = end.split(',').map(Number);
 
-    // Fetch routes from OSRM
     const routes = await fetchOSRMData(start, end, vehicleType);
-    // Iterate over each route to process and add reports and recommended status
     for (const router of routes) {
       // const recentReports = await findReportsForRoute(router,fiveMinutesAgo);
       const {geometry, recentReports} = await findAlternativeRoutes(router,fiveMinutesAgo, end);
