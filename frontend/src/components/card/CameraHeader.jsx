@@ -6,7 +6,7 @@ const CameraHeader = ({ selectedCity, setSelectedCity, searchTerm, setSearchTerm
     <div className="flex items-center justify-between bg-gray-800 p-4 rounded-lg shadow-md">
       <input
         type="text"
-        placeholder="Tìm kiếm camera..."
+        placeholder="Find camera..."
         className="p-2 rounded-md bg-gray-700 text-white focus:outline-none"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}

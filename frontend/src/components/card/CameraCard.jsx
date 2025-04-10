@@ -11,7 +11,7 @@ const CameraCard = ({ videoUrl, isActive, onPlay }) => {
     <div className="min-h-[300px] min-w-[400px] rounded-xl bg-zinc-700">
       <div className="flex flex-col gap-2 px-6 py-2">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-white">Địa chỉ của camera</h1>
+          <h1 className="text-xl font-semibold text-white">Address of camera</h1>
           <FaArrowRight className="text-white" />
         </div>
         <div className="flex items-center gap-2">
