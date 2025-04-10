@@ -4,11 +4,6 @@ import { MediaTypes } from '../constants/index.js';
 
 const mediaAccountReportSchema = new mongoose.Schema(
   {
-    accountReport_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "AccountReport",
-      required: true,
-    },
     media_url: {
       type: String,
       required: true,
@@ -30,7 +25,7 @@ const { listImg, ...accountReportSchemaObj } = AccountReport.schema.obj;
 const userReportV2Schema = new mongoose.Schema(
   {
     ...accountReportSchemaObj,
-    media_files: [ mediaAccountReportSchema ],
+    media_files:  mediaAccountReportSchema,
   },
   {
     timestamps: true,
