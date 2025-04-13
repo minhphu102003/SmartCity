@@ -5,7 +5,9 @@ import { validateWithToken } from '../../shared/validation/commonField.validator
 import { handleValidationErrors } from '../../shared/validation/result.validator.js';
 import { handleVideoUploadWithMaxSizeOnly } from "../middlewares/uploadMiddleware.js";
 import { createAccountReportValidator } from "../validations/accountReport.validartor.js";
-import { createAccountReportV2Controller } from '../controllers/accountReport.controller.js';
+import { createAccountReportV2Controller , getAccountReportsController, getAccountReportByIdController} from '../controllers/accountReport.controller.js';
+import { getAccountReportValidator } from "../validations/accountReport.validartor.js";
+import { validateById } from "../../shared/validation/commonField.validator.js";
 
 const router = Router();
 
@@ -17,7 +19,8 @@ router.use((req, res, next) => {
   next();
 });
 
-
+router.get("/", [getAccountReportValidator, handleValidationErrors], getAccountReportsController);
+router.get("/:id", [validateById, handleValidationErrors], getAccountReportByIdController);
 router.post("/", handleVideoUploadWithMaxSizeOnly, [validateWithToken, createAccountReportValidator, handleValidationErrors], veriFyToken, createAccountReportV2Controller);
 
 
