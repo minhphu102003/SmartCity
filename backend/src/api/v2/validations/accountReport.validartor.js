@@ -1,7 +1,8 @@
-import { body } from "express-validator";
+import { body, query } from "express-validator";
 import { MediaTypes } from "../constants/mediaType.js";
 import { CongestionLevels } from "../../shared/constants/congestion.js";
 import { ReportTypes } from "../../shared/constants/report.js";
+import { paginationValidator } from "../../shared/validation/pagination.validator.js"; 
 
 export const createAccountReportValidator = [
   body("description")
@@ -35,4 +36,38 @@ export const createAccountReportValidator = [
     .notEmpty()
     .withMessage("Latitude is required"),
 
+];
+
+export const getAccountReportValidator = [
+  ...paginationValidator,
+
+  query("startDate")
+    .optional()
+    .isISO8601()
+    .withMessage("Start date must be a valid ISO8601 date."),
+
+  query("endDate")
+    .optional()
+    .isISO8601()
+    .withMessage("End date must be a valid ISO8601 date."),
+
+  query("account_id")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Account ID must be a valid MongoDB ObjectId."),
+
+  query("typeReport")
+    .optional()
+    .isIn(Object.values(ReportTypes))
+    .withMessage(`typeReport must be one of: ${Object.values(ReportTypes).join(", ")}`),
+
+  query("congestionLevel")
+    .optional()
+    .isIn(Object.values(CongestionLevels))
+    .withMessage(`congestionLevel must be one of: ${Object.values(CongestionLevels).join(", ")}`),
+
+  query("analysisStatus")
+    .optional()
+    .isIn(["true", "false"])
+    .withMessage("analysisStatus must be either 'true' or 'false'."),
 ];
