@@ -21,6 +21,7 @@
     "@turf/turf": "^7.2.0",
     "antd": "^5.24.1",
     "axios": "^1.7.2",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.0.11",
     "lucide-react": "^0.483.0",
     "mapbox-gl": "^3.4.0",
