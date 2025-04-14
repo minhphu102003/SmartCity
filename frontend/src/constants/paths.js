@@ -15,4 +15,5 @@ export const PATHS = {
   MANAGE_PLACES: '/manage-places',
   CREATE_NOTIFICATION: '/create-notification',
   CREATE_CAMERA: '/create-camera',
+  REPORT: '/report'
 };
