@@ -1,5 +1,6 @@
 import { body, query } from "express-validator";
 import { CongestionLevels, ReportTypes } from "../../shared/constants/index.js";
+import { paginationValidator } from "../../shared/validation/pagination.validator.js"; 
 
 export const createAccountReportValidator = [
   body("description")
@@ -13,8 +14,8 @@ export const createAccountReportValidator = [
       `Type of report must be one of: ${Object.values(ReportTypes).join(", ")}`
     ),
   
-    body("congestionLevel") // Correctly specify the field to validate
-    .isIn(Object.values(CongestionLevels)) // Check against enum values
+    body("congestionLevel")
+    .isIn(Object.values(CongestionLevels))
     .withMessage(
       `Congestion level must be one of: ${Object.values(CongestionLevels).join(", ")}`
     ),
@@ -33,15 +34,7 @@ export const createAccountReportValidator = [
 ];
 
 export const getAccountReportValidator = [
-  query("page")
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage("Page must be a positive integer."),
-  
-  query("limit")
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage("Limit must be a positive integer not exceeding 100."),
+  ...paginationValidator,
   
   query("startDate")
     .optional()
@@ -53,19 +46,16 @@ export const getAccountReportValidator = [
     .isISO8601()
     .withMessage("End date must be a valid date format (ISO 8601)."),
   
-  // Validate account_id
   query("account_id")
     .optional()
     .isMongoId()
     .withMessage("Account ID must be a valid MongoDB Object ID."),
 
-  // Validate typeReport
   query("typeReport")
     .optional()
     .isIn(Object.values(ReportTypes))
     .withMessage(`Type of report must be one of: ${Object.values(ReportTypes).join(", ")}`),
 
-  // Validate congestionLevel
   query("congestionLevel")
     .optional()
     .isIn(Object.values(CongestionLevels))

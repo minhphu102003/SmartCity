@@ -65,6 +65,13 @@ const StyledButton = styled(motion(Button))(({ theme }) => ({
   },
 }))
 
+const REPORT_TYPES = [
+  { value: '', label: 'All Types' },
+  { value: 'TRAFFIC_JAM', label: 'Traffic Jam' },
+  { value: 'ACCIDENT', label: 'Accident' },
+  { value: 'FLOOD', label: 'Flood' }
+];
+
 const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, onCreateReport }) => {
   const theme = useTheme()
 
@@ -87,12 +94,24 @@ const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedSt
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   }
 
+  const handleCreateClick = () => {
+    // You can add form validation or data preparation here
+    onCreateReport({
+      description: '',
+      typeReport: 'TRAFFIC_JAM',
+      congestionLevel: 'POSSIBLE_CONGESTION',
+      longitude: 108.206012143132, // Default longitude for Da Nang
+      latitude: 16.0754966720008,  // Default latitude for Da Nang
+      images: []
+    });
+  };
+
   return (
     <StyledPaper initial="hidden" animate="visible" variants={containerVariants}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
         <TuneIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
         <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
-          Bộ lọc báo cáo
+          Report Filters
         </Typography>
       </Box>
 
@@ -116,7 +135,7 @@ const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedSt
         >
           <motion.div variants={itemVariants} style={{ width: "100%" }}>
             <StyledTextField
-              label="Tìm kiếm báo cáo"
+              label="Search Reports"
               variant="outlined"
               size="small"
               value={searchTerm}
@@ -129,7 +148,7 @@ const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedSt
                   </InputAdornment>
                 ),
               }}
-              placeholder="Nhập từ khóa..."
+              placeholder="Search by description or location..."
             />
           </motion.div>
 
@@ -138,7 +157,7 @@ const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedSt
               <InputLabel id="status-select-label">
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <FilterListIcon fontSize="small" sx={{ mr: 0.5 }} />
-                  Tình trạng
+                  Report Type
                 </Box>
               </InputLabel>
               <StyledSelect
@@ -147,7 +166,7 @@ const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedSt
                 label={
                   <Box sx={{ display: "flex", alignItems: "center" }}>
                     <FilterListIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    Tình trạng
+                    Report Type
                   </Box>
                 }
                 onChange={(e) => setSelectedStatus(e.target.value)}
@@ -160,28 +179,27 @@ const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedSt
                   },
                 }}
               >
-                <MenuItem value="">
-                  <em>Tất cả</em>
-                </MenuItem>
-                <MenuItem value="Kẹt xe">Kẹt xe</MenuItem>
-                <MenuItem value="Lũ lụt">Lũ lụt</MenuItem>
-                <MenuItem value="Tai nạn">Tai nạn</MenuItem>
+                {REPORT_TYPES.map((type) => (
+                  <MenuItem key={type.value} value={type.value}>
+                    {type.label}
+                  </MenuItem>
+                ))}
               </StyledSelect>
             </FormControl>
           </motion.div>
         </Box>
 
         <motion.div variants={itemVariants}>
-          <Tooltip title="Tạo báo cáo sự cố mới">
+          <Tooltip title="Create new incident report">
             <StyledButton
               variant="contained"
               color="primary"
-              onClick={onCreateReport}
+              onClick={handleCreateClick}
               startIcon={<AddCircleOutlineIcon />}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              Tạo báo cáo mới
+              Create Report
             </StyledButton>
           </Tooltip>
         </motion.div>

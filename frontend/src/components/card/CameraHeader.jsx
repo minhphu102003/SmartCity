@@ -9,6 +9,7 @@ const CameraHeader = ({ selectedCity, setSelectedCity, searchTerm, setSearchTerm
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   return (
+
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -20,6 +21,7 @@ const CameraHeader = ({ selectedCity, setSelectedCity, searchTerm, setSearchTerm
           <Camera className="h-6 w-6 text-blue-400" />
           <h2 className="text-lg font-semibold text-white">Camera Giám Sát</h2>
         </div>
+
 
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           {/* Search Input with Animation */}

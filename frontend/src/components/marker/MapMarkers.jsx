@@ -37,7 +37,7 @@ const MapMarkers = ({
     return circle;
   };
 
-  const getScaledSize = (zoom, base = 10, min = 24, max = 60) => {
+  const getScaledSize = (zoom, base = 14, min = 24, max = 60) => {
     return Math.max(min, Math.min(max, base * zoom));
   };
 

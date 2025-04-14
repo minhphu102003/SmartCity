@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
 const REPORT_REASONS = [
-  { id: 'spam', label: 'Spam hoặc quảng cáo' },
-  { id: 'inappropriate', label: 'Nội dung không phù hợp' },
-  { id: 'fake', label: 'Thông tin sai sự thật' },
-  { id: 'duplicate', label: 'Nội dung trùng lặp' },
-  { id: 'other', label: 'Lý do khác' },
+  { id: 'SPAM', label: 'Spam or advertising' },
+  { id: 'INAPPROPRIATE', label: 'Inappropriate content' },
+  { id: 'FALSE_INFO', label: 'False information' },
+  { id: 'DUPLICATE', label: 'Duplicate content' },
+  { id: 'OTHER', label: 'Other reason' },
 ];
 
 const ReportModal = ({ isOpen, onClose, onSubmit, reportedContent }) => {
@@ -17,18 +17,19 @@ const ReportModal = ({ isOpen, onClose, onSubmit, reportedContent }) => {
 
   const handleSubmit = () => {
     if (!selectedReason) {
-      setError('Vui lòng chọn lý do báo cáo');
+      setError('Please select a reason for reporting');
       return;
     }
 
-    if (selectedReason === 'other' && !customReason.trim()) {
-      setError('Vui lòng nhập lý do báo cáo của bạn');
+    if (selectedReason === 'OTHER' && !customReason.trim()) {
+      setError('Please enter your reason for reporting');
       return;
     }
 
     onSubmit({
+      reportId: reportedContent?.id,
       reason: selectedReason,
-      customReason: selectedReason === 'other' ? customReason : '',
+      description: selectedReason === 'OTHER' ? customReason : '',
       reportedContent
     });
 
@@ -68,7 +69,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit, reportedContent }) => {
                     <path d="M12 2C13.5 2 14.8333 2.33333 15.5 2.5C15.5 4 15.7 5.5 16.5 7C17.3 8.5 18.6667 9.33333 19.5 9.5C19 11.5 17 12 16.5 12C16 12 15 11.5 14.5 11C13.8333 10.3333 13 8.5 12 8.5C11 8.5 10.1667 10.3333 9.5 11C9 11.5 8 12 7.5 12C7 12 5 11.5 4.5 9.5C5.33333 9.33333 6.7 8.5 7.5 7C8.3 5.5 8.5 4 8.5 2.5C9.16667 2.33333 10.5 2 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <h3 className="text-base font-medium text-gray-900">
-                    Báo cáo bài viết
+                    Report Post
                   </h3>
                 </div>
                 <button
@@ -82,7 +83,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit, reportedContent }) => {
               {/* Content */}
               <div className="p-4">
                 <p className="text-sm text-gray-600 mb-4">
-                  Vui lòng chọn lý do báo cáo bài viết này:
+                  Please select a reason for reporting this post:
                 </p>
 
                 {/* Report reasons */}
@@ -111,7 +112,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit, reportedContent }) => {
                 </div>
 
                 {/* Custom reason input */}
-                {selectedReason === 'other' && (
+                {selectedReason === 'OTHER' && (
                   <div className="mt-3">
                     <textarea
                       value={customReason}
@@ -119,10 +120,18 @@ const ReportModal = ({ isOpen, onClose, onSubmit, reportedContent }) => {
                         setCustomReason(e.target.value);
                         setError('');
                       }}
-                      placeholder="Nhập lý do báo cáo của bạn..."
+                      placeholder="Enter your reason for reporting..."
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       rows={3}
                     />
+                  </div>
+                )}
+
+                {/* Show reported content summary */}
+                {reportedContent && (
+                  <div className="mt-4 p-3 bg-gray-50 rounded-md">
+                    <p className="text-xs text-gray-500 mb-1">Reporting post:</p>
+                    <p className="text-sm text-gray-700 line-clamp-2">{reportedContent.content}</p>
                   </div>
                 )}
 
@@ -140,13 +149,13 @@ const ReportModal = ({ isOpen, onClose, onSubmit, reportedContent }) => {
                   onClick={onClose}
                   className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
                   className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
                 >
-                  Báo cáo
+                  Report
                 </button>
               </div>
             </div>

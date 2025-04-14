@@ -81,9 +81,47 @@ const InfoItem = styled(Box)(({ theme }) => ({
   },
 }))
 
-const ReportCard = ({ report, onReport }) => {
-  const { user, content, images, status, createdAt, location } = report
+const getStatusColor = (typeReport) => {
+  switch (typeReport) {
+    case 'TRAFFIC_JAM':
+      return 'warning';
+    case 'ACCIDENT':
+      return 'error';
+    case 'FLOOD':
+      return 'info';
+    default:
+      return 'default';
+  }
+};
 
+const getStatusLabel = (typeReport) => {
+  switch (typeReport) {
+    case 'TRAFFIC_JAM':
+      return 'Traffic Jam';
+    case 'ACCIDENT':
+      return 'Accident';
+    case 'FLOOD':
+      return 'Flood';
+    default:
+      return typeReport;
+  }
+};
+
+const getCongestionLabel = (level) => {
+  switch (level) {
+    case 'POSSIBLE_CONGESTION':
+      return 'Possible Congestion';
+    case 'MODERATE_CONGESTION':
+      return 'Moderate Congestion';
+    case 'SEVERE_CONGESTION':
+      return 'Severe Congestion';
+    default:
+      return level?.replace(/_/g, ' ') || 'Unknown';
+  }
+};
+
+const ReportCard = ({ report, onReport }) => {
+  const { user, content, images, status, createdAt, location, congestionLevel } = report
   const theme = useTheme()
 
   const timeAgo = formatDistanceToNow(new Date(createdAt), {
@@ -91,7 +129,8 @@ const ReportCard = ({ report, onReport }) => {
     locale: vi,
   })
 
-  
+  const formattedDate = format(new Date(createdAt), 'PPpp', { locale: vi })
+
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
@@ -104,6 +143,7 @@ const ReportCard = ({ report, onReport }) => {
   return (
     <StyledCard initial="hidden" animate="visible" variants={cardVariants}>
       <CardContent sx={{ p: 3 }}>
+       
         <Box className="flex items-center justify-between mb-4">
           <Box className="flex items-center">
             <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.2 }}>
@@ -122,19 +162,30 @@ const ReportCard = ({ report, onReport }) => {
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
                 {user.name}
+                {user.roles?.includes('admin') && (
+                  <Chip
+                    size="small"
+                    label="Admin"
+                    color="primary"
+                    variant="outlined"
+                    sx={{ ml: 1, height: 20 }}
+                  />
+                )}
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <InfoItem>
-                  <AccessTimeIcon />
-                  <Typography variant="caption">{timeAgo}</Typography>
-                </InfoItem>
+                <Tooltip title={formattedDate}>
+                  <InfoItem>
+                    <AccessTimeIcon />
+                    <Typography variant="caption">{timeAgo}</Typography>
+                  </InfoItem>
+                </Tooltip>
               </Box>
             </Box>
           </Box>
           <StatusChip
             icon={<WarningAmberIcon />}
-            label={status}
-            color={status === "Kẹt xe" ? "warning" : "error"}
+            label={getStatusLabel(status)}
+            color={getStatusColor(status)}
             variant="outlined"
             size="medium"
           />
@@ -154,6 +205,14 @@ const ReportCard = ({ report, onReport }) => {
           }}
         >
           {content}
+          {congestionLevel && (
+            <Chip
+              size="small"
+              label={getCongestionLabel(congestionLevel)}
+              color="warning"
+              sx={{ ml: 1, height: 20 }}
+            />
+          )}
         </Typography>
 
         {images && images.length > 0 && (
@@ -181,8 +240,12 @@ const ReportCard = ({ report, onReport }) => {
                     justifyContent: "center",
                   }}
                 >
-                  <Tooltip title="Xem đầy đủ">
-                    <IconButton size="small" sx={{ color: "white" }}>
+                  <Tooltip title="View full size">
+                    <IconButton 
+                      size="small" 
+                      sx={{ color: "white" }}
+                      onClick={() => window.open(image, '_blank')}
+                    >
                       <FullscreenIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
@@ -196,11 +259,13 @@ const ReportCard = ({ report, onReport }) => {
 
         <Box className="flex justify-between items-center">
           <Box sx={{ display: "flex", gap: 2 }}>
-            <InfoItem>
-              <LocationOnIcon />
-              <Typography variant="body2">{location}</Typography>
-            </InfoItem>
-            <Tooltip title="Chia sẻ">
+            <Tooltip title="View on map">
+              <InfoItem>
+                <LocationOnIcon />
+                <Typography variant="body2">{location}</Typography>
+              </InfoItem>
+            </Tooltip>
+            <Tooltip title="Share report">
               <IconButton size="small" color="primary">
                 <ShareIcon fontSize="small" />
               </IconButton>
@@ -210,7 +275,7 @@ const ReportCard = ({ report, onReport }) => {
             <Button
               variant="contained"
               color="error"
-              startIcon={<WarningAmberIcon />}
+              startIcon={<Flag className="w-5 h-5" />}
               sx={{
                 borderRadius: 6,
                 px: 2,
@@ -219,9 +284,9 @@ const ReportCard = ({ report, onReport }) => {
                   boxShadow: "0 6px 15px rgba(211, 47, 47, 0.35)",
                 },
               }}
-              onClick={onReport}
+              onClick={() => onReport(report)}
             >
-              <Flag className="w-5 h-5" />
+              Report
             </Button>
           </motion.div>
         </Box>

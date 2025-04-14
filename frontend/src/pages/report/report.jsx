@@ -9,71 +9,127 @@ import ErrorComponent from "../../components/common/ErrorComponent"
 import { AlertTriangle, FileText } from "lucide-react"
 import ReportModal from "../../components/modals/ReportModal"
 import { toast } from "react-toastify"
-
-// Mock data - Thay thế bằng API call thực tế
-const mockReports = [
-  {
-    id: 1,
-    user: {
-      name: "Nguyễn Văn A",
-      avatar: "https://i.pravatar.cc/150?img=1",
-    },
-    content: "Kẹt xe nghiêm trọng tại ngã tư Nguyễn Văn Linh",
-    images: ["https://picsum.photos/400/300?random=1", "https://picsum.photos/400/300?random=2"],
-    status: "Kẹt xe",
-    createdAt: "2024-04-13T10:30:00",
-    location: "Ngã tư Lê Văn Lương - Tố Hữu",
-  },
-  {
-    id: 2,
-    user: {
-      name: "Trần Thị B",
-      avatar: "https://i.pravatar.cc/150?img=2",
-    },
-    content: "Lũ lụt tại khu vực Trần Cao Vân",
-    images: ["https://picsum.photos/400/300?random=3"],
-    status: "Lũ lụt",
-    createdAt: "2024-04-13T09:15:00",
-    location: "Phường Thanh Xuân",
-  },
-]
+import { reportService } from "../../services/reportService"
 
 const Report = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [reports, setReports] = useState(mockReports)
+  const [reports, setReports] = useState([])
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [selectedReport, setSelectedReport] = useState(null)
 
-  // Debug logs
+  // Fetch reports from API
   useEffect(() => {
-    console.log('Current State:', {
-      loading,
-      error,
-      reportsCount: reports.length,
-      searchTerm,
-      selectedStatus
-    });
-  }, [loading, error, reports, searchTerm, selectedStatus]);
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        const response = await reportService.getAllReports();
+        console.log('API Response:', response);
+
+        if (response.success && response.data) {
+          // Transform API data to match component structure
+          const transformedReports = response.data.map(report => ({
+            id: report.reportId,
+            user: {
+              name: report.username,
+              avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${report.username}`,
+              roles: report.roles || []
+            },
+            content: report.description,
+            images: report.imgs?.map(img => img.img) || [],
+            status: report.typeReport,
+            createdAt: report.createdAt,
+            location: `${report.latitude}, ${report.longitude}`,
+            congestionLevel: report.congestionLevel,
+            analysisStatus: report.analysisStatus,
+            // Add original data for reference
+            originalData: report
+          }));
+
+          console.log('Transformed Reports:', transformedReports);
+          setReports(transformedReports);
+          setError(null);
+        } else {
+          throw new Error('Invalid API response format');
+        }
+      } catch (error) {
+        console.error('Error fetching reports:', error);
+        setError('Failed to load reports. Please try again later.');
+        setReports([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
 
   const filteredReports = useMemo(() => {
-    const filtered = reports.filter((report) => {
-      const matchesSearch =
-        report.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.location.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesStatus = !selectedStatus || report.status === selectedStatus
-      return matchesSearch && matchesStatus
-    })
-    console.log('Filtered Reports:', filtered);
-    return filtered;
-  }, [reports, searchTerm, selectedStatus])
-
-  const handleCreateReport = () => {
+    if (!Array.isArray(reports)) {
+      return [];
+    }
     
-    console.log("Create new report")
-  }
+    return reports.filter((report) => {
+      const content = report?.content?.toLowerCase() || '';
+      const location = report?.location?.toLowerCase() || '';
+      const searchLower = searchTerm.toLowerCase();
+      
+      const matchesSearch = !searchTerm || 
+        content.includes(searchLower) ||
+        location.includes(searchLower);
+        
+      const matchesStatus = !selectedStatus || 
+        report.status === selectedStatus;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [reports, searchTerm, selectedStatus]);
+
+  const handleCreateReport = async (reportData) => {
+    try {
+      setLoading(true);
+      await reportService.createReport({
+        description: reportData.description,
+        typeReport: 'TRAFFIC_JAM',
+        congestionLevel: 'POSSIBLE_CONGESTION',
+        longitude: reportData.longitude || 108.206012143132,
+        latitude: reportData.latitude || 16.0754966720008,
+        imgs: reportData.images
+      });
+      
+      toast.success('Report created successfully');
+      
+      // Refresh reports
+      const response = await reportService.getAllReports();
+      if (response.success && response.data) {
+        const transformedReports = response.data.map(report => ({
+          id: report.reportId,
+          user: {
+            name: report.username,
+            avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${report.username}`,
+            roles: report.roles || []
+          },
+          content: report.description,
+          images: report.imgs?.map(img => img.img) || [],
+          status: report.typeReport,
+          createdAt: report.createdAt,
+          location: `${report.latitude}, ${report.longitude}`,
+          congestionLevel: report.congestionLevel,
+          analysisStatus: report.analysisStatus,
+          originalData: report
+        }));
+        
+        setReports(transformedReports);
+      }
+    } catch (error) {
+      console.error('Error creating report:', error);
+      toast.error('Failed to create report. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleReportClick = (report) => {
     setSelectedReport(report);
@@ -82,15 +138,19 @@ const Report = () => {
 
   const handleReportSubmit = async (reportData) => {
     try {
-      
-      console.log('Submitting report:', reportData);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success('Báo cáo đã được gửi thành công');
+      setLoading(true);
+      await reportService.submitReport({
+        reportId: reportData.reportedContent.id,
+        reason: reportData.reason,
+        description: reportData.customReason
+      });
+      toast.success('Report submitted successfully');
+      setReportModalOpen(false);
     } catch (error) {
       console.error('Error submitting report:', error);
-      toast.error('Không thể gửi báo cáo. Vui lòng thử lại sau.');
+      toast.error('Failed to submit report. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -121,10 +181,10 @@ const Report = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-2">
               <FileText className="h-6 w-6 text-emerald-500" />
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Bài viết từ người dùng</h1>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">User Posts</h1>
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {filteredReports.length} báo cáo được tìm thấy
+              {filteredReports.length} reports found
             </div>
           </div>
 
@@ -163,39 +223,36 @@ const Report = () => {
                 className="p-12 flex flex-col items-center justify-center text-center"
               >
                 <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">Không tìm thấy báo cáo</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">No Reports Found</h3>
                 <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                  Không có báo cáo nào phù hợp với tiêu chí tìm kiếm của bạn. Vui lòng thử lại với các bộ lọc khác.
+                  No reports match your search criteria. Please try different filters.
                 </p>
               </motion.div>
             )}
 
-            {!loading && !error && filteredReports.length > 0 && (
-              <motion.div
-                variants={container}
-                initial="hidden"
-                animate="show"
-                className="divide-y divide-gray-200 dark:divide-gray-700"
-              >
-                {filteredReports.map((report, index) => (
-                  <motion.div
-                    key={report.id}
-                    variants={item}
-                    transition={{
-                      duration: 0.4,
-                      delay: index * 0.1,
-                    }}
-                    whileHover={{
-                      scale: 1.01,
-                      transition: { duration: 0.2 },
-                    }}
-                    className="p-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors duration-150"
-                  >
-                    <ReportCard report={report} onReport={() => handleReportClick(report)} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+{!loading && !error && filteredReports.length > 0 && (
+  <>
+    {filteredReports.map((report, index) => (
+      <motion.div
+        key={report.id}
+        variants={item}
+        transition={{
+          duration: 0.4,
+          delay: index * 0.1,
+        }}
+        whileHover={{
+          scale: 1.01,
+          transition: { duration: 0.2 },
+        }}
+        className="p-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors duration-150 z-50"
+      >
+        <ReportCard report={report} onReport={() => handleReportClick(report)} />
+      </motion.div>
+    ))}
+  </>
+)}
+
+           
           </AnimatePresence>
         </div>
       </div>

@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
-import {Account, AccountReport, Role } from '~/shared/models';
-import { ROLES } from "~/shared/constants";
+import Account from '../../shared/models/account.js';
+import AccountReport from '../../shared/models/accountReport.js';
+import Role from '../../shared/models/role.js';
+import { ROLES } from "../../shared/constants/role.js";
 
 
 export const veriFyToken = async (req, res, next) => {
