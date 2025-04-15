@@ -2,6 +2,8 @@ import { createAccountReportV2, getAccountReports, getAccountReportById } from "
 import { MediaTypes } from '../constants/mediaType.js';
 import { getPaginationData } from "../../shared/utils/pagination.js";
 import { buildQuery, formatReport } from "../utils/reportUtils.js";
+import { produceMessage } from "../../../kafkaOnline.config.js";
+import { EXTRACT_IMAGE_TOPIC } from "../constants/kafka.js";
 
 export const createAccountReportV2Controller = async (req, res) => {
   try {
@@ -37,6 +39,8 @@ export const createAccountReportV2Controller = async (req, res) => {
           }
         : undefined,
     });
+
+    produceMessage(EXTRACT_IMAGE_TOPIC, newReport._doc, 'user report video');
 
     return res.status(201).json({
       success: true,

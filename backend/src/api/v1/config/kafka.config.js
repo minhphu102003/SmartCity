@@ -7,7 +7,7 @@ import {calculateDistance} from "../services/distance.js";
 import moment from "moment-timezone";
 
 const getVietnamTimestamp = () => {
-  return moment.utc().add(7, 'hours').toISOString(); // Cộng thêm 7 giờ và trả về ISO 8601
+  return moment.utc().add(7, 'hours').toISOString();
 };
 
 const kafka = new Kafka({
@@ -22,13 +22,11 @@ const admin = kafka.admin();
 const initializeTopic = async (topic) => {
   await admin.connect();
   
-  // Check if the topic exists
   const topics = await admin.listTopics();
   if (!topics.includes(topic)) {
-    // Create the topic if it doesn't exist
     await admin.createTopics({
       topics: [{ topic }],
-      waitForLeaders: true, // Ensures the topic is fully created and ready to use
+      waitForLeaders: true,
     });
     console.log(`Topic "${topic}" created`);
   } else {
@@ -38,11 +36,10 @@ const initializeTopic = async (topic) => {
   await admin.disconnect();
 };
 
-// Produce message to Kafka
 const produceMessage = async (topic, messageObject, type) => {
-    await initializeTopic(topic); // Ensure topic exists
+    await initializeTopic(topic); 
     await producer.connect();
-    const message = JSON.stringify({ type, ...messageObject }); // Add type to message
+    const message = JSON.stringify({ type, ...messageObject }); 
     await producer.send({
       topic,
       messages: [{ value: message }],
@@ -54,10 +51,10 @@ const buildNotificationMessage = (type, description, timestamp, latitude, longit
   const baseMessage = {
     title: 'Traffic jam notification',
     content: `Traffic jams reported near you: ${description}`,
-    status: 'PENDING', // Default to 'read' or handle as per your logic
-    isRead: false, // If the notification is read or not
+    status: 'PENDING',
+    isRead: false, 
     timestamp,
-    distance: '', // Leave this empty for frontend to calculate
+    distance: '', 
     longitude,
     latitude,
     img
@@ -78,12 +75,9 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
           const data = JSON.parse(message.value.toString());
           const { type, latitude, longitude, account_id,typeReport,timestamp, img, description } = data;
 
-          // Build the notification message using the helper function
           const notificationMessage = buildNotificationMessage(type, description,timestamp, latitude, longitude, img);
-          // Send message to all connected WebSocket clients
           sendMessageToFrontend(notificationMessage);
 
-          // Handle Camera Report
           if (type === "camera report") {
             const { camera_id, trafficVolume, congestionLevel, typeReport, img } = data;
             const report = new CameraReport({
@@ -96,16 +90,12 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
             await report.save();
             console.log('Camera report saved:', report);
           }
-          // Handle User Report
           if (type === "user report") {
-              // Lấy danh sách tất cả người dùng
             const allUsers = await User.find({ latitude: { $exists: true }, longitude: { $exists: true } });
-            // Lọc người dùng trong bán kính 10km
             const usersInRange = allUsers.filter((user) => {
               const distance = calculateDistance(latitude, longitude, user.latitude, user.longitude);
-              return distance <= 10; // Bán kính 10km
+              return distance <= 10;
             });
-            // Create notification for each user in range
             for (const user of usersInRange) {
               if (user.account_id) {
                 const notification = new Notification({
@@ -113,7 +103,7 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
                   message: `Traffic jams reported near you: ${description}`,
                   longitude,
                   latitude,
-                  img: img, // First image
+                  img: img, 
                   status: NotificationStatus.PENDING
                 });
                 try {
