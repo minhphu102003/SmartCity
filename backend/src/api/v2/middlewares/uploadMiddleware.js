@@ -1,6 +1,13 @@
 import multer from "multer";
 import cloudinary from "../config/cloudinary.config.js";
 import { MAX_FILE_VIDEO_SIZE } from "../../shared/constants/upload.js";
+import s3 from "../config/s3.config.js";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { v4 as uuidv4 } from "uuid";
+import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const uploadVideoMulter = multer({
   storage: multer.memoryStorage(),
@@ -55,6 +62,47 @@ export const handleVideoUploadWithMaxSizeOnly = (req, res, next) => {
       res.status(500).json({
         success: false,
         message: "Error processing video upload",
+      });
+    }
+  });
+};
+
+
+export const handleVideoUploadToS3 = (req, res, next) => {
+  uploadVideoMulter(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message || "Failed to upload video",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No video file uploaded" });
+    }
+
+    try {
+      const fileExt = path.extname(req.file.originalname);
+      const fileName = `video_${uuidv4()}${fileExt}`;
+      const bucketName = process.env.S3_BUCKET_NAME;
+
+      const uploadParams = {
+        Bucket: bucketName,
+        Key: `videos/${fileName}`,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+      };
+
+      await s3.send(new PutObjectCommand(uploadParams));
+
+      const videoUrl = `https://${bucketName}.s3.amazonaws.com/videos/${fileName}`;
+      req.body.uploadedVideo = videoUrl;
+      next();
+    } catch (error) {
+      console.error("S3 upload error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Error uploading video to S3",
       });
     }
   });

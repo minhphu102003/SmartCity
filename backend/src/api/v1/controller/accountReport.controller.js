@@ -125,12 +125,9 @@ export const createAccountReport = async (req, res) => {
     const { description, typeReport, congestionLevel, longitude, latitude } = req.body;
     const account_id = req.account_id;
 
-    // const uploadedImages = req.files.map((file) => ({ img: file.filename }));
     const uploadedImages = Array.isArray(req.body.uploadedImages)
     ? req.body.uploadedImages.map((url) => ({ img: url }))
     : [];
-    console.log("Uploaded Images:", uploadedImages);
-    // Bán kính tìm kiếm tối đa (10m)
     const searchRadiusInMeters = 10;
 
     const nearbyRoadSegments = await RoadSegment.find({
@@ -160,7 +157,6 @@ export const createAccountReport = async (req, res) => {
     await newReport.save();
     const timestamp = newReport.createdAt;
 
-    // Chỉ thêm vào cache nếu không tìm thấy RoadSegment nào
     if (nearbyRoadSegments.length === 0) {
       req.cachedReports = req.cachedReports ? req.cachedReports.push(newReport) : [newReport];
       console.log("Report added to cache:", newReport._id);
@@ -175,7 +171,6 @@ export const createAccountReport = async (req, res) => {
       ...rest,
     };
 
-    // Gửi thông điệp tới Kafka
     const messageObject = {
       reportId: newReport._id,
       account_id,
@@ -188,8 +183,6 @@ export const createAccountReport = async (req, res) => {
       timestamp
     };
     produceMessage(PRODUCE_TOPIC, messageObject, "create");
-
-    // ? Cái này sau này python trả về sẽ đọc dữ liệu từ đây 
     
     const messageObjectSendDemo = {
       reportId: newReport._id,
@@ -204,7 +197,6 @@ export const createAccountReport = async (req, res) => {
     };
     produceMessage(DEMO_TOPIC, messageObjectSendDemo, "user report");
 
-    // Trả về kết quả cho client
     res.status(201).json({ success: true, data: responseReport });
   } catch (error) {
     console.error("Error creating account report:", error);

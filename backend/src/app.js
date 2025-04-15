@@ -7,7 +7,6 @@ import v1Routes from "./api/v1/index.js";
 import v2Routes from "./api/v2/index.js";
 import Camera from './api/v1/models/camera.js';  
 import AccountReport from './api/v1/models/accountReport.js';
-// import { consumeMessages } from "../src/api/v1/config/kafka.config.js";
 import { consumeMessages } from './kafkaOnline.config.js';
 import { WebSocketServer } from 'ws';  
 import {handleLocationUpdate } from "./api/v1/services/readLocation.js";
@@ -58,9 +57,7 @@ app.server = app.listen(app.get("port"), () => {
     wss.on('connection', (ws) => {
         console.log('Client connected');
         ws.send('Welcome to the WebSocket server!');
-        // Add the new client to the list
         wsClients.push(ws);
-        // Handle incoming messages from the client
         ws.on('message', async (message) => {
             const decodedMessage = message.toString();
             console.log('Received message:', decodedMessage);
@@ -87,16 +84,10 @@ app.server = app.listen(app.get("port"), () => {
     });
 });
 
-// app.server = app.listen(app.get("port"), () => {
-//     console.log(`Server is running on port ${app.get("port")}`);
-//     initializeWebSocket(app.server);
-// });
-
 const sendMessageToFrontend = (message) => {
     wsClients.forEach(client => {
         if (client.readyState === client.OPEN) { 
             client.send(JSON.stringify(message)); 
-            // console.log('Message sent to client:', message);
         }
     });
 };
@@ -104,10 +95,7 @@ const sendMessageToFrontend = (message) => {
 const startKafkaConsumer = async () => {
     try {
         const topic = process.env.KAFKA_TOPIC_CONSUMER || 'python-topic';
-        // const config = readConfig("./src/client.properties");
-        // await produce(topic, config);
         await consumeMessages(topic, sendMessageToFrontend);
-        // await consume(topic, config);
         console.log(`Kafka consumer started on topic: ${topic}`);
     } catch (error) {
         console.error("Error starting Kafka consumer:", error);

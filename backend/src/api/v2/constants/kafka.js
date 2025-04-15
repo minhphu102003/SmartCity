@@ -1,0 +1,1 @@
+export const EXTRACT_IMAGE_TOPIC = 'extrac_image';
