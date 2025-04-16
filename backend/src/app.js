@@ -7,10 +7,8 @@ import v1Routes from "./api/v1/index.js";
 import v2Routes from "./api/v2/index.js";
 import Camera from './api/v1/models/camera.js';  
 import AccountReport from './api/v1/models/accountReport.js';
-import { consumeMessages } from './kafkaOnline.config.js';
-import { WebSocketServer } from 'ws';  
-import {handleLocationUpdate } from "./api/v1/services/readLocation.js";
-import { initializeWebSocket } from "./api/v1/websockets/websocketServer.js";
+import { startKafkaConsumer, startVideoUploadConsumer } from './kafkaOnline.config.js';
+import { initializeWebSocket, sendMessageToFrontend } from "./api/v1/websockets/websocketManager.js";
 
 const app = express();
 
@@ -30,9 +28,6 @@ app.use(
   );
 app.use('/uploads', express.static(UPLOAD_DIRECTORY));
 
-
-
-const wsClients = [];
 let cachedCameras = [];
 let cachedReports = [];
 
@@ -53,55 +48,12 @@ app.use((req, res, next) => {
 });
 
 app.server = app.listen(app.get("port"), () => {
-    const wss = new WebSocketServer({ server: app.server });
-    wss.on('connection', (ws) => {
-        console.log('Client connected');
-        ws.send('Welcome to the WebSocket server!');
-        wsClients.push(ws);
-        ws.on('message', async (message) => {
-            const decodedMessage = message.toString();
-            console.log('Received message:', decodedMessage);
-            try {
-                const parsedMessage = JSON.parse(decodedMessage);
-                if (parsedMessage.type === 'update location') {
-                    const result = await handleLocationUpdate(parsedMessage);
-                    console.log(result);
-                } else {
-                    console.log("Unknown message type");
-                }
-            } catch (error) {
-                console.error('Error parsing message:', error);
-            }
-        });
-
-        ws.on('close', () => {
-            console.log('Client disconnected');
-            const index = wsClients.indexOf(ws);
-            if (index > -1) {
-                wsClients.splice(index, 1);
-            }
-        });
-    });
+    console.log(`Server is running on port ${app.get("port")}`);
+    initializeWebSocket(app.server); 
 });
 
-const sendMessageToFrontend = (message) => {
-    wsClients.forEach(client => {
-        if (client.readyState === client.OPEN) { 
-            client.send(JSON.stringify(message)); 
-        }
-    });
-};
-
-const startKafkaConsumer = async () => {
-    try {
-        const topic = process.env.KAFKA_TOPIC_CONSUMER || 'python-topic';
-        await consumeMessages(topic, sendMessageToFrontend);
-        console.log(`Kafka consumer started on topic: ${topic}`);
-    } catch (error) {
-        console.error("Error starting Kafka consumer:", error);
-    }
-};
-startKafkaConsumer();
+startKafkaConsumer(process.env.KAFKA_TOPIC_CONSUMER, sendMessageToFrontend);
+startVideoUploadConsumer(process.env.KAFKA_TOPIC_VIDEO_UPLOAD);
 
 app.use("/api/v1", v1Routes);
 app.use("/api/v2", v2Routes);
