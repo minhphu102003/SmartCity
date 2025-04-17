@@ -6,6 +6,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import dotenv from "dotenv";
+import { createAccountReportV2Controller } from '../controllers/accountReport.controller.js';
 
 dotenv.config();
 
@@ -20,6 +21,26 @@ const uploadVideoMulter = multer({
     }
   },
 }).single("video");
+
+export const handleUploadVideoMulter = (req, res, next) => {
+  uploadVideoMulter(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message || "Failed to process uploaded video",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No video file uploaded",
+      });
+    }
+
+    next();
+  });
+};
 
 export const handleVideoUploadWithMaxSizeOnly = (req, res, next) => {
   uploadVideoMulter(req, res, async (err) => {
@@ -81,23 +102,45 @@ export const handleVideoUploadToS3 = (req, res, next) => {
       return res.status(400).json({ success: false, message: "No video file uploaded" });
     }
 
-    try {
-      const fileExt = path.extname(req.file.originalname);
-      const fileName = `video_${uuidv4()}${fileExt}`;
-      const bucketName = process.env.S3_BUCKET_NAME;
+    const fileExt = path.extname(req.file.originalname);
+    const fileName = `video_${uuidv4()}${fileExt}`;
+    const bucketName = process.env.S3_BUCKET_NAME;
 
-      const uploadParams = {
-        Bucket: bucketName,
-        Key: `videos/${fileName}`,
-        Body: req.file.buffer,
-        ContentType: req.file.mimetype,
-      };
+    const uploadParams = {
+      Bucket: bucketName,
+      Key: `videos/${fileName}`,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    };
+
+    try {
+
+      res.status(200).json({
+        success: true,
+        message: "Video uploaded and report is being processed",
+      });
 
       await s3.send(new PutObjectCommand(uploadParams));
-
       const videoUrl = `https://${bucketName}.s3.amazonaws.com/videos/${fileName}`;
-      req.body.uploadedVideo = videoUrl;
-      next();
+
+      setImmediate(() => {
+        const mockReq = {
+          ...req,
+          body: {
+            ...req.body,
+            uploadedVideo: videoUrl,
+          },
+        };
+
+        const mockRes = {
+          status: () => ({
+            json: () => {}, 
+          }),
+        };
+
+        createAccountReportV2Controller(mockReq, mockRes);
+      });
+
     } catch (error) {
       console.error("S3 upload error:", error);
       return res.status(500).json({

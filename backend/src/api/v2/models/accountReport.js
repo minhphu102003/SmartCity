@@ -6,12 +6,10 @@ const mediaAccountReportSchema = new mongoose.Schema(
   {
     media_url: {
       type: String,
-      required: true,
     },
     media_type: {
       type: String,
       enum: Object.values(MediaTypes),
-      required: true,
     },
   },
   {
