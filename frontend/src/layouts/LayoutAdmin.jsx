@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import SidebarAdmin from "../components/sideBar/SideBarAdmin";
+import { SideBarAdmin } from "../components/SideBar";
 import { TopBar } from '../components/topBar';
 
 const AdminLayout = ({ children }) => {
@@ -7,7 +7,7 @@ const AdminLayout = ({ children }) => {
   
     return (
       <div className="flex h-screen">
-        <SidebarAdmin isSidebar={isSidebar} />
+        <SideBarAdmin isSidebar={isSidebar} />
         <div className="flex flex-col flex-1">
           <TopBar />
           <main className="flex-1 p-4 overflow-auto">

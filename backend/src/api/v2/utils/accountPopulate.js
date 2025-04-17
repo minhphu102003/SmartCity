@@ -3,3 +3,9 @@ export const populateAccountInfo = () => ({
   select: "-password -otp -otpExpiration -otpVerified",
   populate: { path: "roles", select: "name" },
 });
+
+
+export const populateAccountInfor = () => ({
+  select: "-password -otp -otpExpiration -otpVerified",
+  populate: { path: "roles", select: "name" },
+});

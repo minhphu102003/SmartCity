@@ -9,6 +9,7 @@ import Camera from './api/v1/models/camera.js';
 import AccountReport from './api/v1/models/accountReport.js';
 import { startKafkaConsumer, startVideoUploadConsumer } from './kafkaOnline.config.js';
 import { initializeWebSocket, sendMessageToFrontend } from "./api/v1/websockets/websocketManager.js";
+import { errorHandler } from "./api/shared/middlewares/errorHandler.js";
 
 const app = express();
 
@@ -57,5 +58,7 @@ startVideoUploadConsumer(process.env.KAFKA_TOPIC_VIDEO_UPLOAD);
 
 app.use("/api/v1", v1Routes);
 app.use("/api/v2", v2Routes);
+
+app.use(errorHandler);
 
 export default app;
