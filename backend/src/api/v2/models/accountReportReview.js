@@ -3,11 +3,6 @@ import { StatusReview } from "../constants/index.js";
 
 const accountReportReviewSchema = new mongoose.Schema(
   {
-    reviewer_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Account",
-      required: true,
-    },
     accountReport_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "AccountReport",

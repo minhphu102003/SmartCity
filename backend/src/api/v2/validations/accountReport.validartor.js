@@ -1,5 +1,4 @@
 import { body, query } from "express-validator";
-import { MediaTypes } from "../constants/mediaType.js";
 import { CongestionLevels } from "../../shared/constants/congestion.js";
 import { ReportTypes } from "../../shared/constants/report.js";
 import { paginationValidator } from "../../shared/validation/pagination.validator.js"; 
