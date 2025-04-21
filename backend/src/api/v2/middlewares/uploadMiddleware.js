@@ -10,14 +10,20 @@ import { createAccountReportV2Controller } from '../controllers/accountReport.co
 
 dotenv.config();
 
+const allowedVideoMimeTypes = [
+  "video/mp4",
+  "video/quicktime",
+  "video/webm"
+];
+
 const uploadVideoMulter = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_VIDEO_SIZE },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("video/")) {
+    if (allowedVideoMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Only video files are allowed!"), false);
+      cb(new Error("Only MP4, MOV, or WebM video files are allowed!"), false);
     }
   },
 }).single("video");
