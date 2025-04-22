@@ -46,32 +46,34 @@ export const getListNotificationByAccount = async (req, res, next) => {
 
 export const createNotification = async (req, res) => {
     try {
-        const { message, longitude, latitude, img } = req.body;
-        const account_id = req.account_id;
-        const notification = new Notification({
-            account_id,
-            message,
-            longitude,
-            latitude,
-            img: img || null,
-            status: NotificationStatus.PENDING,
-        });
-        await notification.save();
-
-        produceMessage(DEMO_TOPIC, formatNotification(notification), "create notification");
-
-        return res.status(201).json({
-            success: true,
-            message: "Notification created successfully",
-            data: formatNotification(notification),
-        });
+      const { message, longitude, latitude } = req.body;
+      const account_id = req.account_id;
+  
+      const notification = new Notification({
+        account_id,
+        message,
+        longitude,
+        latitude,
+        img: req.body.uploadedImage || null,
+        status: NotificationStatus.PENDING,
+      });
+  
+      await notification.save();
+  
+      produceMessage(DEMO_TOPIC, formatNotification(notification), "create notification");
+  
+      return res.status(201).json({
+        success: true,
+        message: "Notification created successfully",
+        data: formatNotification(notification),
+      });
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
     }
-};
+  };
 
 export const updateNotification = async (req, res) => {
     try {

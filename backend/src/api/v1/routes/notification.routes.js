@@ -4,6 +4,7 @@ import {veriFyToken, isAdmin} from "../middlewares/authJwt.js";
 import { validateWithToken } from '../validations/commonField.validator.js';
 import { handleValidationErrors } from '../validations/result.validator.js'; 
 import { notificationValidator } from '../validations/notification.validator.js'
+import { handleSingleUpload } from "../services/cloudinary.service.js";
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.use((req, res, next) => {
 });
 
 router.get("/",veriFyToken,getListNotificationByAccount );
-router.post("/",validateWithToken, notificationValidator, handleValidationErrors, veriFyToken, isAdmin , createNotification);
+router.post("/", handleSingleUpload,validateWithToken, notificationValidator, handleValidationErrors, veriFyToken, isAdmin , createNotification);
 router.put("/:notification_id",validateWithToken,handleValidationErrors , veriFyToken, isAdmin, updateNotification);
 router.delete("/:notification_id",validateWithToken, handleValidationErrors, veriFyToken, isAdmin, deleteNotification);
 

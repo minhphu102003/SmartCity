@@ -77,7 +77,7 @@ export const handleMultipleUploads = async (req, res, next) => {
 
 const uploadSingle = multer({
   storage: storage,
-  limits: { fileSize: MAX_FILE_SIZE }, 
+  limits: { fileSize: MAX_FILE_SIZE },
 }).single("img");
 
 export const handleSingleUpload = async (req, res, next) => {
@@ -96,33 +96,47 @@ export const handleSingleUpload = async (req, res, next) => {
       });
     }
 
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        errors: [
+          {
+            type: "field",
+            msg: "No file uploaded.",
+            path: "",
+            location: "body",
+          },
+        ],
+      });
+    }
+
     try {
       const uploadToCloudinary = (fileBuffer, uniquePublicId) => {
         return new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
             {
-              folder: "uploads", 
-              public_id: uniquePublicId, 
-              overwrite: true, 
+              folder: "uploads",
+              public_id: uniquePublicId,
+              overwrite: true,
             },
             (error, result) => {
               if (error) {
-                reject(error); 
+                reject(error);
               } else {
-                resolve(result); 
+                resolve(result);
               }
             }
           );
-          stream.end(fileBuffer); 
+          stream.end(fileBuffer);
         });
       };
 
-      const uniquePublicId = Date.now(); 
+      const uniquePublicId = Date.now();
 
       const uploadResult = await uploadToCloudinary(req.file.buffer, uniquePublicId);
 
       req.body.uploadedImage = uploadResult.secure_url;
-      next(); 
+      next();
     } catch (uploadError) {
       console.error("Error uploading to Cloudinary:", uploadError);
       res.status(500).json({
