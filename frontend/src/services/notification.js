@@ -7,10 +7,23 @@ import { NOTIFICATION_ENDPOINT } from '../constants';
  */
 export const getNotifications = async (params = {}) => {
   try {
-    const response = await request.get(NOTIFICATION_ENDPOINT, { params });
+    const authData = JSON.parse(localStorage.getItem("auth") || "{}");
+    const token = authData?.token;
+
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await request.get(NOTIFICATION_ENDPOINT, {
+      params,
+      headers: {
+        'x-access-token': token,
+      },
+    });
+
     return response?.data;
   } catch (error) {
-    console.error('Error fetching notifications:', error);
+    console.error("Error fetching notifications:", error);
     throw error;
   }
 };

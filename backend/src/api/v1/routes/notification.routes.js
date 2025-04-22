@@ -19,7 +19,7 @@ router.use((req, res, next) => {
 
 router.get("/",veriFyToken,getListNotificationByAccount );
 router.post("/", handleSingleUpload,validateWithToken, notificationValidator, handleValidationErrors, veriFyToken, isAdmin , createNotification);
-router.put("/:notification_id",validateWithToken,handleValidationErrors , veriFyToken, isAdmin, updateNotification);
+router.put("/:notification_id",validateWithToken,handleValidationErrors , veriFyToken, updateNotification);
 router.delete("/:notification_id",validateWithToken, handleValidationErrors, veriFyToken, isAdmin, deleteNotification);
 
 
