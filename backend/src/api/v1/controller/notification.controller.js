@@ -12,9 +12,9 @@ export const getListNotificationByAccount = async (req, res, next) => {
         const { page = 1, limit = 10 } = req.query;
 
         const notifications = await Notification.find({ account_id: accountId })
-            .sort({ timestamp: -1 }) // Sắp xếp theo thời gian giảm dần
-            .skip((page - 1) * limit) // Bỏ qua các notification trước đó dựa trên page
-            .limit(parseInt(limit)) // Giới hạn số lượng notification
+            .sort({ timestamp: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
             .exec();
         const totalNotifications = await Notification.countDocuments({ account_id: accountId });
 
@@ -46,11 +46,12 @@ export const getListNotificationByAccount = async (req, res, next) => {
 
 export const createNotification = async (req, res) => {
     try {
-      const { message, longitude, latitude } = req.body;
+      const {title, message, longitude, latitude } = req.body;
       const account_id = req.account_id;
   
       const notification = new Notification({
         account_id,
+        title,
         message,
         longitude,
         latitude,
@@ -78,13 +79,13 @@ export const createNotification = async (req, res) => {
 export const updateNotification = async (req, res) => {
     try {
         const { notification_id } = req.params;
-        const { message, longitude, latitude, img, status } = req.body;
+        const {title, message, longitude, latitude, img, status } = req.body;
 
         const notification = await Notification.findById(notification_id);
         if (!notification) {
             return res.status(404).json({ success: false, message: "Notification not found" });
         }
-
+        notification.title = title || notification.title;
         notification.message = message || notification.message;
         notification.longitude = longitude || notification.longitude;
         notification.latitude = latitude || notification.latitude;
@@ -99,6 +100,7 @@ export const updateNotification = async (req, res) => {
             data: formatNotification(notification),
         });
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ success: false, message: error.message });
     }
 };

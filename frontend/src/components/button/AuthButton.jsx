@@ -1,24 +1,39 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { PATHS } from "../../constants";
-import ProfileMenu from "../profile/ProfileMenu";
+import React, { useEffect, useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PATHS } from '../../constants';
+import ProfileMenu from '../profile/ProfileMenu';
+import { getNotifications } from "../../services/notification";
 
 const AuthButton = ({ onSelectLocation }) => {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
-
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationList, setNotificationList] = useState([]);
 
   useEffect(() => {
     const storedAuth = localStorage.getItem("auth");
     if (storedAuth) {
       const parsedAuth = JSON.parse(storedAuth);
       setUser(parsedAuth);
+  
+      fetchNotificationCount();
     }
   }, []);
+  
+  const fetchNotificationCount = async () => {
+    try {
+      const data = await getNotifications({ page: 1, limit: 100 });
+      const notifications = data?.data || [];
+      const unread = notifications.filter((n) => n.status === "PENDING");
+      setNotificationCount(unread.length);
+      setNotificationList(notifications);
+    } catch (error) {
+      console.error("Failed to fetch notifications", error);
+    }
+  };
 
-  // Close when click outside box
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -26,33 +41,53 @@ const AuthButton = ({ onSelectLocation }) => {
       }
     }
     if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };  
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [menuOpen]);
 
   return (
     <motion.div
-      className="absolute right-4 top-4 z-20 flex items-center gap-4"
+      className="absolute right-4 top-2 z-20 flex items-center gap-4"
       initial={{ opacity: 0, y: -2 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
     >
       {user ? (
         <div className="relative" ref={menuRef}>
-          <button onClick={() => setMenuOpen((prev) => !prev)}>
+          <button
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="relative"
+          >
             <img
-              src={user?.avatar || require("../../assets/images/profile_pic.png")}
+              src={
+                user?.avatar ||
+                require('../../assets/images/default_avatar.png')
+              }
               alt="User Avatar"
-              className="h-10 w-10 rounded-full border border-gray-300 cursor-pointer"
+              className="h-10 w-10 cursor-pointer rounded-full border border-gray-300"
             />
+            {notificationCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow">
+                {notificationCount > 9 ? '9+' : notificationCount}
+              </span>
+            )}
           </button>
 
           <AnimatePresence>
-            {menuOpen && <ProfileMenu onClose={() => setMenuOpen(false)} onSelectLocation={onSelectLocation} />}
+            {menuOpen && (
+              <ProfileMenu
+                onClose={() => setMenuOpen(false)}
+                onSelectLocation={onSelectLocation}
+                notificationCount={notificationCount}
+                notificationList={notificationList}
+                setNotificationList={setNotificationList}
+                setNotificationCount={setNotificationCount}
+              />
+            )}
           </AnimatePresence>
         </div>
       ) : (

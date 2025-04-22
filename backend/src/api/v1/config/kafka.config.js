@@ -15,6 +15,9 @@ const kafka = new Kafka({
   brokers: ['localhost:9092']
 });
 
+// ! Cần chỉnh lại notification ở đây 
+
+
 const producer = kafka.producer();
 const consumer = kafka.consumer({ groupId: 'express-group' });
 const admin = kafka.admin();
@@ -100,6 +103,7 @@ const consumeMessages = async (topic, sendMessageToFrontend) => {
               if (user.account_id) {
                 const notification = new Notification({
                   account_id: user.account_id,
+                  title: notificationMessage.title,
                   message: `Traffic jams reported near you: ${description}`,
                   longitude,
                   latitude,
