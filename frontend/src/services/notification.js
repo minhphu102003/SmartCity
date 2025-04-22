@@ -26,13 +26,24 @@ export const getNotifications = async (params = {}) => {
 export const createNotification = async (data) => {
   try {
     const authData = JSON.parse(localStorage.getItem("auth") || "{}");
-    const token = authData?.token; 
+    const token = authData?.token;
 
-    const response = await request.post(NOTIFICATION_ENDPOINT, data, {
+    const formData = new FormData();
+    formData.append("message", data.message);
+    formData.append("latitude", data.latitude);
+    formData.append("longitude", data.longitude);
+    if (data.img) {
+      console.log('true');
+      formData.append("img", data.img);
+    }
+    console.log(formData);
+    const response = await request.post(NOTIFICATION_ENDPOINT, formData, {
       headers: {
-        'x-access-token': token, 
-      }
+        'x-access-token': token,
+        'Content-Type': 'multipart/form-data',
+      },
     });
+
     return response?.data;
   } catch (error) {
     console.error('Error creating notification:', error);
