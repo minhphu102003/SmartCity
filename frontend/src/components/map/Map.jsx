@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactMapGL, {
   GeolocateControl,
   NavigationControl,
@@ -51,6 +51,11 @@ const Map = ({ isAuth = false }) => {
   const [zoom, setZoom] = useState(DEFAULT_VIEWPORT.zoom);
   const [contextMenu, setContextMenu] = useState(null);
   const [notificationPopup, setNotificationPopup] = useState(null);
+  const hasShownWeatherModal = useRef(false);
+  const [shouldShake, setShouldShake] = useState(false);
+  const [latestMessage, setLatestMessage] = useState(null);
+  const stablePlaces = useMemo(() => places, [places]);
+const stableReports = useMemo(() => reports, [reports]);
 
   useEffect(() => {
     getUserLocation(setUserLocation, setViewport);
@@ -108,7 +113,11 @@ const Map = ({ isAuth = false }) => {
 
     const newReport = { ...lastMessage, distance };
 
+    setShouldShake(true);
+    setTimeout(() => setShouldShake(false), 600);
+
     setReports((prevReports) => [...prevReports, newReport]);
+    setLatestMessage(newReport);
   }, [messages, userLocation]);
 
   useEffect(() => {
@@ -130,8 +139,6 @@ const Map = ({ isAuth = false }) => {
           return elapsedTime <= 45; 
         }
       });
-
-      console.log('✅ Danh sách reports sau khi lọc:', filteredReports);
 
       setReports(filteredReports);
     }, 60000);
@@ -155,7 +162,10 @@ const Map = ({ isAuth = false }) => {
   );
 
   useEffect(() => {
-    if (weatherData) setIsWeatherModalOpen(true);
+    if (weatherData && !hasShownWeatherModal.current) {
+      setIsWeatherModalOpen(true);
+      hasShownWeatherModal.current = true;
+    }
   }, [weatherData]);
 
   useEffect(() => {
@@ -226,7 +236,7 @@ const Map = ({ isAuth = false }) => {
               longitude={userLocation?.longitude}
               latitude={userLocation?.latitude}
             />
-            {!isAuth && <AuthButton onSelectLocation={handleSelectLocation} />}
+            {!isAuth && <AuthButton onSelectLocation={handleSelectLocation} shouldShake={shouldShake} latestMessage={latestMessage} />}
           </motion.div>
         )}
       </AnimatePresence>
@@ -322,8 +332,8 @@ const Map = ({ isAuth = false }) => {
           userLocation={userLocation}
           startMarker={startMarker}
           endMarker={endMarker}
-          places={places}
-          reports={reports}
+          places={stablePlaces}
+          reports={stableReports}
           selectedReport={selectedReport}
           setSelectedReport={setSelectedReport}
           zoom={zoom}

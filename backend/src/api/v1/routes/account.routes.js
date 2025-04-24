@@ -26,7 +26,6 @@ const adminAuthMiddlewares = [
   isAdmin,
 ];
 
-// CORS headers
 router.use((req, res, next) => {
   res.header(
     "Access-Control-Allow-Headers",
@@ -36,7 +35,7 @@ router.use((req, res, next) => {
 });
 
 router.get('/profile',[validateWithToken],veriFyToken, getUserProfile);
-router.get("/", [searchAccountsValidator], listOrSearchAccountsHandler); 
+router.get("/", [searchAccountsValidator, ...adminAuthMiddlewares], listOrSearchAccountsHandler); 
 router.get("/:id", [validateById,], getAccountDetailsHandler); 
 router.put("/:id", [validateById, validateWithToken, updateAccountValidator,], veriFyToken, updateAccountDetailsHandler); 
 router.delete("/:id", [validateById, ...adminAuthMiddlewares], deleteAccountHandler);

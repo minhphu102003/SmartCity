@@ -158,49 +158,46 @@ export const deleteAccountHandler = async (req, res) => {
 };
 
 
-// List all accounts
 export const listOrSearchAccountsHandler = async (req, res) => {
-  const { username, page = 1, limit = 10 } = req.query; // Get username for search and pagination parameters
-  const skip = (page - 1) * limit; // Calculate the number of documents to skip
+  const { username, page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
 
   try {
     const query = {};
     if (username) {
-      query.username = { $regex: username, $options: "i" }; // Case-insensitive search
+      query.username = { $regex: username, $options: "i" }; 
     }
 
     const accounts = await Account.find(query)
       .populate("roles", "name")
       .skip(skip)
-      .limit(parseInt(limit)) // Use the limit from query, parsed to integer
+      .limit(parseInt(limit))
       .exec();
 
-    const totalAccounts = await Account.countDocuments(query); // Count total documents matching the query
+    const totalAccounts = await Account.countDocuments(query);
 
-    // Retrieve user data for the accounts
-    const userIds = accounts.map(account => account._id); // Get account IDs to find corresponding users
-    const users = await User.find({ account_id: { $in: userIds } }, "account_id email phone"); // Get all users for the accounts
+    const userIds = accounts.map(account => account._id);
+    const users = await User.find({ account_id: { $in: userIds } }, "account_id email phone");
 
-    // Map users to a dictionary for quick access
     const userMap = users.reduce((acc, user) => {
-      acc[user.account_id] = user; // Create a mapping of account_id to user object
+      acc[user.account_id] = user; 
       return acc;
     }, {});
 
     return res.status(200).json({
       success: true,
-      total: totalAccounts, // Total number of accounts
-      count: accounts.length, // Number of accounts in the current response
-      totalPages: Math.ceil(totalAccounts / limit), // Total number of pages
-      currentPage: parseInt(page), // Current page
+      total: totalAccounts, 
+      count: accounts.length,
+      totalPages: Math.ceil(totalAccounts / limit), 
+      currentPage: parseInt(page),
       data: accounts.map(account => ({
         accountId: account._id,
         username: account.username,
         roles: account.roles.map(role => role.name),
         createdAt: account.createdAt,
         updatedAt: account.updatedAt,
-        email: userMap[account._id] ? userMap[account._id].email : null,  // Flattened email
-        phone: userMap[account._id] ? userMap[account._id].phone : null,  // Flattened phone
+        email: userMap[account._id] ? userMap[account._id].email : null,  
+        phone: userMap[account._id] ? userMap[account._id].phone : null,  
       })),
     });
   } catch (error) {
@@ -210,10 +207,9 @@ export const listOrSearchAccountsHandler = async (req, res) => {
 
 
 
-// Manage account roles
 export const manageAccountRolesHandler = async (req, res) => {
   const accountId = req.params.id;
-  const { add, remove } = req.body; // Using "add" and "remove" for single purpose
+  const { add, remove } = req.body;
 
   try {
     const account = await Account.findById(accountId);
@@ -221,31 +217,27 @@ export const manageAccountRolesHandler = async (req, res) => {
       return res.status(404).json({ success: false, message: "Account not found." });
     }
 
-    // Fetch the admin role from the roles collection
-    const adminRole = await Role.findOne({ name: "admin" }); // Get the admin role
+    const adminRole = await Role.findOne({ name: "admin" });
     const adminRoleId = adminRole ? adminRole._id : null;
 
-    // Add the admin role if specified
     if (add && adminRoleId && !account.roles.includes(adminRoleId)) {
-      account.roles.push(adminRoleId); // Add the admin role if not already present
+      account.roles.push(adminRoleId);
     }
 
-    // Remove the admin role if specified
     if (remove && adminRoleId) {
-      account.roles = account.roles.filter(roleId => !roleId.equals(adminRoleId)); // Remove the admin role
+      account.roles = account.roles.filter(roleId => !roleId.equals(adminRoleId));
     }
 
     await account.save();
 
-    // Fetch the role names based on the updated roles
-    const roles = await Role.find({ _id: { $in: account.roles } }); // Find roles by their IDs
-    const roleNames = roles.map(role => role.name); // Extract role names
+    const roles = await Role.find({ _id: { $in: account.roles } });
+    const roleNames = roles.map(role => role.name); 
 
     return res.status(200).json({
       success: true,
       data: {
         accountId: account._id,
-        roles: roleNames, // Return the names of the roles
+        roles: roleNames,
       },
     });
   } catch (error) {

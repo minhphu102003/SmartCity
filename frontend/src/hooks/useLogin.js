@@ -10,7 +10,7 @@ import { loginSchema } from '../schemas/loginSchema';
 import { ROLES } from '../constants';
 
 const useLogin = () => {
-  const { setAuth, auth } = useContext(AuthContext);
+  const { setAuth } = useContext(AuthContext);
   const { notify } = useContext(MethodContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,21 +53,21 @@ const useLogin = () => {
       if (roles.includes(ROLES.ADMIN)) {
         navigate(PATHS.ADMIN, {
           state: {
-            toastMessage: 'Đăng nhập thành công với quyền Admin!',
+            toastMessage: 'Login successfully with Admin rights!',
             statusMessage: 'success',
           },
         });
       } else if (roles.includes(ROLES.USER)) {
         navigate(PATHS.HOME, {
           state: {
-            toastMessage: 'Đăng nhập thành công!',
+            toastMessage: 'Login successful!',
             statusMessage: 'success',
           },
         });
       }
     } else {
-      setError("email", { type: "manual", message: "Email hoặc mật khẩu không đúng!" });
-      notify('Đăng nhập thất bại!', 'error');
+      setError("email", { type: "manual", message: "Email or password is incorrect!" });
+      notify('Login failed!', 'error');
     }
   };
 

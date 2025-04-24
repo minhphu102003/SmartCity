@@ -53,7 +53,7 @@ export const searchAccountsValidator = [
 
   query("limit")
     .optional()
-    .isInt({ gt: 0, lt: 101 }) // Optional limit, can be between 1 and 100
+    .isInt({ gt: 0, lt: 101 })
     .withMessage("Limit must be a positive integer and cannot exceed 100."),
 ];
 
