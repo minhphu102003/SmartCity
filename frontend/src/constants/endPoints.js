@@ -1,4 +1,4 @@
-export const USERS_ENDPOINT = '/users/current-user';
+export const USERS_ENDPOINT = '/account';
 export const EDIT_PROFILE_ENDPOINT = '/users/edit-profile';
 export const DELETE_ENDPOINT = "/users/delete-user";
 export const ROUTE_ENDPOINT = '/routes';

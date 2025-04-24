@@ -3,9 +3,16 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PATHS } from '../../constants';
 import ProfileMenu from '../profile/ProfileMenu';
-import { getNotifications } from "../../services/notification";
+import { getNotifications } from '../../services/notification';
 
-const AuthButton = ({ onSelectLocation }) => {
+const shakeVariants = {
+  shake: {
+    x: [0, -10, 10, -10, 10, 0],
+    transition: { duration: 0.6, ease: 'easeInOut' },
+  },
+};
+
+const AuthButton = ({ onSelectLocation, shouldShake, latestMessage }) => {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -13,24 +20,31 @@ const AuthButton = ({ onSelectLocation }) => {
   const [notificationList, setNotificationList] = useState([]);
 
   useEffect(() => {
-    const storedAuth = localStorage.getItem("auth");
+    const storedAuth = localStorage.getItem('auth');
     if (storedAuth) {
       const parsedAuth = JSON.parse(storedAuth);
       setUser(parsedAuth);
-  
+
       fetchNotificationCount();
     }
   }, []);
-  
+
+  useEffect(() => {
+    if (latestMessage) {
+      setNotificationList((prevList) => [latestMessage, ...prevList]);
+      setNotificationCount((count) => count + 1);
+    }
+  }, [latestMessage]);
+
   const fetchNotificationCount = async () => {
     try {
       const data = await getNotifications({ page: 1, limit: 100 });
       const notifications = data?.data || [];
-      const unread = notifications.filter((n) => n.status === "PENDING");
+      const unread = notifications.filter((n) => n.status === 'PENDING');
       setNotificationCount(unread.length);
       setNotificationList(notifications);
     } catch (error) {
-      console.error("Failed to fetch notifications", error);
+      console.error('Failed to fetch notifications', error);
     }
   };
 
@@ -62,13 +76,15 @@ const AuthButton = ({ onSelectLocation }) => {
             onClick={() => setMenuOpen((prev) => !prev)}
             className="relative"
           >
-            <img
+            <motion.img
               src={
                 user?.avatar ||
                 require('../../assets/images/default_avatar.png')
               }
               alt="User Avatar"
               className="h-10 w-10 cursor-pointer rounded-full border border-gray-300"
+              variants={shakeVariants}
+              animate={shouldShake ? 'shake' : undefined}
             />
             {notificationCount > 0 && (
               <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow">

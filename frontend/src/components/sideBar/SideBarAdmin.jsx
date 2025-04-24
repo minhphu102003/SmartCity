@@ -21,10 +21,12 @@ const SidebarComponent = () => {
           <img
             alt="profile-user"
             className="w-14 h-14 rounded-full mx-auto mb-2 border-2 border-gray-500"
-            src="../../assets/user.png"
+            src={
+              require('../../assets/images/default_avatar.png')
+            }
           />
-          <h2 className="text-lg font-semibold">Ed Roh</h2>
-          <p className="text-sm text-green-400">VP Fancy Admin</p>
+          <h2 className="text-lg font-semibold">Admin</h2>
+          <p className="text-sm text-green-400">admin@gmail.com</p>
         </div>
       )}
 

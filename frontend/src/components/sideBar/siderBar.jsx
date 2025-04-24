@@ -11,6 +11,9 @@ const Sidebar = () => {
 
   const { messages } = useWebSocket();
 
+  const authData = JSON.parse(localStorage.getItem("auth") || "{}");
+  const token = authData?.token;
+
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
@@ -26,30 +29,34 @@ const Sidebar = () => {
       </div>
 
       <div className="m-1 flex flex-col items-center space-y-2">
-        {MENU_ITEMS.map((item, index) => (
-          <div
-            key={index}
-            onClick={() => {
-              setActiveIndex(index);
-              navigate(item.path);
-            }}
-            className={`flex w-full cursor-pointer items-center rounded-lg p-2 transition-all duration-200 ${isOpen ? 'pl-10' : 'justify-center'} ${
-              activeIndex === index
-                ? 'bg-gray-400 text-primaryColor'
-                : 'hover:bg-gray-400 hover:text-primaryColor'
-            } `}
-          >
-            <div className="relative">
-              {item.icon}
-              {item.label === 'Notifications' && messages.length > 0 && (
-                <span className="absolute -right-2 -top-2 rounded-full bg-red-500 px-2 py-1 text-xs text-white">
-                  {messages.length}
-                </span>
-              )}
-            </div>
-            {isOpen && <span className="ml-4 text-sm">{item.label}</span>}
-          </div>
-        ))}
+      {MENU_ITEMS
+  .filter(item => item.label !== 'Notifications' || !token)
+  .map((item, index) => (
+    <div
+      key={index}
+      onClick={() => {
+        setActiveIndex(index);
+        navigate(item.path);
+      }}
+      className={`flex w-full cursor-pointer items-center rounded-lg p-2 transition-all duration-200 ${
+        isOpen ? 'pl-10' : 'justify-center'
+      } ${
+        activeIndex === index
+          ? 'bg-gray-400 text-primaryColor'
+          : 'hover:bg-gray-400 hover:text-primaryColor'
+      }`}
+    >
+      <div className="relative">
+        {item.icon}
+        {item.label === 'Notifications' && token && messages.length > 0 && (
+          <span className="absolute -right-2 -top-2 rounded-full bg-red-500 px-2 py-1 text-xs text-white">
+            {messages.length}
+          </span>
+        )}
+      </div>
+      {isOpen && <span className="ml-4 text-sm">{item.label}</span>}
+    </div>
+))}
       </div>
     </div>
   );

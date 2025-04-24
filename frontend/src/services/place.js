@@ -16,7 +16,7 @@ export const getNearestPlaces = async (
       latitude: lat,
       longitude: lng,
       radius,
-      type,  // Đảm bảo type được truyền đúng
+      type, 
       page,
       limit,
       minStar,
@@ -34,8 +34,7 @@ export const getNearestPlaces = async (
 };
 
 export const searchPlaceByName = async (
-  accessToken,
-  name,
+  name ='',
   limit = 10,
   page = 1
 ) => {
@@ -47,13 +46,10 @@ export const searchPlaceByName = async (
     };
 
     const response = await request.get(PLACE_SEARCH_ENDPOINT, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
       params,
     });
 
-    return response;
+    return response?.data;
   } catch (error) {
     return error;
   }
