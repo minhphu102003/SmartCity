@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api/v1';
+const API_URL = 'https://danahub-backend-4ccd2faffe40.herokuapp.com/api/v1';
 
 export const reportService = {
   // Get all reports

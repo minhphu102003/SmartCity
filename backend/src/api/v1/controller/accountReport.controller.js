@@ -79,7 +79,6 @@ export const getAccountReportById = async (req, res) => {
   try {
     const reportId = req.params.id;
 
-    // Find the report and populate account information
     const report = await AccountReport.findById(reportId).populate({
       path: "account_id",
       select: "-password -otp -otpExpiration -otpVerified",
@@ -92,7 +91,6 @@ export const getAccountReportById = async (req, res) => {
         .json({ success: false, message: "Report does not exist" });
     }
 
-    // Flatten the data for a simpler response structure
     const formattedReport = {
       reportId: report._id,
       description: report.description,
@@ -151,7 +149,7 @@ export const createAccountReport = async (req, res) => {
         coordinates: [longitude, latitude],
       },
       listImg: uploadedImages,
-      roadSegment_ids: nearbyRoadSegments.map((segment) => segment._id), // Gắn các đoạn đường phù hợp
+      roadSegment_ids: nearbyRoadSegments.map((segment) => segment._id),
     });
 
     await newReport.save();
@@ -184,18 +182,18 @@ export const createAccountReport = async (req, res) => {
     };
     produceMessage(PRODUCE_TOPIC, messageObject, "create");
     
-    const messageObjectSendDemo = {
-      reportId: newReport._id,
-      account_id,
-      description,
-      typeReport,
-      congestionLevel,
-      longitude,
-      latitude,
-      timestamp,
-      img: uploadedImages[0]?.img || "",
-    };
-    produceMessage(DEMO_TOPIC, messageObjectSendDemo, "user report");
+    // const messageObjectSendDemo = {
+    //   reportId: newReport._id,
+    //   account_id,
+    //   description,
+    //   typeReport,
+    //   congestionLevel,
+    //   longitude,
+    //   latitude,
+    //   timestamp,
+    //   img: uploadedImages[0]?.img || "",
+    // };
+    // produceMessage(DEMO_TOPIC, messageObjectSendDemo, "user report");
 
     res.status(201).json({ success: true, data: responseReport });
   } catch (error) {

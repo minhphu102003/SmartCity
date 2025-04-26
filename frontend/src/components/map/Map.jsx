@@ -54,8 +54,6 @@ const Map = ({ isAuth = false }) => {
   const hasShownWeatherModal = useRef(false);
   const [shouldShake, setShouldShake] = useState(false);
   const [latestMessage, setLatestMessage] = useState(null);
-  const stablePlaces = useMemo(() => places, [places]);
-const stableReports = useMemo(() => reports, [reports]);
 
   useEffect(() => {
     getUserLocation(setUserLocation, setViewport);
@@ -117,6 +115,7 @@ const stableReports = useMemo(() => reports, [reports]);
     setTimeout(() => setShouldShake(false), 600);
 
     setReports((prevReports) => [...prevReports, newReport]);
+    console.log(reports);
     setLatestMessage(newReport);
   }, [messages, userLocation]);
 
@@ -332,8 +331,8 @@ const stableReports = useMemo(() => reports, [reports]);
           userLocation={userLocation}
           startMarker={startMarker}
           endMarker={endMarker}
-          places={stablePlaces}
-          reports={stableReports}
+          places={places}
+          reports={reports}
           selectedReport={selectedReport}
           setSelectedReport={setSelectedReport}
           zoom={zoom}
