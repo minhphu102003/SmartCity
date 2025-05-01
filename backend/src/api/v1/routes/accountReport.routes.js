@@ -15,7 +15,6 @@ import {
   getAccountReportValidator,
   updateAccountReportValidator,
 } from "../validations/accountReport.validator.js";
-import {validateUploadMultipleFile} from "../validations/uploadImage.validator.js";
 import { handleValidationErrors } from "../validations/result.validator.js";
 import {
   createAccountReport,
