@@ -1,22 +1,25 @@
-import React, { useState, useMemo } from "react";
-import CameraCard from "../../components/card/CameraCard";
-import CameraHeader from "../../components/card/CameraHeader";
-import useCameras from "../../hooks/useCameras";
-import Loading from "../../components/common/Loading";
-import ErrorComponent from "../../components/common/ErrorComponent";
+import React, { useState, useMemo } from 'react';
+import CameraCard from '../../components/card/CameraCard';
+import CameraHeader from '../../components/card/CameraHeader';
+import useCameras from '../../hooks/useCameras';
+import Loading from '../../components/common/Loading';
+import ErrorComponent from '../../components/common/ErrorComponent';
 import { CITIES } from '../../constants';
-import CameraDetailModal from "../../components/modals/CameraDetailModal";
+import CameraDetailModal from '../../components/modals/CameraDetailModal';
 
 const Camera = () => {
   const [selectedCity, setSelectedCity] = useState(CITIES[0]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [activeCamera, setActiveCamera] = useState(null);
   const [selectedCameraDetail, setSelectedCameraDetail] = useState(null);
 
-  const queryParams = useMemo(() => ({
-    page: 1,
-    limit: 10,
-  }), []); 
+  const queryParams = useMemo(
+    () => ({
+      page: 1,
+      limit: 10,
+    }),
+    []
+  );
 
   const { cameras, loading, error } = useCameras(queryParams);
 
@@ -29,7 +32,7 @@ const Camera = () => {
   };
 
   return (
-    <div className="w-full h-full p-4">
+    <div className="h-full w-full p-4">
       <CameraHeader
         selectedCity={selectedCity}
         setSelectedCity={setSelectedCity}
@@ -41,20 +44,23 @@ const Camera = () => {
         {loading && <Loading />}
 
         {error && <ErrorComponent message={error} />}
-
         {!loading && !error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {cameras
-              .filter((camera) => camera.link.toLowerCase().includes(searchTerm.toLowerCase()))
+              .filter((camera) =>
+                camera.link.toLowerCase().includes(searchTerm.toLowerCase())
+              )
               .map((camera) => (
                 <div
                   key={camera._id}
                   onClick={() => handleCameraClick(camera)}
-                  className="cursor-pointer transition-transform hover:scale-105 aspect-video"
+                  className="aspect-video cursor-pointer transition-transform hover:scale-105"
                 >
                   <CameraCard
                     videoUrl={camera.link}
                     isActive={activeCamera === camera._id}
+                    longitude={camera.longitude}
+                    latitude={camera.latitude}
                     onPlay={() => setActiveCamera(camera._id)}
                   />
                 </div>
@@ -72,8 +78,10 @@ const Camera = () => {
           <CameraCard
             videoUrl={selectedCameraDetail.link}
             isActive={true}
-            onPlay={() => {}}
-            className="w-full h-full"
+            longitude={selectedCameraDetail.longitude}
+            latitude={selectedCameraDetail.latitude}
+            onPlay={() => { }}
+            className="h-full w-full"
           />
         )}
       </CameraDetailModal>
