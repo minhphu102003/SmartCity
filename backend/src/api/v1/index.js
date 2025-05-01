@@ -8,6 +8,7 @@ import weatherRoutes from "./routes/weather.routes.js";
 import accountRoutes from "./routes/account.routes.js";
 import renderRoutes from "./routes/renderRoutes.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import cameraReportRoutes from "./routes/cameraReport.routes.js";
 
 const router = Router();
 
@@ -21,5 +22,5 @@ router.use("/account-report",accountReport);
 router.use("/account",accountRoutes);
 router.use("/routes",renderRoutes);
 router.use("/notification",notificationRoutes);
-
+router.use("/camera-report",cameraReportRoutes);
 export default router;
