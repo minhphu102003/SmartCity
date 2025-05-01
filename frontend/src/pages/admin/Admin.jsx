@@ -1,11 +1,8 @@
 import { FaUserClock } from 'react-icons/fa';
 import { MdOutlineReportGmailerrorred } from "react-icons/md";
-import { getListUser } from '../../services/user';
-import { useEffect, useState } from 'react';
-import { getAccountReport } from '../../services/report';
 import { FaPlaceOfWorship } from "react-icons/fa6";
-import { searchPlaceByName } from '../../services/place';
-import { getCameras } from '../../services/camera';
+import useDashboardStats from '../../hooks/useDashboardStats';
+import BarChart from '../../components/chart/BarChart';
 
 const StatBox = ({ title, subtitle, progress, increase, icon, isLoading }) => (
   <div className="flex h-full flex-col items-center justify-center rounded-xl bg-gray-800 p-4 shadow-lg">
@@ -28,74 +25,15 @@ const StatBox = ({ title, subtitle, progress, increase, icon, isLoading }) => (
 );
 
 const Dashboard = () => {
-  const [userCount, setUserCount] = useState(0);
-  const [reportCount, setReportCount] = useState(0);
-  const [placeCount, setPlaceCount] = useState(0);
-  const [cameraCount, setCameraCount] = useState(0);
+  const { stats, loading } = useDashboardStats();
 
-  const [isLoadingUser, setIsLoadingUser] = useState(false);
-  const [isLoadingReport, setIsLoadingReport] = useState(false);
-  const [isLoadingPlace, setIsLoadingPlace] = useState(false);
-  const [isLoadingCamera, setIsLoadingCamera] = useState(false);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setIsLoadingUser(true);
-      try {
-        const result = await getListUser();
-        if (result?.success) {
-          setUserCount(result.total);
-        }
-      } finally {
-        setIsLoadingUser(false);
-      }
-    };
-
-    const fetchReports = async () => {
-      setIsLoadingReport(true);
-      try {
-        const result = await getAccountReport();
-        setReportCount(result?.total || 0);
-      } finally {
-        setIsLoadingReport(false);
-      }
-    };
-
-    const fetchPlaces = async () => {
-      setIsLoadingPlace(true);
-      try {
-        const result = await searchPlaceByName();
-        console.log(result);
-        setPlaceCount(result?.total);
-      } finally {
-        setIsLoadingPlace(false);
-      }
-    };
-
-    const fetchCamera = async () => {
-      setIsLoadingCamera(true);
-      try {
-        const result = await getCameras();
-        if (result?.success) {
-          setCameraCount(result.total);
-        }
-      } finally {
-        setIsLoadingCamera(false);
-      }
-    };
-
-    fetchUsers();
-    fetchReports();
-    fetchPlaces(); 
-    fetchCamera();
-  }, []);
   return (
     <div className="p-5">
       <div className="grid grid-cols-12 gap-5">
         <div className="col-span-3">
           <StatBox
-            isLoading={isLoadingUser}
-            title={userCount.toLocaleString()}
+            isLoading={loading.user}
+            title={stats.userCount.toLocaleString()}
             subtitle="User"
             progress="0.75"
             increase="+14%"
@@ -104,8 +42,8 @@ const Dashboard = () => {
         </div>
         <div className="col-span-3">
           <StatBox
-            isLoading={isLoadingReport}
-            title={reportCount.toLocaleString()}
+            isLoading={loading.report}
+            title={stats.reportCount.toLocaleString()}
             subtitle="User Report"
             progress="0.50"
             increase="+21%"
@@ -114,8 +52,8 @@ const Dashboard = () => {
         </div>
         <div className="col-span-3">
           <StatBox
-            isLoading={isLoadingPlace}
-            title={placeCount.toLocaleString()}
+            isLoading={loading.place}
+            title={stats.placeCount.toLocaleString()}
             subtitle="Places"
             progress="0.30"
             increase="+5%"
@@ -124,13 +62,21 @@ const Dashboard = () => {
         </div>
         <div className="col-span-3">
           <StatBox
-            isLoading={isLoadingCamera}
-            title={cameraCount.toLocaleString()}
+            isLoading={loading.camera}
+            title={stats.cameraCount.toLocaleString()}
             subtitle="Camera"
             progress="0.50"
             increase="+21%"
             icon={<MdOutlineReportGmailerrorred className="text-2xl text-green-500" />}
           />
+        </div>
+      </div>
+
+      {/* Add BarChart below the statistics */}
+      <div className="mt-5">
+        <div className="rounded-xl bg-gray-800 p-4 shadow-lg">
+          <h2 className="mb-4 text-xl font-semibold text-white">Statistics Overview</h2>
+          <BarChart />
         </div>
       </div>
     </div>

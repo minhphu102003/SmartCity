@@ -83,7 +83,7 @@ const LogIn = () => {
             <Link to={PATHS.HOME} className="flex items-center justify-center">
               <img
                 className="h-full w-[200px] object-cover"
-                src={require('../../assets/images/logo.png')}
+                src={require('../../assets/images/danahub.png')}
                 alt="Logo"
               />
             </Link>
