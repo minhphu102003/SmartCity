@@ -1,6 +1,6 @@
 export const DEFAULT_VIEWPORT = {
-  latitude: 16.775719836981914,
-  longitude: 107.3362579278762,
+  latitude: 16.069642889921962,
+  longitude: 108.20938193608644,
   zoom: 16,
 };
 

@@ -72,7 +72,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Add BarChart below the statistics */}
       <div className="mt-5">
         <div className="rounded-xl bg-gray-800 p-4 shadow-lg">
           <h2 className="mb-4 text-xl font-semibold text-white">Statistics Overview</h2>
