@@ -1,27 +1,23 @@
 import { Kafka } from 'kafkajs';
-import {config} from "dotenv";
+import { config } from 'dotenv';
+import {
+  KAFKA_BROKERS,
+  KAFKA_SASL,
+  KAFKA_PRODUCER_CONFIG,
+  PRODUCER_OPTIONS,
+} from './constants.js';
+
 config();
 
 const kafka = new Kafka({
-  brokers: [process.env.bootstrap_servers],
+  brokers: KAFKA_BROKERS,
   ssl: true,
-  sasl: {
-    mechanism: 'plain',
-    username: process.env.sasl_username,
-    password: process.env.sasl_password,
-  },
-  producer: {
-    allowAutoTopicCreation: true,
-  },
+  sasl: KAFKA_SASL,
+  producer: KAFKA_PRODUCER_CONFIG,
 });
 
-export const  produceMessage = async (topic, messageObject, type) => {
-  const producer = kafka.producer({
-    maxInFlightRequests: 5,
-    idempotent: true,
-    requestTimeout: 10000,
-    maxRequestSize: 20000000,
-  });
+export const produceMessage = async (topic, messageObject, type) => {
+  const producer = kafka.producer(PRODUCER_OPTIONS);
   await producer.connect();
 
   const message = JSON.stringify({ type, ...messageObject });
@@ -39,7 +35,7 @@ export const consumeMessages = async (topic, groupId, messageHandler) => {
   await consumer.subscribe({ topic, fromBeginning: true });
 
   await consumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
+    eachMessage: async ({ message }) => {
       try {
         const data = JSON.parse(message.value.toString());
         await messageHandler(data);

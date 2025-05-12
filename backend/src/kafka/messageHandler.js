@@ -1,12 +1,15 @@
 import CameraReport from '../api/v1/models/cameraReport.js';
+import AccountReport from '../api/v1/models/accountReport.js';
 import { buildNotificationMessage } from '../api/shared/utils/notification.js';
 import { notifyUsersInRange } from '../api/shared/utils/notifyUsersInRange.js';
+import { NOTIFICATION_FIELDS, NOTIFICATION_TYPES } from './constants.js';
 
 export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
   const {
     type,
     latitude,
     camera_id,
+    reportId,
     longitude,
     account_id,
     typeReport,
@@ -17,7 +20,7 @@ export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
     description,
   } = data;
 
-  if (type === 'camera report') {
+  if (type === NOTIFICATION_TYPES.CAMERA_REPORT) {
     const report = new CameraReport({
       camera_id,
       trafficVolume,
@@ -40,13 +43,20 @@ export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
     sendMessageToFrontend(notificationMessage);
 
     await notifyUsersInRange({
-      title: notificationMessage.title,
-      message: notificationMessage.content,
+      [NOTIFICATION_FIELDS.TITLE]: notificationMessage.title,
+      [NOTIFICATION_FIELDS.MESSAGE]: notificationMessage.content,
       latitude,
       longitude,
       img,
     });
-  } else if (type === 'user report') {
+  } else if (type === NOTIFICATION_TYPES.USER_REPORT) {
+
+    if (reportId) {
+      await AccountReport.findByIdAndUpdate(reportId, {
+        analysisStatus: true,
+      });
+    }
+
     const notificationMessage = buildNotificationMessage(
       type,
       typeReport,
@@ -59,15 +69,16 @@ export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
     sendMessageToFrontend(notificationMessage);
 
     await notifyUsersInRange({
-      title: notificationMessage.title,
-      message: notificationMessage.content,
+      [NOTIFICATION_FIELDS.TITLE]: notificationMessage.title,
+      [NOTIFICATION_FIELDS.MESSAGE]: notificationMessage.content,
       latitude,
       longitude,
       img,
     });
-  } else if (type === 'create notification') {
+    
+  } else if (type === NOTIFICATION_TYPES.CREATE_NOTIFICATION) {
     const { type, ...notification } = data;
-    notification.typeReport = 'create notification';
+    notification.typeReport = NOTIFICATION_TYPES.CREATE_NOTIFICATION;
     sendMessageToFrontend(notification);
   }
 };

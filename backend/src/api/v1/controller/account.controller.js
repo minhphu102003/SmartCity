@@ -68,32 +68,26 @@ export const getAccountDetailsHandler = async (req, res) => {
   }
 };
 
-// Update account details by ID
 export const updateAccountDetailsHandler = async (req, res) => {
   const accountId = req.params.id;
-  const updateData = { ...req.body }; // Create a copy for modification
+  const updateData = { ...req.body };
 
   try {
-    // Find the account by ID
     const account = await Account.findById(accountId);
     if (!account) {
       return res.status(404).json({ success: false, message: "Account not found." });
     }
 
-    // Check if the user is authorized to update this account
     if (req.account_id.toString() !== accountId) {
       return res.status(403).json({ success: false, message: "You are not authorized to update this account." });
     }
 
-    // Optional: Remove fields that shouldn't be updated
     delete updateData.roles; // Do not allow role updates through this endpoint
     delete updateData.password; // Do not allow password updates through this endpoint
 
-    // Check if email or phone is being updated, and retrieve user associated with the account
     const user = await User.findOne({ account_id: accountId });
 
     if (user) {
-      // Include email and phone in the updateData if provided
       if (req.body.email) {
         updateData.email = req.body.email;
       }
@@ -101,11 +95,9 @@ export const updateAccountDetailsHandler = async (req, res) => {
         updateData.phone = req.body.phone;
       }
 
-      // Update the user document
       await User.findByIdAndUpdate(user._id, { email: updateData.email, phone: updateData.phone }, { new: true, runValidators: true });
     }
 
-    // Update the account document
     const updatedAccount = await Account.findByIdAndUpdate(accountId, updateData, { new: true, runValidators: true });
 
     return res.status(200).json({
@@ -115,8 +107,8 @@ export const updateAccountDetailsHandler = async (req, res) => {
         username: updatedAccount.username,
         createdAt: updatedAccount.createdAt,
         updatedAt: updatedAccount.updatedAt,
-        email: user ? user.email : null,  // Flattened email
-        phone: user ? user.phone : null,  // Flattened phone
+        email: user ? user.email : null, 
+        phone: user ? user.phone : null, 
       },
     });
   } catch (error) {
