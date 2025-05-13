@@ -1,5 +1,5 @@
 import { LayoutAuth, LayoutAdmin } from '../layouts/index';
-import { Home, LogIn, Register, Camera, Admin, CustomMap, Report } from '../pages/index';
+import { Home, LogIn, Register, Camera, Admin, CustomMap, Report, ManagePlace } from '../pages/index';
 import { PATHS } from '../constants';
 import MyProfile from '../pages/myPage/MyProfile';
 
@@ -20,7 +20,13 @@ const router = [
       path: PATHS.CREATE_NOTIFICATION,
       layout: LayoutAdmin,
       component: CustomMap,
-      requireAdmin: true
+      requireAdmin: true,
+    },
+    {
+      path: PATHS.MANAGE_PLACES,
+      layout: LayoutAdmin,
+      component: ManagePlace,
+      requireAdmin: true,
     }
   ];
 

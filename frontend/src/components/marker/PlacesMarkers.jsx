@@ -7,7 +7,18 @@ import {
   faStar,
   faDoorOpen,
   faDoorClosed,
+  faUtensils,
+  faHotel,
+  faLandmark,
+  faCameraRetro,
 } from '@fortawesome/free-solid-svg-icons';
+
+const typeIcons = {
+  Restaurant: faUtensils,
+  Hotel: faHotel,
+  'Tourist destination': faCameraRetro,
+  Museum: faLandmark,
+};
 
 const PlacesMarkers = ({ places }) => {
   const [selectedPlace, setSelectedPlace] = useState(null);
@@ -21,11 +32,13 @@ const PlacesMarkers = ({ places }) => {
           latitude={place.latitude}
           onClick={() => setSelectedPlace(place)}
         >
-          <div className="cursor-pointer">
-            <FontAwesomeIcon
-              icon={faLocationDot}
-              className="text-3xl text-red-500"
-            />
+          <div className="relative cursor-pointer">
+            <div className="rounded-full bg-white p-2 shadow-md border border-gray-300">
+              <FontAwesomeIcon
+                icon={typeIcons[place.type] || faLocationDot}
+                className="text-2xl text-red-500"
+              />
+            </div>
           </div>
         </Marker>
       ))}

@@ -13,3 +13,4 @@ export const PLACE_OPTIONS = [
   { name: PLACE_TYPES.TOURIST_DESTINATION, icon: faMapMarkedAlt },
   { name: PLACE_TYPES.MUSEUM, icon: faLandmark },
 ];
+
