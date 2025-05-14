@@ -1,43 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { getNearestPlaces } from '../../services/place';
+import React, { useState } from 'react';
 import PlaceRow from '../../components/row/PlaceRow';
+import NewPlaceRow from '../../components/row/NewPlaceRow';
+import usePlaces from '../../hooks/usePlaces';
 
 const AdminPlacesTable = () => {
-  const [places, setPlaces] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const {
+    places,
+    setPlaces,
+    loading,
+    error,
+    totalPages,
+  } = usePlaces(currentPage);
 
-  useEffect(() => {
-    const fetchLocationAndPlaces = async () => {
-      if (!navigator.geolocation) {
-        setError('Geolocation is not supported by your browser.');
-        setLoading(false);
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            const response = await getNearestPlaces(latitude, longitude, 500, null, 100, 1);
-            setPlaces(response?.data?.data || []);
-          } catch (err) {
-            console.error('Failed to fetch places:', err);
-            setError('Failed to fetch places.');
-          } finally {
-            setLoading(false);
-          }
-        },
-        (err) => {
-          console.error('Geolocation error:', err);
-          setError('Permission denied or unable to get location.');
-          setLoading(false);
-        }
-      );
-    };
-
-    fetchLocationAndPlaces();
-  }, []);
+  const [newPlace, setNewPlace] = useState({
+    name: '',
+    type: 'Restaurant',
+    img: '',
+    star: 0,
+    status: true,
+    timeOpen: '',
+    timeClose: '',
+  });
 
   const handleChange = (id, field, value) => {
     setPlaces((prev) =>
@@ -50,11 +34,24 @@ const AdminPlacesTable = () => {
     console.log('Save this place to backend:', updatedPlace);
   };
 
-  const renderSkeletonRows = (count = 5) => {
+  const handleCreate = () => {
+    console.log('Creating new place:', newPlace);
+    setNewPlace({
+      name: '',
+      type: 'Restaurant',
+      img: '',
+      star: 0,
+      status: true,
+      timeOpen: '',
+      timeClose: '',
+    });
+  };
+
+  const renderSkeletonRows = (count = 12) => {
     return Array.from({ length: count }).map((_, index) => (
       <tr key={index}>
         {Array.from({ length: 10 }).map((__, i) => (
-          <td key={i} className="border p-2">
+          <td key={i} className="border p-5">
             <div className="h-5 w-full bg-gray-200 animate-pulse rounded" />
           </td>
         ))}
@@ -71,8 +68,7 @@ const AdminPlacesTable = () => {
             <th className="border p-2">Image</th>
             <th className="border p-2">Name</th>
             <th className="border p-2">Type</th>
-            <th className="border p-2">Latitude</th>
-            <th className="border p-2">Longitude</th>
+            <th className="border p-2">Address</th>
             <th className="border p-2">Star</th>
             <th className="border p-2">Status</th>
             <th className="border p-2">Open</th>
@@ -91,8 +87,35 @@ const AdminPlacesTable = () => {
                 onSave={handleSave}
               />
             ))}
+
+          {!loading && <NewPlaceRow
+            newPlace={newPlace}
+            setNewPlace={setNewPlace}
+            onCreate={handleCreate}
+          />}
         </tbody>
       </table>
+      {!loading && places.length > 0 && (
+        <div className="flex justify-between items-center mt-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
