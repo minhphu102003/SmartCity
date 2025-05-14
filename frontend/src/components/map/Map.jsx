@@ -127,7 +127,6 @@ const Map = ({ isAuth = false }) => {
 
       const currentTime = Date.now();
 
-
       const filteredReports = reports.filter((report) => {
         const reportTime = new Date(report.timestamp).getTime();
         const elapsedTime = (currentTime - reportTime) / 1000 / 60;

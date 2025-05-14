@@ -1,5 +1,3 @@
-import React from 'react';
-
 const PlaceRow = ({ place, onChange, onSave }) => {
   return (
     <tr key={place.id} className="hover:bg-gray-50">
@@ -15,14 +13,14 @@ const PlaceRow = ({ place, onChange, onSave }) => {
           type="text"
           value={place.name}
           onChange={(e) => onChange(place.id, 'name', e.target.value)}
-          className="w-full border border-gray-300 px-2 py-1 rounded"
+          className="w-full rounded border border-gray-300 px-2 py-1"
         />
       </td>
       <td className="border p-2">
         <select
           value={place.type}
           onChange={(e) => onChange(place.id, 'type', e.target.value)}
-          className="w-full border border-gray-300 px-2 py-1 rounded"
+          className="w-full rounded border border-gray-300 px-2 py-1"
         >
           <option value="Restaurant">Restaurant</option>
           <option value="Hotel">Hotel</option>
@@ -30,21 +28,14 @@ const PlaceRow = ({ place, onChange, onSave }) => {
           <option value="Museum">Museum</option>
         </select>
       </td>
-      <td className="border p-2">
-        <input
-          type="number"
-          value={place.latitude}
-          onChange={(e) => onChange(place.id, 'latitude', parseFloat(e.target.value))}
-          className="w-full border border-gray-300 px-2 py-1 rounded"
-        />
-      </td>
-      <td className="border p-2">
-        <input
-          type="number"
-          value={place.longitude}
-          onChange={(e) => onChange(place.id, 'longitude', parseFloat(e.target.value))}
-          className="w-full border border-gray-300 px-2 py-1 rounded"
-        />
+      <td className="border p-2 align-top">
+        <div className="min-w-[120px] max-w-[200px] whitespace-normal break-words">
+          {!place.address ? (
+            <div className="h-5 w-full animate-pulse rounded bg-gray-200" />
+          ) : (
+            place.address
+          )}
+        </div>
       </td>
       <td className="border p-2">
         <input
@@ -53,7 +44,7 @@ const PlaceRow = ({ place, onChange, onSave }) => {
           max={5}
           value={place.star}
           onChange={(e) => onChange(place.id, 'star', Number(e.target.value))}
-          className="w-full border border-gray-300 px-2 py-1 rounded"
+          className="w-full rounded border border-gray-300 px-2 py-1"
         />
       </td>
       <td className="border p-2 text-center">
@@ -68,7 +59,7 @@ const PlaceRow = ({ place, onChange, onSave }) => {
           type="time"
           value={place.timeOpen || ''}
           onChange={(e) => onChange(place.id, 'timeOpen', e.target.value)}
-          className="w-full border border-gray-300 px-2 py-1 rounded"
+          className="w-full rounded border border-gray-300 px-2 py-1"
         />
       </td>
       <td className="border p-2">
@@ -76,7 +67,7 @@ const PlaceRow = ({ place, onChange, onSave }) => {
           type="time"
           value={place.timeClose || ''}
           onChange={(e) => onChange(place.id, 'timeClose', e.target.value)}
-          className="w-full border border-gray-300 px-2 py-1 rounded"
+          className="w-full rounded border border-gray-300 px-2 py-1"
         />
       </td>
       <td className="border p-2 text-center">
