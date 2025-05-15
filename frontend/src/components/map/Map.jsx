@@ -1,25 +1,18 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactMapGL, {
   GeolocateControl,
   NavigationControl,
-  Source,
-  Layer,
 } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { motion, AnimatePresence } from 'framer-motion';
-import { SearchBar } from '../searchBar';
-import { ScrollableButtons } from '../scrollableButtons';
-import { FindRoutes } from '../route';
+import { AnimatePresence } from 'framer-motion';
 import useRoutes from '../../hooks/useRoutes';
 import {
   DEFAULT_VIEWPORT,
   MAP_STYLE,
-  PLACE_OPTIONS,
   MAP_BOX_API,
 } from '../../constants';
-import { getRouteLineStyle, getUserLocation } from '../../utils/mapUtils';
+import { getUserLocation } from '../../utils/mapUtils';
 import { haversineDistance } from '../../utils/distances';
-import { AuthButton } from '../button';
 import { getPlace } from '../../utils/placeUtils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -33,6 +26,9 @@ import MapMarkers from '../marker/MapMarkers';
 import ContextMenu from '../menu/ContextMenu';
 import NotificationPopup from '../popup/NotificationPopup';
 import { createNotification } from '../../services/notification';
+import { TopControls } from '../controlMap';
+import { RouteLayers, RouteModal } from '../route';
+import { getCameras } from '../../services/camera';
 
 const Map = ({ isAuth = false }) => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -54,6 +50,9 @@ const Map = ({ isAuth = false }) => {
   const hasShownWeatherModal = useRef(false);
   const [shouldShake, setShouldShake] = useState(false);
   const [latestMessage, setLatestMessage] = useState(null);
+  const [cameras, setCameras] = useState([]);
+
+  const { messages } = useWebSocket();
 
   useEffect(() => {
     getUserLocation(setUserLocation, setViewport);
@@ -80,6 +79,27 @@ const Map = ({ isAuth = false }) => {
   };
 
   useEffect(() => {
+    const fetchCameras = async () => {
+      if (!userLocation) return;
+      try {
+        const response = await getCameras({
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          distance: 5,
+          page: 1,
+          limit: 20,
+        });
+        console.log(response.data);
+        setCameras(response?.data || []);
+      } catch (error) {
+        console.error('Error fetching cameras:', error);
+      }
+    };
+
+    fetchCameras();
+  }, [userLocation]);
+
+  useEffect(() => {
     if (!userLocation) return;
     const fetchReports = async () => {
       try {
@@ -93,8 +113,6 @@ const Map = ({ isAuth = false }) => {
 
     fetchReports();
   }, [userLocation]);
-
-  const { messages } = useWebSocket();
 
   useEffect(() => {
     if (!userLocation || messages.length === 0) return;
@@ -115,9 +133,10 @@ const Map = ({ isAuth = false }) => {
     setTimeout(() => setShouldShake(false), 600);
 
     setReports((prevReports) => [...prevReports, newReport]);
+    console.log('tobi');
     console.log(reports);
     setLatestMessage(newReport);
-  }, [messages, userLocation]);
+  }, [messages, userLocation, reports]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -134,7 +153,7 @@ const Map = ({ isAuth = false }) => {
         if (report.typeReport.startsWith('t')) {
           return elapsedTime <= 10;
         } else {
-          return elapsedTime <= 45; 
+          return elapsedTime <= 45;
         }
       });
 
@@ -216,45 +235,31 @@ const Map = ({ isAuth = false }) => {
 
       <AnimatePresence>
         {!isRouteVisible && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="absolute left-[2%] top-4 z-20 flex w-[95%] items-center gap-2"
-          >
-            <SearchBar
-              onRouteClick={() => setIsRouteVisible(true)}
-              onSelectLocation={handleSelectLocation}
-              userLocation={userLocation}
-            />
-            <ScrollableButtons
-              data={PLACE_OPTIONS}
-              setPlaces={setPlaces}
-              longitude={userLocation?.longitude}
-              latitude={userLocation?.latitude}
-            />
-            {!isAuth && <AuthButton onSelectLocation={handleSelectLocation} shouldShake={shouldShake} latestMessage={latestMessage} />}
-          </motion.div>
+          <TopControls
+            isAuth={isAuth}
+            userLocation={userLocation}
+            shouldShake={shouldShake}
+            latestMessage={latestMessage}
+            setIsRouteVisible={setIsRouteVisible}
+            handleSelectLocation={handleSelectLocation}
+            setPlaces={setPlaces}
+          />
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {isRouteVisible && (
-          <FindRoutes
-            onClose={() => {
-              setIsRouteVisible(false);
-              setStartMarker(null);
-              setEndMarker(null);
-              setUserLocation(null);
-              resetRoutes();
-            }}
-            onSelectLocation={handleSelectLocation}
-            onSelectLocationUser={() =>
-              getUserLocation(setUserLocation, setViewport)
-            }
+          <RouteModal
+            setIsRouteVisible={setIsRouteVisible}
+            setStartMarker={setStartMarker}
+            setEndMarker={setEndMarker}
+            setUserLocation={setUserLocation}
+            resetRoutes={resetRoutes}
+            handleSelectLocation={handleSelectLocation}
+            getUserLocation={getUserLocation}
+            setViewport={setViewport}
             userLocation={userLocation}
-            onInputFocus={setFocusedInput}
+            setFocusedInput={setFocusedInput}
             startMarker={startMarker}
             endMarker={endMarker}
             routes={routes}
@@ -310,21 +315,8 @@ const Map = ({ isAuth = false }) => {
             onSubmit={handleSubmitNotification}
           />
         )}
-        {geoJsonRoutes?.length > 0 &&
-          geoJsonRoutes.map((route, index) => (
-            <Source
-              key={index}
-              id={`route-${index}`}
-              type="geojson"
-              data={route}
-            >
-              <Layer
-                id={`route-line-${index}`}
-                type="line"
-                paint={getRouteLineStyle(route, index, geoJsonRoutes)}
-              />
-            </Source>
-          ))}
+
+        <RouteLayers geoJsonRoutes={geoJsonRoutes} />
 
         <MapMarkers
           userLocation={userLocation}
@@ -332,6 +324,7 @@ const Map = ({ isAuth = false }) => {
           endMarker={endMarker}
           places={places}
           reports={reports}
+          cameras={cameras}
           selectedReport={selectedReport}
           setSelectedReport={setSelectedReport}
           zoom={zoom}
