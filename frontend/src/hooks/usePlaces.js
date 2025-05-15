@@ -46,7 +46,7 @@ const usePlaces = (page = 1, radius = 500, limit = 10) => {
     };
 
     fetchPlaces();
-  }, [page]);
+  }, [page, limit, radius]);
 
   useEffect(() => {
     const enrichPlacesWithAddress = async () => {

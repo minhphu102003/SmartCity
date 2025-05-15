@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Marker, Source, Layer } from 'react-map-gl';
+import { useEffect, useState, useRef } from 'react';
+import { Marker, Source, Layer, Popup } from 'react-map-gl';
 import {
   faLocationDot,
   faMapMarkerAlt,
@@ -8,6 +8,7 @@ import MapIcon from '../icons/MapIcon';
 import { faCar, faWater, faBell } from '@fortawesome/free-solid-svg-icons';
 import PlacesMarkers from './PlacesMarkers';
 import * as turf from '@turf/turf';
+import CameraMarker from './CameraMarker';
 
 const MapMarkers = ({
   userLocation,
@@ -15,11 +16,26 @@ const MapMarkers = ({
   endMarker,
   places,
   reports,
+  cameras,
   selectedReport,
   setSelectedReport,
   zoom,
 }) => {
   const [geojsonData, setGeojsonData] = useState([]);
+  const [selectedCamera, setSelectedCamera] = useState(null);
+  const popupRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (popupRef.current && !popupRef.current.contains(e.target)) {
+        setSelectedCamera(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const newGeoJSON = reports.map((report) => ({
@@ -68,6 +84,44 @@ const MapMarkers = ({
       )}
 
       {places && <PlacesMarkers places={places} />}
+
+      {cameras?.length > 0 &&
+        cameras.map((camera, index) => (
+          <CameraMarker
+            key={`camera-${index}`}
+            camera={camera}
+            zoom={zoom}
+            onSelect={setSelectedCamera}
+          />
+        ))
+      }
+
+      {selectedCamera && (
+        <Popup
+          longitude={selectedCamera.longitude}
+          latitude={selectedCamera.latitude}
+          closeOnClick={false}
+          onClose={() => setSelectedCamera(null)}
+          offset={[0, -20]}
+        >
+          <div ref={popupRef} className="w-[300px] h-[200px] relative">
+            <button
+              onClick={() => setSelectedCamera(null)}
+              className="absolute top-1 right-1 text-gray-600 hover:text-red-500 font-bold z-10 bg-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer"
+              aria-label="Close popup"
+            >
+              ×
+            </button>
+            <iframe
+              src={`${selectedCamera.link.replace('watch?v=', 'embed/')}?autoplay=1`}
+              title="Camera Video"
+              allow="autoplay"
+              allowFullScreen
+              className="w-full h-full rounded-md"
+            />
+          </div>
+        </Popup>
+      )}
 
       {reports.length > 0 &&
         reports.map((report) => {
