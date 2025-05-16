@@ -39,7 +39,7 @@ const MapMarkers = ({
 
   useEffect(() => {
     const newGeoJSON = reports.map((report) => ({
-      id: `radius-${report.timestamp}`,
+      id: `radius-${report.reportId}`,
       data: getCircleGeoJSON(report.longitude, report.latitude),
     }));
     setGeojsonData(newGeoJSON);
@@ -142,21 +142,21 @@ const MapMarkers = ({
 
           return (
             <Marker
-              key={report.timestamp}
+              key={report.reportId}
               longitude={report.longitude}
               latitude={report.latitude}
             >
               <div
                 onClick={() =>
                   setSelectedReport(
-                    selectedReport?.timestamp === report.timestamp
+                    selectedReport?.reportId === report.reportId
                       ? null
                       : report
                   )
                 }
                 className="cursor-pointer"
               >
-                {selectedReport?.timestamp === report.timestamp ? (
+                {selectedReport?.reportId === report.reportId ? (
                   <img
                     src={report.img || '/placeholder.jpg'}
                     alt="Report"

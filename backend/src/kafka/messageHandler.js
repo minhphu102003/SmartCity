@@ -50,7 +50,7 @@ export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
       img,
     });
   } else if (type === NOTIFICATION_TYPES.USER_REPORT) {
-
+    console.log('debug');
     if (reportId) {
       await AccountReport.findByIdAndUpdate(reportId, {
         analysisStatus: true,
@@ -66,6 +66,7 @@ export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
       longitude,
       img
     );
+
     sendMessageToFrontend(notificationMessage);
 
     await notifyUsersInRange({

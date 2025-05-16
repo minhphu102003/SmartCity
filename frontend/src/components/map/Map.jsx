@@ -1,34 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import ReactMapGL, {
-  GeolocateControl,
-  NavigationControl,
-} from 'react-map-gl';
+import ReactMapGL, { GeolocateControl, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { AnimatePresence } from 'framer-motion';
 import useRoutes from '../../hooks/useRoutes';
-import {
-  DEFAULT_VIEWPORT,
-  MAP_STYLE,
-  MAP_BOX_API,
-} from '../../constants';
+import { DEFAULT_VIEWPORT, MAP_STYLE, MAP_BOX_API } from '../../constants';
 import { getUserLocation } from '../../utils/mapUtils';
-import { haversineDistance } from '../../utils/distances';
 import { getPlace } from '../../utils/placeUtils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import WeatherModal from '../modals/WeatherModal';
 import useWeatherSuggest from '../../hooks/userWeather';
-import { useWebSocket } from '../../websocket/hooks';
-import { getRecentReports } from '../../services/report';
-import { formatReports } from '../../utils/formatReports';
 import MapMarkers from '../marker/MapMarkers';
 import ContextMenu from '../menu/ContextMenu';
 import NotificationPopup from '../popup/NotificationPopup';
 import { createNotification } from '../../services/notification';
 import { TopControls } from '../controlMap';
 import { RouteLayers, RouteModal } from '../route';
-import { getCameras } from '../../services/camera';
+import { useFloodData } from '../../hooks/useFloodData';
 
 const Map = ({ isAuth = false }) => {
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -42,17 +31,14 @@ const Map = ({ isAuth = false }) => {
   const mapRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [zoom, setZoom] = useState(DEFAULT_VIEWPORT.zoom);
   const [contextMenu, setContextMenu] = useState(null);
   const [notificationPopup, setNotificationPopup] = useState(null);
   const hasShownWeatherModal = useRef(false);
-  const [shouldShake, setShouldShake] = useState(false);
-  const [latestMessage, setLatestMessage] = useState(null);
-  const [cameras, setCameras] = useState([]);
 
-  const { messages } = useWebSocket();
+  const { cameras, reports, shouldShake, latestMessage } = useFloodData(userLocation);
+
 
   useEffect(() => {
     getUserLocation(setUserLocation, setViewport);
@@ -77,91 +63,6 @@ const Map = ({ isAuth = false }) => {
       toast.error('Failed to create notification. Please try again.');
     }
   };
-
-  useEffect(() => {
-    const fetchCameras = async () => {
-      if (!userLocation) return;
-      try {
-        const response = await getCameras({
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
-          distance: 5,
-          page: 1,
-          limit: 20,
-        });
-        console.log(response.data);
-        setCameras(response?.data || []);
-      } catch (error) {
-        console.error('Error fetching cameras:', error);
-      }
-    };
-
-    fetchCameras();
-  }, [userLocation]);
-
-  useEffect(() => {
-    if (!userLocation) return;
-    const fetchReports = async () => {
-      try {
-        const response = await getRecentReports();
-        const formattedReports = formatReports(response?.data, userLocation);
-        setReports(formattedReports);
-      } catch (error) {
-        console.error('Error while fetching report: ', error.message);
-      }
-    };
-
-    fetchReports();
-  }, [userLocation]);
-
-  useEffect(() => {
-    if (!userLocation || messages.length === 0) return;
-
-    const lastMessage = messages[messages.length - 1];
-    if (!lastMessage.latitude || !lastMessage.longitude) return;
-
-    const distance = haversineDistance(
-      userLocation.latitude,
-      userLocation.longitude,
-      lastMessage.latitude,
-      lastMessage.longitude
-    );
-
-    const newReport = { ...lastMessage, distance };
-
-    setShouldShake(true);
-    setTimeout(() => setShouldShake(false), 600);
-
-    setReports((prevReports) => [...prevReports, newReport]);
-    console.log('tobi');
-    console.log(reports);
-    setLatestMessage(newReport);
-  }, [messages, userLocation, reports]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (reports.length === 0) {
-        return;
-      }
-
-      const currentTime = Date.now();
-
-      const filteredReports = reports.filter((report) => {
-        const reportTime = new Date(report.timestamp).getTime();
-        const elapsedTime = (currentTime - reportTime) / 1000 / 60;
-
-        if (report.typeReport.startsWith('t')) {
-          return elapsedTime <= 10;
-        } else {
-          return elapsedTime <= 45;
-        }
-      });
-
-      setReports(filteredReports);
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [reports]);
 
   const handleViewportChange = (evt) => {
     setViewport(evt.viewState);
