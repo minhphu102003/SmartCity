@@ -158,7 +158,6 @@ export const updatePlace = async (req, res, next) => {
             timeClose,
         } = req.body;
 
-        // Find the place by ID
         const place = await Place.findById(id);
         if (!place) {
             return res.status(404).json({
@@ -167,35 +166,27 @@ export const updatePlace = async (req, res, next) => {
             });
         }
 
-        // Handle image update if a new file is uploaded
         if (req.file) {
-            // Delete the old image if it exists
             if (place.img && !place.img.startsWith("https://")) {
-                // Only attempt deletion if img is a local path (doesn't start with "https://")
                 fs.unlink(path.resolve(UPLOAD_DIRECTORY + place.img), (err) => {
                     if (err) console.error(`Failed to delete old image: ${err.message}`);
                 });
             }
-            // Update the place with the new image path
             place.img = req.file.filename;
         }
-
-        // Update other fields
         if (type !== undefined) place.type = type;
         if (name !== undefined) place.name = name;
         if (status !== undefined) place.status = status;
         if (timeOpen !== undefined) place.timeOpen = timeOpen;
         if (timeClose !== undefined) place.timeClose = timeClose;
 
-        // Update coordinates if provided
         if (longitude !== undefined && latitude !== undefined) {
             const lat = parseFloat(latitude);
             const lon = parseFloat(longitude);
 
-            // Check for duplicate coordinates
             const existingPlace = await Place.findOne({
                 "location.coordinates": [lon, lat],
-                _id: { $ne: id } // Exclude the current place
+                _id: { $ne: id }
             });
 
             if (existingPlace) {
@@ -211,7 +202,6 @@ export const updatePlace = async (req, res, next) => {
             };
         }
 
-        // Save the updated place
         const updatedPlace = await place.save();
         const flatPlace = flattenPlace(updatedPlace);
 
@@ -230,7 +220,7 @@ export const updatePlace = async (req, res, next) => {
 
 export const deletePlace = async (req, res, next) => {
     try {
-        const { id } = req.params; // Get the place ID from the URL
+        const { id } = req.params; 
 
         // Check if place exists
         const place = await Place.findById(id);

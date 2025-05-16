@@ -21,7 +21,6 @@ import {
   validateById,
   validateWithToken,
 } from "../validations/commonField.validator.js";
-// import {handleSingleUpload} from "../middlewares/upload.js";
 import {handleSingleUpload} from "../services/cloudinary.service.js";
 
 const router = Router();

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaBars } from 'react-icons/fa';
 import { MENU_ITEMS } from '../../constants';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -8,6 +8,7 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [notificationMessages, setNotificationMessages] = useState([]);
 
   const { messages } = useWebSocket();
 
@@ -17,6 +18,15 @@ const Sidebar = () => {
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
+
+  useEffect(() => {
+    console.log('debug');
+    if (messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+
+    setNotificationMessages((prev) => [...prev, lastMessage]);
+  }, [messages]);
 
   return (
     <div
@@ -35,7 +45,7 @@ const Sidebar = () => {
             key={index}
             onClick={() => navigate(item.path)}
             className={`flex w-full cursor-pointer items-center rounded-lg p-2 transition-all duration-200 ${isOpen ? 'pl-10' : 'justify-center'
-              } ${location.pathname === item.path 
+              } ${location.pathname === item.path
                 ? 'bg-gray-400 text-primaryColor'
                 : 'hover:bg-gray-400 hover:text-primaryColor'
               }`}
@@ -43,10 +53,10 @@ const Sidebar = () => {
             <div className="relative">
               {item.icon}
               {item.label === 'Notifications' &&
-                token &&
-                messages.length > 0 && (
+                !token &&
+                notificationMessages.length > 0 && (
                   <span className="absolute -right-2 -top-2 rounded-full bg-red-500 px-2 py-1 text-xs text-white">
-                    {messages.length}
+                    {notificationMessages.length}
                   </span>
                 )}
             </div>

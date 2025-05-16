@@ -18,6 +18,8 @@ const AuthButton = ({ onSelectLocation, shouldShake, latestMessage }) => {
   const menuRef = useRef(null);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationList, setNotificationList] = useState([]);
+  const [showNewNotificationText, setShowNewNotificationText] = useState(false);
+  const [showOrangeBorder, setShowOrangeBorder] = useState(false);
 
   useEffect(() => {
     const storedAuth = localStorage.getItem('auth');
@@ -63,6 +65,34 @@ const AuthButton = ({ onSelectLocation, shouldShake, latestMessage }) => {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (shouldShake) {
+      setShowNewNotificationText(true);
+      setShowOrangeBorder(true);
+
+      const timer = setTimeout(() => {
+        setShowNewNotificationText(false);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [shouldShake]);
+
+  const handleAvatarClick = () => {
+    setShowOrangeBorder(false);
+    setMenuOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (showNewNotificationText) {
+      const timer = setTimeout(() => {
+        setShowNewNotificationText(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showNewNotificationText]);
+
   return (
     <motion.div
       className="absolute right-4 top-2 z-20 flex items-center gap-4"
@@ -72,25 +102,38 @@ const AuthButton = ({ onSelectLocation, shouldShake, latestMessage }) => {
     >
       {user ? (
         <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setMenuOpen((prev) => !prev)}
-            className="relative"
-          >
+          <button onClick={handleAvatarClick} className="relative">
             <motion.img
               src={
                 user?.avatar ||
                 require('../../assets/images/default_avatar.png')
               }
               alt="User Avatar"
-              className="h-10 w-10 cursor-pointer rounded-full border border-gray-300"
+              className={`h-10 w-10 cursor-pointer rounded-full border-2 ${showOrangeBorder ? 'border-orange-500' : 'border-gray-300'
+                }`}
               variants={shakeVariants}
               animate={shouldShake ? 'shake' : undefined}
             />
+
             {notificationCount > 0 && (
               <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow">
                 {notificationCount > 9 ? '9+' : notificationCount}
               </span>
             )}
+
+            <AnimatePresence>
+              {showNewNotificationText && (
+                <motion.p
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.5 }}
+                  className="absolute right-full top-1/2 -translate-y-1/2 mr-2 whitespace-nowrap rounded bg-yellow-100 px-2 py-1 text-sm text-yellow-800 shadow"
+                >
+                  New notification!
+                </motion.p>
+              )}
+            </AnimatePresence>
           </button>
 
           <AnimatePresence>
