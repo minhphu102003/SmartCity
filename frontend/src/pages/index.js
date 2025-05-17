@@ -7,3 +7,4 @@ export {default as Admin} from './admin/Admin';
 export {default as CustomMap} from './custom-map/CustomMap';
 export {default as RequiredAdmin} from './admin/RequireAdmin';
 export {default as ManagePlace} from './manage-places/ManagePlace';
+export {default as ManageReport} from './manage-report/ManageReport';

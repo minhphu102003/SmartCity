@@ -3,7 +3,6 @@ import axios from 'axios';
 const API_URL = 'https://danahub-backend-4ccd2faffe40.herokuapp.com/api/v1';
 
 export const reportService = {
-  // Get all reports
   getAllReports: async () => {
     try {
       const response = await axios.get(`${API_URL}/account-report`);
@@ -15,7 +14,6 @@ export const reportService = {
     }
   },
 
-  // Create a new report
   createReport: async (reportData) => {
     try {
       const formData = new FormData();
@@ -43,7 +41,6 @@ export const reportService = {
     }
   },
 
-  // Submit a report about a post
   submitReport: async (reportData) => {
     try {
       const response = await axios.post(`${API_URL}/account-report/report`, reportData);
