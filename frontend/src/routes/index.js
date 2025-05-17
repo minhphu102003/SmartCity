@@ -1,5 +1,5 @@
 import { LayoutAuth, LayoutAdmin } from '../layouts/index';
-import { Home, LogIn, Register, Camera, Admin, CustomMap, Report, ManagePlace } from '../pages/index';
+import { Home, LogIn, Register, Camera, Admin, CustomMap, Report, ManagePlace, ManageReport } from '../pages/index';
 import { PATHS } from '../constants';
 import MyProfile from '../pages/myPage/MyProfile';
 
@@ -26,6 +26,12 @@ const router = [
       path: PATHS.MANAGE_PLACES,
       layout: LayoutAdmin,
       component: ManagePlace,
+      requireAdmin: true,
+    },
+        {
+      path: PATHS.MANAGE_REPORTS,
+      layout: LayoutAdmin,
+      component: ManageReport,
       requireAdmin: true,
     }
   ];
