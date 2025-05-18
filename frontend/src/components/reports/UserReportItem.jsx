@@ -8,9 +8,21 @@ import AnalysisStatusBadge from './AnalysisStatusBadge';
 import { ReportImagePreview } from '../img';
 import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { PendingReviewToggle } from '../reviews';
+import MethodContext from '../../context/methodProvider';
+import { useContext } from 'react';
+import { updateAccountReportReview } from '../../services/reviewReport';
 
 const UserReportItem = ({ report }) => {
   const [selectedImg, setSelectedImg] = useState(null);
+  const [reviews, setReviews] = useState(() => {
+    return (report.reviews || []).filter(r => r.status !== 'REJECTED');
+  });
+
+  const [rejectedReviews, setRejectedReviews] = useState(() => {
+    return (report.reviews || []).filter(r => r.status === 'REJECTED');
+  });
+  const { notify } = useContext(MethodContext);
 
   const lat = report.latitude;
   const lng = report.longitude;
@@ -24,6 +36,31 @@ const UserReportItem = ({ report }) => {
         return <Droplet className="w-6 h-6 text-blue-600 mr-2" />;
       default:
         return null;
+    }
+  };
+
+  const handleReviewAction = async (reviewId, action) => {
+    try {
+      await updateAccountReportReview(reviewId, { status: action });
+
+      setReviews((prevReviews) => {
+        const rejectedReview = prevReviews.find((r) => r.id === reviewId);
+
+        if (action === 'REJECTED' && rejectedReview) {
+          setRejectedReviews((prev) => [...prev, { ...rejectedReview, status: 'REJECTED' }]);
+        }
+
+        return prevReviews.filter((r) => r.id !== reviewId);
+      });
+
+      if (action === 'APPROVED') {
+        notify('Review approved successfully!', 'success');
+      } else if (action === 'REJECTED') {
+        notify('Review rejected successfully!', 'success');
+      }
+    } catch (error) {
+      console.error(error);
+      notify('Failed to update review status.', 'error');
     }
   };
 
@@ -122,6 +159,26 @@ const UserReportItem = ({ report }) => {
         <span className="font-medium">Analysis Status:</span>{' '}
         <AnalysisStatusBadge status={report.analysisStatus} />
       </p>
+
+      <PendingReviewToggle
+        reviews={reviews}
+        handleReviewAction={handleReviewAction}
+      />
+
+      {rejectedReviews.length > 0 && (
+        <div className="mt-6 p-4 border rounded bg-red-50">
+          <h4 className="font-semibold text-red-700 mb-2">Rejected Reviews</h4>
+          <ul className="space-y-2">
+            {rejectedReviews.map((review) => (
+              <li key={review.id} className="p-2 border rounded bg-white">
+                <p><strong>Reason:</strong> {review.reason || 'No reason provided'}</p>
+                <p><strong>Status:</strong> {review.status}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
     </li>
   );
 };

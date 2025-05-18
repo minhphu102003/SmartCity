@@ -12,3 +12,4 @@ export * from './env';
 export * from './searchHistory';
 export * from './websocket';
 export * from './roles';
+export * from './report';

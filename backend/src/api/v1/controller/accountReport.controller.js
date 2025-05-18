@@ -1,11 +1,11 @@
-import fs from 'fs';
-import path from 'path';
-import { AccountReport, RoadSegment } from '../models/index.js';
-import {UPLOAD_DIRECTORY} from "../constants/uploadConstants.js";
-import {produceMessage} from "../../../kafkaOnline.config.js";
-import { formatAccountReport } from '../utils/formatAccountReport.js';
+import fs from "fs";
+import path from "path";
+import { AccountReport, RoadSegment } from "../models/index.js";
+import { UPLOAD_DIRECTORY } from "../constants/uploadConstants.js";
+import { produceMessage } from "../../../kafkaOnline.config.js";
+import { formatAccountReport } from "../utils/formatAccountReport.js";
 
-const PRODUCE_TOPIC = process.env.KAFKA_TOPIC_PRODUCER || 'express-topic';
+const PRODUCE_TOPIC = process.env.KAFKA_TOPIC_PRODUCER || "express-topic";
 
 export const getAccountReports = async (req, res) => {
   try {
@@ -18,43 +18,58 @@ export const getAccountReports = async (req, res) => {
       startDate,
       endDate,
       analysisStatus,
+      hasReview,
     } = req.query;
+
     const query = {};
     if (typeReport) query.typeReport = typeReport;
     if (congestionLevel) query.congestionLevel = congestionLevel;
     if (account_id) query.account_id = account_id;
-    if (analysisStatus) query.analysisStatus = analysisStatus === "true";
-    
+    if (analysisStatus !== undefined)
+      query.analysisStatus = analysisStatus === "true";
+
     if (startDate || endDate) {
       query.timestamp = {};
       if (startDate) query.timestamp.$gte = new Date(startDate);
       if (endDate) query.timestamp.$lte = new Date(endDate);
     }
 
-const reports = await AccountReport.find(query)
-  .sort({ timestamp: -1 })
-  .skip((page - 1) * limit)
-  .limit(parseInt(limit))
-  .populate({
-    path: "account_id",
-    select: "-password -otp -otpExpiration -otpVerified",
-    populate: { path: "roles", select: "name" },
-  })
-  .populate({
-    path: 'reviews',
-    select: 'reason status reviewed_by reviewed_at',
-    populate: {
-      path: 'reviewed_by',
-      select: 'username email',
-    },
-  })
-  .exec();
+    const rawReports = await AccountReport.find(query)
+      .sort({ timestamp: -1 })
+      .populate({
+        path: "account_id",
+        select: "-password -otp -otpExpiration -otpVerified",
+        populate: { path: "roles", select: "name" },
+      })
+      .populate({
+        path: "reviews",
+        select: "reason status reviewed_by reviewed_at",
+        populate: {
+          path: "reviewed_by",
+          select: "username email",
+        },
+      });
 
-    const totalReports = await AccountReport.countDocuments(query);
+    const reportsWithVirtuals = rawReports.map(doc =>
+      doc.toObject({ virtuals: true })
+    );
 
-    const formattedReports = reports.map(formatAccountReport);
+    let filteredReports = reportsWithVirtuals;
+    if (hasReview === "true") {
+      filteredReports = reportsWithVirtuals.filter(
+        (r) => Array.isArray(r.reviews) && r.reviews.length > 0
+      );
+    }
 
-    res.status(200).json({
+    const totalReports = filteredReports.length;
+
+    const paginatedReports = filteredReports
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice((page - 1) * limit, page * limit);
+
+    const formattedReports = paginatedReports.map(formatAccountReport);
+
+    return res.status(200).json({
       success: true,
       total: totalReports,
       count: formattedReports.length,
@@ -63,10 +78,10 @@ const reports = await AccountReport.find(query)
       data: formattedReports,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Error fetching account reports:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 export const getAccountReportById = async (req, res) => {
   try {
@@ -79,7 +94,7 @@ export const getAccountReportById = async (req, res) => {
         populate: { path: "roles", select: "name" },
       })
       .populate({
-        path: "reviews",  
+        path: "reviews",
         select: "reason status reviewed_by reviewed_at",
         populate: {
           path: "reviewed_by",
@@ -106,12 +121,13 @@ export const getAccountReportById = async (req, res) => {
 
 export const createAccountReport = async (req, res) => {
   try {
-    const { description, typeReport, congestionLevel, longitude, latitude } = req.body;
+    const { description, typeReport, congestionLevel, longitude, latitude } =
+      req.body;
     const account_id = req.account_id;
 
     const uploadedImages = Array.isArray(req.body.uploadedImages)
-    ? req.body.uploadedImages.map((url) => ({ img: url }))
-    : [];
+      ? req.body.uploadedImages.map((url) => ({ img: url }))
+      : [];
     const searchRadiusInMeters = 10;
 
     const nearbyRoadSegments = await RoadSegment.find({
@@ -142,7 +158,9 @@ export const createAccountReport = async (req, res) => {
     const timestamp = newReport.createdAt;
 
     if (nearbyRoadSegments.length === 0) {
-      req.cachedReports = req.cachedReports ? req.cachedReports.push(newReport) : [newReport];
+      req.cachedReports = req.cachedReports
+        ? req.cachedReports.push(newReport)
+        : [newReport];
       console.log("Report added to cache:", newReport._id);
     } else {
       console.log("Nearby RoadSegment(s) found, report not cached.");
@@ -164,7 +182,7 @@ export const createAccountReport = async (req, res) => {
       longitude,
       latitude,
       listImg: uploadedImages,
-      timestamp
+      timestamp,
     };
     produceMessage(PRODUCE_TOPIC, messageObject, "create");
 
@@ -186,7 +204,9 @@ export const updateAccountReport = async (req, res) => {
     if (!report) {
       report = await AccountReport.findById(reportId);
       if (!report) {
-        return res.status(404).json({ success: false, message: "Report not found." });
+        return res
+          .status(404)
+          .json({ success: false, message: "Report not found." });
       }
     }
 
@@ -196,7 +216,10 @@ export const updateAccountReport = async (req, res) => {
     delete updateData.location;
 
     if (isOwner) {
-      if (req.files.length == 0 && (report.listImg.length - replaceImageId.length <= 0)) {
+      if (
+        req.files.length == 0 &&
+        report.listImg.length - replaceImageId.length <= 0
+      ) {
         return res.status(400).json({
           success: false,
           message: "At least one image must be kept in the report.",
@@ -205,9 +228,14 @@ export const updateAccountReport = async (req, res) => {
 
       if (replaceImageId && replaceImageId.length > 0) {
         replaceImageId.forEach((item) => {
-          const imageIndex = report.listImg.findIndex(img => img._id.toString() === item);
+          const imageIndex = report.listImg.findIndex(
+            (img) => img._id.toString() === item
+          );
           if (imageIndex !== -1) {
-            const imagePath = path.join(UPLOAD_DIRECTORY, report.listImg[imageIndex].img);
+            const imagePath = path.join(
+              UPLOAD_DIRECTORY,
+              report.listImg[imageIndex].img
+            );
             fs.unlink(imagePath, (err) => {
               if (err) {
                 console.error(`Error deleting image: ${imagePath}`, err);
@@ -220,7 +248,7 @@ export const updateAccountReport = async (req, res) => {
       }
 
       if (req.files && req.files.length > 0) {
-        const newImages = req.files.map(file => ({ img: file.filename }));
+        const newImages = req.files.map((file) => ({ img: file.filename }));
         report.listImg.push(...newImages); // Append new images to the list
       }
     } else {
@@ -237,9 +265,11 @@ export const updateAccountReport = async (req, res) => {
 
     const updatedReport = await report.save();
 
-    const cacheIndex = cachedReports.findIndex((r) => r._id.toString() === reportId);
+    const cacheIndex = cachedReports.findIndex(
+      (r) => r._id.toString() === reportId
+    );
     if (cacheIndex !== -1) {
-      cachedReports[cacheIndex] = updatedReport; 
+      cachedReports[cacheIndex] = updatedReport;
     }
 
     return res.status(200).json({
@@ -251,8 +281,6 @@ export const updateAccountReport = async (req, res) => {
   }
 };
 
-
-
 export const deleteAccountReport = async (req, res) => {
   const reportId = req.params.id;
 
@@ -262,7 +290,9 @@ export const deleteAccountReport = async (req, res) => {
     if (!report) {
       report = await AccountReport.findById(reportId);
       if (!report) {
-        return res.status(404).json({ success: false, message: "Report not found." });
+        return res
+          .status(404)
+          .json({ success: false, message: "Report not found." });
       }
     }
 
