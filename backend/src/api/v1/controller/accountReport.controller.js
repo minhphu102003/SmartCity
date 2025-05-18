@@ -31,16 +31,24 @@ export const getAccountReports = async (req, res) => {
       if (endDate) query.timestamp.$lte = new Date(endDate);
     }
 
-    const reports = await AccountReport.find(query)
-      .sort({ timestamp: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit))
-      .populate({
-        path: "account_id",
-        select: "-password -otp -otpExpiration -otpVerified",
-        populate: { path: "roles", select: "name" },
-      })
-      .exec();
+const reports = await AccountReport.find(query)
+  .sort({ timestamp: -1 })
+  .skip((page - 1) * limit)
+  .limit(parseInt(limit))
+  .populate({
+    path: "account_id",
+    select: "-password -otp -otpExpiration -otpVerified",
+    populate: { path: "roles", select: "name" },
+  })
+  .populate({
+    path: 'reviews',
+    select: 'reason status reviewed_by reviewed_at',
+    populate: {
+      path: 'reviewed_by',
+      select: 'username email',
+    },
+  })
+  .exec();
 
     const totalReports = await AccountReport.countDocuments(query);
 
@@ -64,11 +72,20 @@ export const getAccountReportById = async (req, res) => {
   try {
     const reportId = req.params.id;
 
-    const report = await AccountReport.findById(reportId).populate({
-      path: "account_id",
-      select: "-password -otp -otpExpiration -otpVerified",
-      populate: { path: "roles", select: "name" },
-    });
+    const report = await AccountReport.findById(reportId)
+      .populate({
+        path: "account_id",
+        select: "-password -otp -otpExpiration -otpVerified",
+        populate: { path: "roles", select: "name" },
+      })
+      .populate({
+        path: "reviews",  
+        select: "reason status reviewed_by reviewed_at",
+        populate: {
+          path: "reviewed_by",
+          select: "username email",
+        },
+      });
 
     if (!report) {
       return res
@@ -76,7 +93,7 @@ export const getAccountReportById = async (req, res) => {
         .json({ success: false, message: "Report does not exist" });
     }
 
-  const formattedReport = formatAccountReport(report);
+    const formattedReport = formatAccountReport(report);
 
     return res.status(200).json({
       success: true,
@@ -86,7 +103,6 @@ export const getAccountReportById = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
 
 export const createAccountReport = async (req, res) => {
   try {

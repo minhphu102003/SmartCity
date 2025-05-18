@@ -59,9 +59,18 @@ const userReportSchema = new mongoose.Schema(
   {
     timestamps: true, 
     versionKey: false,
+    toJSON: { virtuals: true }, 
+    toObject: { virtuals: true }, 
   }
 );
 
 userReportSchema.index({ location: "2dsphere" });
+
+userReportSchema.virtual('reviews', {
+  ref: 'AccountReportReview',         
+  localField: '_id',                 
+  foreignField: 'accountReport_id', 
+  justOne: false                     
+});
 
 export default mongoose.model("AccountReport", userReportSchema);

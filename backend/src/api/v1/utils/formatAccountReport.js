@@ -16,5 +16,19 @@ export const formatAccountReport = (report) => {
     accountId: report.account_id._id,
     username: report.account_id.username,
     roles: report.account_id.roles?.map((role) => role.name) || [],
+
+        reviews: (report.reviews || []).map((review) => ({
+      id: review._id,
+      reason: review.reason,
+      status: review.status,
+      reviewedAt: review.reviewed_at,
+      reviewedBy: review.reviewed_by
+        ? {
+            id: review.reviewed_by._id,
+            username: review.reviewed_by.username,
+            email: review.reviewed_by.email,
+          }
+        : null,
+    })),
   };
 };

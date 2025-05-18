@@ -11,19 +11,18 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const RegisterForm = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    const location = useLocation();
-    const navigate = useNavigate();
-  
-    useEffect(() => {
-      if (location.state?.toastMessage) {
-        toast(location.state.toastMessage, {
-          type: location.state.statusMessage === 'success' ? 'success' : 'error',
-        });
-  
-        navigate(location.pathname, { replace: true, state: {} });
-      }
-    }, [location, navigate]);
+  useEffect(() => {
+    if (location.state?.toastMessage) {
+      toast(location.state.toastMessage, {
+        type: location.state.statusMessage === 'success' ? 'success' : 'error',
+      });
+
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   const {
     register,
@@ -39,23 +38,23 @@ const RegisterForm = () => {
       label: 'Email',
       id: 'email',
       type: 'email',
-      placeholder: 'email@gmail.com',
+      placeholder: 'email@example.com',
       ...register('email'),
       error: errors.email?.message,
     },
     {
-      label: 'Họ và Tên',
+      label: 'Full Name',
       id: 'name',
       type: 'text',
-      placeholder: 'Họ và tên',
+      placeholder: 'Enter your full name',
       ...register('name'),
       error: errors.name?.message,
     },
     {
-      label: 'Mật Khẩu',
+      label: 'Password',
       id: 'password',
       type: hiddenPassword ? 'password' : 'text',
-      placeholder: 'Mật khẩu',
+      placeholder: 'Enter your password',
       ...register('password'),
       error: errors.password?.message,
       icon: (
@@ -73,10 +72,10 @@ const RegisterForm = () => {
       ),
     },
     {
-      label: 'Nhập Lại Mật Khẩu',
+      label: 'Confirm Password',
       id: 'rePassword',
       type: hiddenPassword ? 'password' : 'text',
-      placeholder: 'Nhập lại mật khẩu',
+      placeholder: 'Re-enter your password',
       ...register('rePassword'),
       error: errors.rePassword?.message,
     },
@@ -96,10 +95,10 @@ const RegisterForm = () => {
         transition={{ duration: 0.8, ease: 'easeOut' }}
       >
         <AuthForm
-          title="Đăng Ký"
+          title="Register"
           fields={formFields}
           onSubmit={handleSubmit(onSubmit)}
-          submitText="Đăng Ký"
+          submitText="Register"
           register={register}
           footer={
             <motion.p
@@ -107,13 +106,13 @@ const RegisterForm = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.5 }}
             >
-              Đã có tài khoản?{' '}
+              Already have an account?{' '}
               <motion.span
                 whileHover={{ scale: 1.1 }}
                 transition={{ duration: 0.2 }}
               >
                 <Link to={PATHS.LOGIN} className="text-primaryColor">
-                  Đăng Nhập
+                  Log In
                 </Link>
               </motion.span>
             </motion.p>
