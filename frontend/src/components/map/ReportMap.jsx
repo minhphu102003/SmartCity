@@ -71,8 +71,6 @@ const ReportMap = ({ points }) => {
 
         {geojsonData.map((geo, idx) => {
           const [longitude, latitude] = geo.data.geometry.coordinates;
-          console.log(geo.pointsInRadius);
-          console.log(longitude, latitude);
 
           return (
             <Source key={geo.id} type="geojson" data={geo.data}>

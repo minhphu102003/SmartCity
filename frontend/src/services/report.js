@@ -1,16 +1,11 @@
 import * as request from '../utils/request';
 import { REPORT_ENDPOINT } from '../constants';
 
-export const getAccountReport = async (page = 1, limit=50) => {
-    try{
-        const params = {
-            page,
-            limit,
-        }
-        const response = await request.get(REPORT_ENDPOINT, {
-            params,
-        });
-        return response?.data;
+export const getAccountReport = async (params = {}) => {
+  try {
+    const response = await request.get(REPORT_ENDPOINT, { params });
+
+    return response?.data;
     }catch(error){
         return { data: { data: [] } };
     }

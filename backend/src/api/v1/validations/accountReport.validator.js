@@ -59,7 +59,13 @@ export const getAccountReportValidator = [
   query("congestionLevel")
     .optional()
     .isIn(Object.values(CongestionLevels))
-    .withMessage(`Congestion level must be one of: ${Object.values(CongestionLevels).join(", ")}`)
+    .withMessage(`Congestion level must be one of: ${Object.values(CongestionLevels).join(", ")}`),
+    
+  query("hasReview")
+    .optional()
+    .isIn(["true", "false"])
+    .withMessage("hasReview must be either 'true' or 'false'."),
+
 ];
 
 
