@@ -33,15 +33,14 @@ router.use((req, res, next) => {
   next();
 });
 
-  router.post("/signup",[signUpValidator], [checkExistingRole], signUpHandler);
-  router.post("/signin",[signInValidator], signinHandler);
-  router.post("/forgot-password",[forgotPasswordValidator], forgotHandler);
-  router.post("/verify-otp",[verifyValidator],verifyOtpHandler );
-  router.post("/reset-password",[resetPasswordValidator],resetPasswordHandler);
-  router.post("/change-password", [validateWithToken,changePasswordValidator],[veriFyToken],changePasswordHandler);
-  router.get("/logout",[validateWithToken], logoutHandler);
+  router.post("/signup",[signUpValidator, handleValidationErrors ], [checkExistingRole], signUpHandler);
+  router.post("/signin",[signInValidator, handleValidationErrors ], signinHandler);
+  router.post("/forgot-password",[forgotPasswordValidator, handleValidationErrors], forgotHandler);
+  router.post("/verify-otp",[verifyValidator, handleValidationErrors],verifyOtpHandler );
+  router.post("/reset-password",[resetPasswordValidator, handleValidationErrors ],resetPasswordHandler);
+  router.post("/change-password", [validateWithToken,changePasswordValidator, handleValidationErrors],[veriFyToken],changePasswordHandler);
+  router.get("/logout",[validateWithToken, handleValidationErrors ], logoutHandler);
 
-  router.use(handleValidationErrors);
 
   export default router;
   

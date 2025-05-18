@@ -32,16 +32,19 @@ const useRegister = () => {
   const onSubmit = async (data) => {
     const { name, email, password } = data;
     const registerResponse = await authServices.register(name, email, password);
-    console.log(registerResponse);
     if (registerResponse?.status === 201) {
       navigate(PATHS.LOGIN, {
         state: {
-          toastMessage: 'Đăng kí thành công',
+          toastMessage: 'Registration successful',
           statusMessage: 'success',
         },
       });
     } else {
-    //   notify('Đăng ký thất bại!', 'error');
+      const errorMessage =
+        registerResponse?.response?.data?.errors?.[0]?.msg ||
+        'Registration failed';
+      console.log(registerResponse?.response?.data?.errors);
+      notify(errorMessage, 'error');
     }
   };
 

@@ -9,7 +9,6 @@ export const useCameraReports = (page = 1, limit = 50) => {
     const fetchReports = async () => {
       setLoading(true);
       const res = await getCameraReport(page, limit);
-      console.log(res);
       setData(res?.data || []);
       setLoading(false);
     };

@@ -25,3 +25,4 @@ router.get("/:id", [validateById], handleValidationErrors, getCameraReportById);
 
 
 export default router;
+
