@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useReverseGeocode } from '../../hooks/useReverseGeocode';
-import { TrafficCone, Droplet } from 'lucide-react';
+import { TrafficCone, Droplet, CheckCircle } from 'lucide-react';
 import { timeAgo } from '../../utils/timeUtils';
 import { FiClock } from 'react-icons/fi';
 import { FaUser } from 'react-icons/fa';
@@ -9,20 +9,11 @@ import { ReportImagePreview } from '../img';
 import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PendingReviewToggle } from '../reviews';
-import MethodContext from '../../context/methodProvider';
-import { useContext } from 'react';
-import { updateAccountReportReview } from '../../services/reviewReport';
+import { useReviewHandler } from '../../hooks/useReviewHandler';
 
 const UserReportItem = ({ report }) => {
   const [selectedImg, setSelectedImg] = useState(null);
-  const [reviews, setReviews] = useState(() => {
-    return (report.reviews || []).filter(r => r.status !== 'REJECTED');
-  });
-
-  const [rejectedReviews, setRejectedReviews] = useState(() => {
-    return (report.reviews || []).filter(r => r.status === 'REJECTED');
-  });
-  const { notify } = useContext(MethodContext);
+  const { reviews, rejectedReviews, isReviewed, handleReviewAction } = useReviewHandler(report);
 
   const lat = report.latitude;
   const lng = report.longitude;
@@ -39,33 +30,9 @@ const UserReportItem = ({ report }) => {
     }
   };
 
-  const handleReviewAction = async (reviewId, action) => {
-    try {
-      await updateAccountReportReview(reviewId, { status: action });
-
-      setReviews((prevReviews) => {
-        const rejectedReview = prevReviews.find((r) => r.id === reviewId);
-
-        if (action === 'REJECTED' && rejectedReview) {
-          setRejectedReviews((prev) => [...prev, { ...rejectedReview, status: 'REJECTED' }]);
-        }
-
-        return prevReviews.filter((r) => r.id !== reviewId);
-      });
-
-      if (action === 'APPROVED') {
-        notify('Review approved successfully!', 'success');
-      } else if (action === 'REJECTED') {
-        notify('Review rejected successfully!', 'success');
-      }
-    } catch (error) {
-      console.error(error);
-      notify('Failed to update review status.', 'error');
-    }
-  };
-
   return (
-    <li className="border p-4 mb-4 rounded shadow bg-white">
+    <li className={`relative border p-4 mb-4 rounded shadow bg-white ${isReviewed ? 'border-2 border-orange-500 shadow-lg' : ''
+      }`}>
       <div className="flex items-center mb-3 text-lg font-semibold text-gray-800">
         {renderIcon()}
         <span>
@@ -160,10 +127,12 @@ const UserReportItem = ({ report }) => {
         <AnalysisStatusBadge status={report.analysisStatus} />
       </p>
 
-      <PendingReviewToggle
-        reviews={reviews}
-        handleReviewAction={handleReviewAction}
-      />
+      {!isReviewed && reviews.length > 0 && (
+        <PendingReviewToggle
+          reviews={reviews}
+          handleReviewAction={handleReviewAction}
+        />
+      )}
 
       {rejectedReviews.length > 0 && (
         <div className="mt-6 p-4 border rounded bg-red-50">
@@ -176,6 +145,13 @@ const UserReportItem = ({ report }) => {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {isReviewed && (
+        <div className="absolute top-2 right-2 flex items-center gap-1 bg-orange-100 text-orange-700 text-sm font-semibold px-2 py-1 rounded">
+          <CheckCircle className="w-4 h-4" />
+          Approved
         </div>
       )}
 

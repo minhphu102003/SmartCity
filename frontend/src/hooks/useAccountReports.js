@@ -52,3 +52,44 @@ export const useAccountReports = (page = 1, limit= 10 , filters = {}) => {
 
   return { reports, loading, error, pagination };
 };
+
+
+export const useAllAccountReports = () => {
+  const [allReports, setAllReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAllReports = async () => {
+      try {
+        setLoading(true);
+        let page = 1;
+        const limit = 100;
+        let reports = [];
+        let totalPages = 1;
+
+        while (page <= totalPages) {
+          const res = await getAccountReport({ page, limit });
+          if (res?.data?.length > 0) {
+            reports = [...reports, ...res.data];
+            totalPages = res.totalPages;
+            page++;
+          } else {
+            break;
+          }
+        }
+
+        setAllReports(reports);
+        setError(null);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to fetch all reports');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllReports();
+  }, []);
+  return { reports: allReports, loading, error };
+};

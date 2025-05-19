@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 
 import { getAccountReport } from '../../services/report';
 import { getCameraReport } from '../../services/cameraReport';
-import ReportMap  from '../map/ReportMap';
+import ReportMap from '../map/ReportMap';
 
 const transformReportData = (reportData, cameraData) => {
   const allReports = [
@@ -75,7 +75,7 @@ const ReportLineChart = () => {
       setLoading(true);
       try {
         const [accountRes, cameraRes] = await Promise.all([
-          getAccountReport(1, 100),
+          getAccountReport({ page: 1, limit: 150 }),
           getCameraReport(1, 100),
         ]);
         const transformed = transformReportData(
