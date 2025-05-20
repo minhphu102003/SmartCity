@@ -8,3 +8,4 @@ export {default as CustomMap} from './custom-map/CustomMap';
 export {default as RequiredAdmin} from './admin/RequireAdmin';
 export {default as ManagePlace} from './manage-places/ManagePlace';
 export {default as ManageReport} from './manage-report/ManageReport';
+export {default as ManageCamera } from './manage-camera/ManageCamera';

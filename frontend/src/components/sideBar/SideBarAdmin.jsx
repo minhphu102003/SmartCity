@@ -67,21 +67,22 @@ const SidebarComponent = () => {
           collapsed={isCollapsed}
         />
 
-        {!isCollapsed && (
-          <p className="text-gray-500 px-4 mt-4 uppercase text-sm">Custom Notification</p>
-        )}
         <SidebarItem
-          title="Create Notification"
-          to={PATHS.CREATE_NOTIFICATION}
-          icon={<FiBell className="w-5 h-5" />}
+          title="Manage Camera"
+          to={PATHS.CREATE_CAMERA}
+          icon={<FiCamera className="w-5 h-5" />}
           selected={selected}
           setSelected={setSelected}
           collapsed={isCollapsed}
         />
+
+        {!isCollapsed && (
+          <p className="text-gray-500 px-4 mt-4 uppercase text-sm">Custom Notification</p>
+        )}
         <SidebarItem
-          title="Create Camera"
-          to={PATHS.CREATE_CAMERA}
-          icon={<FiCamera className="w-5 h-5" />}
+          title="Custom Map"
+          to={PATHS.CREATE_NOTIFICATION}
+          icon={<FiBell className="w-5 h-5" />}
           selected={selected}
           setSelected={setSelected}
           collapsed={isCollapsed}
