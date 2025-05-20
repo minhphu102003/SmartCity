@@ -161,7 +161,6 @@ export const updateCamera = async (req, res, next) => {
         if (status !== undefined) camera.status = status;
         if (installation_date) camera.installation_date = installation_date;
 
-        // Kiểm tra và cập nhật mảng roadSegments
         if (roadSegment_ids) {
             const roadSegmentsExist = await RoadSegment.find({ '_id': { $in: roadSegment_ids } });
             if (roadSegmentsExist.length !== roadSegment_ids.length) {
@@ -170,12 +169,11 @@ export const updateCamera = async (req, res, next) => {
                     message: 'One or more road segments not found',
                 });
             }
-            camera.roadSegments = roadSegment_ids; // Cập nhật roadSegments
+            camera.roadSegments = roadSegment_ids;
         }
 
         const updatedCamera = await camera.save();
 
-        // Update cache with the new camera data
         const index = req.cachedCameras.findIndex(c => c._id.toString() === updatedCamera._id.toString());
         if (index !== -1) {
             req.cachedCameras[index] = updatedCamera.toObject();
