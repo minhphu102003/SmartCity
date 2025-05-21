@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { CameraRow } from '../../components/row';
 import { CameraTableSkeleton } from '../../components/skeleton';
 import { useReverseGeocode } from '../../hooks/useReverseGeocode';
-import { CameraMapModal, ConfirmModal, UpdateCameraModal } from '../../components/modal';
+import { CameraMapModal, ConfirmModal, CameraModal } from '../../components/modal';
 import { useCameraManager } from '../../hooks/useCameraManager';
 
 const CameraRowWithAddress = ({ camera, onEdit, onDelete, onView }) => {
@@ -101,10 +101,11 @@ const CameraManager = () => {
       )}
 
       {cameraToEdit && (
-        <UpdateCameraModal
-          camera={cameraToEdit}
+        <CameraModal
+          initialData={cameraToEdit}
           onClose={() => setCameraToEdit(null)}
-          onUpdate={confirmUpdate}
+          onSubmit={confirmUpdate}
+          mode='update'
         />
       )}
     </div>

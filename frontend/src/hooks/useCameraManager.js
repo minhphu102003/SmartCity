@@ -11,8 +11,7 @@ export const useCameraManager = () => {
 
   const { notify } = useContext(MethodContext);
 
-  useEffect(() => {
-    const fetchData = async () => {
+      const fetchData = async () => {
       try {
         const data = await getCameras({ page: 1, limit: 20 });
         setCameras(data?.data || []);
@@ -23,6 +22,8 @@ export const useCameraManager = () => {
         setLoading(false);
       }
     };
+
+  useEffect(() => {
 
     fetchData();
   }, [notify]);
@@ -50,12 +51,14 @@ export const useCameraManager = () => {
 
   const confirmUpdate = async (updatedCam) => {
     try {
+      console.log(updatedCam);
       const updated = await updateCamera(updatedCam._id, updatedCam);
       setCameras((prev) =>
         prev.map((c) => (c._id === updated._id ? updated : c))
       );
       setCameraToEdit(null);
       notify('Camera updated successfully!', 'success');
+      await fetchData();
     } catch (error) {
       console.error('Failed to update camera:', error);
       notify('Failed to update camera.', 'error');

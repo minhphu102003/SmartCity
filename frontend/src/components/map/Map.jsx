@@ -1,129 +1,102 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import ReactMapGL, { GeolocateControl, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { AnimatePresence } from 'framer-motion';
 import useRoutes from '../../hooks/useRoutes';
-import { DEFAULT_VIEWPORT, MAP_STYLE, MAP_BOX_API } from '../../constants';
+import { MAP_STYLE, MAP_BOX_API } from '../../constants';
 import { getUserLocation } from '../../utils/mapUtils';
-import { getPlace } from '../../utils/placeUtils';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import WeatherModal from '../modals/WeatherModal';
-import useWeatherSuggest from '../../hooks/userWeather';
 import MapMarkers from '../marker/MapMarkers';
 import ContextMenu from '../menu/ContextMenu';
 import NotificationPopup from '../popup/NotificationPopup';
-import { createNotification } from '../../services/notification';
 import { TopControls } from '../controlMap';
 import { RouteLayers, RouteModal } from '../route';
 import { useFloodData } from '../../hooks/useFloodData';
+import { useMapHandlers } from '../../hooks/useMapHandlers';
+import { useMapViewport } from '../../hooks/useMapViewport';
+import { useWeatherModal } from '../../hooks/useWeatherModal';
+import { useNavigationToast } from '../../hooks/useNavigationToast';
+import { useLocationSelector } from '../../hooks/useLocationSelector';
+import { CameraModal } from '../modal';
+import { createCamera } from '../../services/camera';
+import MethodProvider from '../../context/methodProvider';
 
 const Map = ({ isAuth = false }) => {
-  const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
-  const [userLocation, setUserLocation] = useState(null);
   const [isRouteVisible, setIsRouteVisible] = useState(false);
   const [startMarker, setStartMarker] = useState(null);
   const [endMarker, setEndMarker] = useState(null);
   const [focusedInput, setFocusedInput] = useState(null);
   const [places, setPlaces] = useState([]);
-  const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
   const mapRef = useRef(null);
-  const location = useLocation();
-  const navigate = useNavigate();
   const [selectedReport, setSelectedReport] = useState(null);
-  const [zoom, setZoom] = useState(DEFAULT_VIEWPORT.zoom);
   const [contextMenu, setContextMenu] = useState(null);
-  const [notificationPopup, setNotificationPopup] = useState(null);
-  const hasShownWeatherModal = useRef(false);
+  const [cameraFormLocation, setCameraFormLocation] = useState(null);
+  const { notify } = useContext(MethodProvider);
 
-  const { cameras, reports, shouldShake, latestMessage } = useFloodData(userLocation);
+  const {
+    viewport,
+    setViewport,
+    zoom,
+    userLocation,
+    setUserLocation,
+    handleViewportChange,
+    handleGeolocate,
+  } = useMapViewport();
 
+  const { cameras, reports, shouldShake, latestMessage, refetchCameras } =
+    useFloodData(userLocation);
+
+  const {
+    notificationPopup,
+    handleCreateNotification,
+    handleSubmitNotification,
+    setNotificationPopup,
+  } = useMapHandlers(contextMenu);
+
+  useNavigationToast();
+  const { handleSelectLocation } = useLocationSelector(
+    setStartMarker,
+    setEndMarker,
+    setUserLocation,
+    mapRef,
+    setViewport,
+    focusedInput
+  );
 
   useEffect(() => {
     getUserLocation(setUserLocation, setViewport);
   }, []);
 
-  const handleCreateNotification = (longitude, latitude) => {
-    setNotificationPopup({
-      x: contextMenu.x,
-      y: contextMenu.y,
-      longitude,
-      latitude,
-    });
-  };
-
-  const handleSubmitNotification = async (data) => {
-    try {
-      const response = await createNotification(data);
-      console.log('Notification created:', response);
-      toast.success('Notification created successfully!');
-    } catch (error) {
-      console.error('Error creating notification:', error);
-      toast.error('Failed to create notification. Please try again.');
-    }
-  };
-
-  const handleViewportChange = (evt) => {
-    setViewport(evt.viewState);
-    setZoom(evt.viewState.zoom);
-  };
-
-  const { data: weatherData } = useWeatherSuggest(
-    userLocation?.latitude,
-    userLocation?.longitude
-  );
+  const { isWeatherModalOpen, setIsWeatherModalOpen, weatherData } =
+    useWeatherModal(userLocation);
 
   const { routes, geoJsonRoutes, resetRoutes } = useRoutes(
     startMarker,
     endMarker
   );
 
-  useEffect(() => {
-    if (weatherData && !hasShownWeatherModal.current) {
-      setIsWeatherModalOpen(true);
-      hasShownWeatherModal.current = true;
-    }
-  }, [weatherData]);
-
-  useEffect(() => {
-    if (location.state?.toastMessage) {
-      toast(location.state.toastMessage, {
-        type: location.state.statusMessage === 'success' ? 'success' : 'error',
-      });
-
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location, navigate]);
-
-  const handleSelectLocation = (lat, lng, description) => {
-    const newLocation = { latitude: lat, longitude: lng, description };
-
-    if (focusedInput === 'start') {
-      setStartMarker(newLocation);
-    } else if (focusedInput === 'end') {
-      setEndMarker(newLocation);
-    } else {
-      setUserLocation(newLocation);
-    }
-    if (mapRef.current && lat && lng) {
-      mapRef.current.flyTo({
-        center: [lng, lat],
-        zoom: 16,
-        speed: 1.2,
-        curve: 1.5,
-        essential: true,
-      });
-    }
-    setViewport({ latitude: lat, longitude: lng, zoom: 16 });
+  const handleCreateCamera = (longitude, latitude) => {
+    setCameraFormLocation({ longitude, latitude });
   };
 
-  const handleGeolocate = async (event) => {
-    const { latitude, longitude } = event.coords;
-    setViewport({ latitude, longitude, zoom: 16 });
-    setUserLocation({ latitude, longitude });
-    setPlaces(await getPlace(latitude, longitude));
-  };
+  const handleCameraFormSubmit = async (payload) => {
+    try {
+      const res = await createCamera(payload);
+      if (res?.success) {
+        console.log(res?.data);
+        notify('Create camera successfully!', 'success');
+        console.log(cameras)
+        await refetchCameras();
+        console.log(cameras)
+        setCameraFormLocation(null);
+      } else {
+        notify('Create camera failure!', 'fail');
+      }
+    } catch (err) {
+      notify('Create camera failure!', 'fail');
+    }
+  }
 
   return (
     <div className="relative h-full w-full">
@@ -200,12 +173,25 @@ const Map = ({ isAuth = false }) => {
         {contextMenu && (
           <ContextMenu
             contextMenu={contextMenu}
-            setStartMarker={setStartMarker}
-            setEndMarker={setEndMarker}
-            onClose={() => setContextMenu(null)}
+            onCreateCamera={handleCreateCamera}
             onCreateNotification={handleCreateNotification}
+            // onToggleRoadSegment={handleToggleRoadSegment}
+            onClose={() => setContextMenu(null)}
           />
         )}
+
+        {cameraFormLocation && (
+          <CameraModal
+            initialData={{
+              latitude: cameraFormLocation.latitude,
+              longitude: cameraFormLocation.longitude,
+            }}
+            onClose={() => setCameraFormLocation(null)}
+            onSubmit={handleCameraFormSubmit}
+            mode="create"
+          />
+        )}
+
         {notificationPopup && (
           <NotificationPopup
             x={notificationPopup.x}
