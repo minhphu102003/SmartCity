@@ -14,8 +14,7 @@ export const useFloodData = (userLocation) => {
 
   const { messages } = useWebSocket();
 
-  useEffect(() => {
-    const fetchCameras = async () => {
+      const fetchCameras = async () => {
       if (!userLocation) return;
       try {
         const response = await getCameras({
@@ -23,13 +22,15 @@ export const useFloodData = (userLocation) => {
           longitude: userLocation.longitude,
           distance: 5,
           page: 1,
-          limit: 20,
+          limit: 50,
         });
         setCameras(response?.data || []);
       } catch (error) {
         console.error('Error fetching cameras:', error);
       }
     };
+
+  useEffect(() => {
 
     fetchCameras();
   }, [userLocation]);
@@ -103,5 +104,7 @@ export const useFloodData = (userLocation) => {
     reports,
     shouldShake,
     latestMessage,
+    setCameras,
+    refetchCameras: fetchCameras,
   };
 };

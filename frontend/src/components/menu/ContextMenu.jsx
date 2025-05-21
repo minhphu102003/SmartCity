@@ -2,11 +2,10 @@ import React from 'react';
 
 const ContextMenu = ({
   contextMenu,
-  setStartMarker,
-  setEndMarker,
-  onClose,
+  onToggleRoadSegment,
   onCreateCamera,
   onCreateNotification,
+  onClose,
 }) => {
   if (!contextMenu) return null;
 
@@ -18,26 +17,11 @@ const ContextMenu = ({
       <button
         className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-200"
         onClick={() => {
-          setStartMarker({
-            longitude: contextMenu.longitude,
-            latitude: contextMenu.latitude,
-          });
+          onToggleRoadSegment(contextMenu.longitude, contextMenu.latitude);
           onClose();
         }}
       >
-        Set as Start Point
-      </button>
-      <button
-        className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-200"
-        onClick={() => {
-          setEndMarker({
-            longitude: contextMenu.longitude,
-            latitude: contextMenu.latitude,
-          });
-          onClose();
-        }}
-      >
-        Set as Destination
+        Toggle View RoadSegment
       </button>
       <button
         className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-200"

@@ -1,16 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaPlayCircle, FaEyeSlash, FaMapMarkerAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getYoutubeEmbedUrl } from '../../utils/youtube';
 import MapPickerModal from './MapPickerModal';
 
-const UpdateCameraModal = ({ camera, onClose, onUpdate }) => {
+const CameraModal = ({
+  initialData = {},
+  onClose,
+  onSubmit,
+  mode = 'create',
+}) => {
   const [formData, setFormData] = useState({
-    link: camera.link || '',
-    status: camera.status || '',
-    latitude: camera.latitude || null,
-    longitude: camera.longitude || null,
+    link: '',
+    status: 'true',
+    latitude: null,
+    longitude: null,
+    installation_date: '',
   });
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      _id: initialData._id || '',
+      link: initialData.link || '',
+      status: String(initialData.status ?? 'true'),
+      latitude: initialData.latitude || null,
+      longitude: initialData.longitude || null,
+      installation_date: initialData.installation_date || '',
+    }));
+  }, []);
 
   const [showPreview, setShowPreview] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
@@ -23,7 +41,6 @@ const UpdateCameraModal = ({ camera, onClose, onUpdate }) => {
       ...prev,
       [name]: value,
     }));
-
     if (name === 'link') {
       setShowPreview(false);
     }
@@ -31,15 +48,11 @@ const UpdateCameraModal = ({ camera, onClose, onUpdate }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onUpdate({ ...camera, ...formData });
-  };
-
-  const togglePreview = () => {
-    setShowPreview((prev) => !prev);
-  };
-
-  const handlePickLocation = () => {
-    setShowMapModal(true);
+    const payload = {
+      ...formData,
+      status: formData.status === 'true',
+    };
+    onSubmit(payload);
   };
 
   const handleLocationSelected = ({ lat, lng }) => {
@@ -52,18 +65,19 @@ const UpdateCameraModal = ({ camera, onClose, onUpdate }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        className="bg-white p-6 rounded shadow-lg max-w-xl w-full"
+        className="w-full max-w-xl rounded bg-white p-6 shadow-lg"
       >
-        <h2 className="text-lg font-semibold mb-4">Update Camera</h2>
+        <h2 className="mb-4 text-lg font-semibold">
+          {mode === 'create' ? 'Create Camera' : 'Update Camera'}
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Link + Preview */}
           <div>
             <label className="block text-sm font-medium">Camera Link</label>
             <input
@@ -71,15 +85,15 @@ const UpdateCameraModal = ({ camera, onClose, onUpdate }) => {
               name="link"
               value={formData.link}
               onChange={handleChange}
-              className="w-full border px-3 py-2 rounded mt-1"
+              className="mt-1 w-full rounded border px-3 py-2"
               placeholder="https://www.youtube.com/watch?v=..."
               required
             />
             {embedUrl && (
               <button
                 type="button"
-                onClick={togglePreview}
-                className="flex items-center gap-2 mt-2 text-white bg-blue-600 px-3 py-1.5 rounded hover:bg-blue-700 transition"
+                onClick={() => setShowPreview(!showPreview)}
+                className="mt-2 flex items-center gap-2 rounded bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700"
               >
                 {showPreview ? <FaEyeSlash /> : <FaPlayCircle />}
                 {showPreview ? 'Hide Preview' : 'Preview Video'}
@@ -97,11 +111,11 @@ const UpdateCameraModal = ({ camera, onClose, onUpdate }) => {
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="w-full aspect-video mt-2">
+                <div className="mt-2 aspect-video w-full">
                   <iframe
                     src={embedUrl}
                     title="YouTube Preview"
-                    className="w-full h-full rounded border"
+                    className="h-full w-full rounded border"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
@@ -110,24 +124,26 @@ const UpdateCameraModal = ({ camera, onClose, onUpdate }) => {
             )}
           </AnimatePresence>
 
-          <div>
-            <label className="block text-sm font-medium">Location</label>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handlePickLocation}
-                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-              >
-                <FaMapMarkerAlt />
-                Pick Location on Map
-              </button>
-              {formData.latitude && formData.longitude && (
-                <span className="text-sm text-gray-700">
-                  ({formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)})
-                </span>
-              )}
+          {mode !== 'create' && (
+            <div>
+              <label className="block text-sm font-medium">Location</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMapModal(true)}
+                  className="flex items-center gap-2 rounded bg-green-600 px-3 py-2 text-white hover:bg-green-700"
+                >
+                  <FaMapMarkerAlt />
+                  Pick Location on Map
+                </button>
+                {formData.latitude && formData.longitude && (
+                  <span className="text-sm text-gray-700">
+                    ({formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)})
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium">Status</label>
@@ -135,29 +151,41 @@ const UpdateCameraModal = ({ camera, onClose, onUpdate }) => {
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full border px-3 py-2 rounded mt-1"
+              className="mt-1 w-full rounded border px-3 py-2"
               required
             >
-              <option value="">Select status</option>
               <option value="true">Active</option>
               <option value="false">Inactive</option>
             </select>
           </div>
 
-          {/* Buttons */}
+          {mode === 'create' && (
+            <div>
+              <label className="block text-sm font-medium">Installation Date</label>
+              <input
+                type="date"
+                name="installation_date"
+                value={formData.installation_date}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded mt-1"
+                required
+              />
+            </div>
+          )}
+
           <div className="flex justify-end space-x-4 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
-              Update
+              {mode === 'create' ? 'Create' : 'Update'}
             </button>
           </div>
         </form>
@@ -177,4 +205,4 @@ const UpdateCameraModal = ({ camera, onClose, onUpdate }) => {
   );
 };
 
-export default UpdateCameraModal;
+export default CameraModal;
