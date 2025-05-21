@@ -5,3 +5,7 @@
 /uploads
 /client.properties
 *.csv
+*.geojson
+*.json
+__pycache__
+outputs
