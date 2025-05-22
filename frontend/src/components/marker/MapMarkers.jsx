@@ -20,6 +20,7 @@ const MapMarkers = ({
   selectedReport,
   setSelectedReport,
   zoom,
+  roadSegments
 }) => {
   const [geojsonData, setGeojsonData] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
@@ -81,6 +82,30 @@ const MapMarkers = ({
         <Marker longitude={endMarker.longitude} latitude={endMarker.latitude}>
           <MapIcon icon={faMapMarkerAlt} className="text-3xl text-red-500" />
         </Marker>
+      )}
+
+      {roadSegments.length > 0 && (
+        <Source
+          id="road-segments"
+          type="geojson"
+          data={{
+            type: "FeatureCollection",
+            features: roadSegments.map((segment) => ({
+              type: "Feature",
+              geometry: segment.roadSegmentLine,
+              properties: {},
+            })),
+          }}
+        >
+          <Layer
+            id="road-segment-layer"
+            type="line"
+            paint={{
+              "line-color": "#FFA500",
+              "line-width": 4,
+            }}
+          />
+        </Source>
       )}
 
       {places && <PlacesMarkers places={places} />}

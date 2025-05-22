@@ -21,6 +21,7 @@ import { useLocationSelector } from '../../hooks/useLocationSelector';
 import { CameraModal } from '../modal';
 import { createCamera } from '../../services/camera';
 import MethodProvider from '../../context/methodProvider';
+import { getRoadSegments } from '../../services/roadSegment';
 
 const Map = ({ isAuth = false }) => {
   const [isRouteVisible, setIsRouteVisible] = useState(false);
@@ -28,9 +29,11 @@ const Map = ({ isAuth = false }) => {
   const [endMarker, setEndMarker] = useState(null);
   const [focusedInput, setFocusedInput] = useState(null);
   const [places, setPlaces] = useState([]);
+  const [roadSegment, setRoadSegment] = useState([]);
   const mapRef = useRef(null);
   const [selectedReport, setSelectedReport] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
+  const [visibleRoadSegment, setVisibleRoadSegment] = useState(null);
   const [cameraFormLocation, setCameraFormLocation] = useState(null);
   const { notify } = useContext(MethodProvider);
 
@@ -68,6 +71,18 @@ const Map = ({ isAuth = false }) => {
     getUserLocation(setUserLocation, setViewport);
   }, []);
 
+  const handleToggleRoadSegment = async (longitude, latitude) => {
+    console.log(longitude, latitude);
+    if (visibleRoadSegment && visibleRoadSegment.longitude === longitude && visibleRoadSegment.latitude === latitude) {
+      setVisibleRoadSegment(null);
+      setRoadSegment([]);
+    } else {
+      const data = await getRoadSegments({ longitude, latitude });
+      setRoadSegment(data?.data);
+      setVisibleRoadSegment({ longitude, latitude, data });
+    }
+  };
+
   const { isWeatherModalOpen, setIsWeatherModalOpen, weatherData } =
     useWeatherModal(userLocation);
 
@@ -84,11 +99,8 @@ const Map = ({ isAuth = false }) => {
     try {
       const res = await createCamera(payload);
       if (res?.success) {
-        console.log(res?.data);
         notify('Create camera successfully!', 'success');
-        console.log(cameras)
         await refetchCameras();
-        console.log(cameras)
         setCameraFormLocation(null);
       } else {
         notify('Create camera failure!', 'fail');
@@ -173,9 +185,14 @@ const Map = ({ isAuth = false }) => {
         {contextMenu && (
           <ContextMenu
             contextMenu={contextMenu}
+            onToggleRoadSegment={handleToggleRoadSegment}
             onCreateCamera={handleCreateCamera}
             onCreateNotification={handleCreateNotification}
-            // onToggleRoadSegment={handleToggleRoadSegment}
+            isRoadSegmentVisible={
+              visibleRoadSegment &&
+              visibleRoadSegment.latitude === contextMenu.latitude &&
+              visibleRoadSegment.longitude === contextMenu.longitude
+            }
             onClose={() => setContextMenu(null)}
           />
         )}
@@ -212,6 +229,7 @@ const Map = ({ isAuth = false }) => {
           places={places}
           reports={reports}
           cameras={cameras}
+          roadSegments={roadSegment}
           selectedReport={selectedReport}
           setSelectedReport={setSelectedReport}
           zoom={zoom}

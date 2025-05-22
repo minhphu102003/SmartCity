@@ -1,8 +1,7 @@
-import React from 'react';
-
 const ContextMenu = ({
   contextMenu,
   onToggleRoadSegment,
+  isRoadSegmentVisible,
   onCreateCamera,
   onCreateNotification,
   onClose,
@@ -21,7 +20,7 @@ const ContextMenu = ({
           onClose();
         }}
       >
-        Toggle View RoadSegment
+        {isRoadSegmentVisible ? "Hide RoadSegment" : "View RoadSegment"}
       </button>
       <button
         className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-200"

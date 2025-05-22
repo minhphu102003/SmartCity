@@ -19,3 +19,4 @@ export const REPORT_ENDPOINT = '/account-report';
 export const NOTIFICATION_ENDPOINT = '/notification';
 export const CAMERA_REPORT_ENDPOINT= '/camera-report';
 export const REVIEW_REPORT_ENDPOINT= '/account-report-review';
+export const ROAD_SEGMENT_ENDPOINT = '/road-segment';

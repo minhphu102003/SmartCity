@@ -1,57 +1,66 @@
 import mongoose from "mongoose";
 
 const roadSegmentSchema = new mongoose.Schema(
-    {
-      roadName: {
-        type: String,
-      },
-      start_location: {
-        type: {
-          type: String,
-          enum: ["Point"],
-          required: true,
-        },
-        coordinates: {
-          type: [Number],
-          required: true,
-        },
-      },
-      end_location: {
-        type: {
-          type: String,
-          enum: ["Point"],
-          required: true,
-        },
-        coordinates: {
-          type: [Number],
-          required: true,
-        },
-      },
-      roadSegmentLine: { 
-        type: {
-          type: String,
-          enum: ["LineString"],
-          required: true,
-        },
-        coordinates: {
-          type: [[Number]], 
-          required: true,
-        },
-      },
-      reports: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "CameraReport",
-        },
-      ],
+  {
+    roadName: {
+      type: String,
     },
-    {
-      timestamps: true,
-      versionKey: false,
-    }
-  );
-  
-  roadSegmentSchema.index({ "start_location": "2dsphere" });
-  roadSegmentSchema.index({ "end_location": "2dsphere" });
-  
-  export default mongoose.model("RoadSegment", roadSegmentSchema);
+    start_location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        required: true,
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+      },
+    },
+    end_location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        required: true,
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+      },
+    },
+    roadSegmentLine: {
+      type: {
+        type: String,
+        enum: ["LineString"],
+        required: true,
+      },
+      coordinates: {
+        type: [[Number]],
+        required: true,
+      },
+    },
+    reports: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "CameraReport",
+      },
+    ],
+
+    near_river: {
+      type: Number,
+      default: null,
+    },
+    groundwater_level: {
+      type: Number,
+      default: null,
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
+
+roadSegmentSchema.index({ start_location: "2dsphere" });
+roadSegmentSchema.index({ end_location: "2dsphere" });
+
+export default mongoose.model("RoadSegment", roadSegmentSchema);
