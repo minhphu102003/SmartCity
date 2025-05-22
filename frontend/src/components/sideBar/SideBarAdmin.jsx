@@ -2,10 +2,14 @@ import { useState } from "react";
 import { FiHome, FiUsers, FiClipboard, FiMapPin, FiBell, FiCamera, FiMenu } from "react-icons/fi";
 import { PATHS } from '../../constants/paths';
 import SidebarItem from './SidebarItem';
+import { useLocation } from "react-router-dom";
 
 const SidebarComponent = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [selected, setSelected] = useState("Dashboard");
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  console.log(currentPath);
 
   return (
     <div className={`h-screen bg-gray-900 text-white transition-all duration-300 ${isCollapsed ? "w-16" : "w-64"}`}>
@@ -35,8 +39,7 @@ const SidebarComponent = () => {
           title="Dashboard"
           to={PATHS.ADMIN}
           icon={<FiHome className="w-5 h-5" />}
-          selected={selected}
-          setSelected={setSelected}
+          selected={currentPath === PATHS.ADMIN}
           collapsed={isCollapsed}
         />
         {!isCollapsed && (
@@ -46,24 +49,21 @@ const SidebarComponent = () => {
           title="Manage User"
           to={PATHS.MANAGE_USERS}
           icon={<FiUsers className="w-5 h-5" />}
-          selected={selected}
-          setSelected={setSelected}
+          selected={currentPath === PATHS.MANAGE_USERS}
           collapsed={isCollapsed}
         />
         <SidebarItem
           title="Manage Report"
           to={PATHS.MANAGE_REPORTS}
           icon={<FiClipboard className="w-5 h-5" />}
-          selected={selected}
-          setSelected={setSelected}
+          selected={currentPath === PATHS.MANAGE_REPORTS}
           collapsed={isCollapsed}
         />
         <SidebarItem
           title="Manage Places"
           to={PATHS.MANAGE_PLACES}
           icon={<FiMapPin className="w-5 h-5" />}
-          selected={selected}
-          setSelected={setSelected}
+          selected={currentPath === PATHS.MANAGE_PLACES}
           collapsed={isCollapsed}
         />
 
@@ -71,8 +71,7 @@ const SidebarComponent = () => {
           title="Manage Camera"
           to={PATHS.CREATE_CAMERA}
           icon={<FiCamera className="w-5 h-5" />}
-          selected={selected}
-          setSelected={setSelected}
+          selected={currentPath === PATHS.CREATE_CAMERA}
           collapsed={isCollapsed}
         />
 
@@ -83,8 +82,7 @@ const SidebarComponent = () => {
           title="Custom Map"
           to={PATHS.CREATE_NOTIFICATION}
           icon={<FiBell className="w-5 h-5" />}
-          selected={selected}
-          setSelected={setSelected}
+          selected={currentPath === PATHS.CREATE_NOTIFICATION}
           collapsed={isCollapsed}
         />
       </nav>

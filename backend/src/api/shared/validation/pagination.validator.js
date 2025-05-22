@@ -8,6 +8,6 @@ export const paginationValidator = [
 
   query("limit")
     .optional()
-    .isInt({ min: 1, max: 100 })
+    .isInt({ min: 1, max: 1000 })
     .withMessage("Limit must be a positive integer not exceeding 100."),
 ];
