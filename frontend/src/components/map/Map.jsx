@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useContext } from 'react';
+import { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import ReactMapGL, { GeolocateControl, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { AnimatePresence } from 'framer-motion';
@@ -23,6 +23,12 @@ import { createCamera } from '../../services/camera';
 import MethodProvider from '../../context/methodProvider';
 import { getRoadSegments } from '../../services/roadSegment';
 
+const MapLoadingOverlay = () => (
+  <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 pointer-events-none">
+    <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-500 border-opacity-75" />
+  </div>
+);
+
 const Map = ({ isAuth = false }) => {
   const [isRouteVisible, setIsRouteVisible] = useState(false);
   const [startMarker, setStartMarker] = useState(null);
@@ -35,7 +41,15 @@ const Map = ({ isAuth = false }) => {
   const [contextMenu, setContextMenu] = useState(null);
   const [visibleRoadSegment, setVisibleRoadSegment] = useState(null);
   const [cameraFormLocation, setCameraFormLocation] = useState(null);
+  const [isLoadingSegment, setIsLoadingSegment] = useState(false);
   const { notify } = useContext(MethodProvider);
+  const [hoveredId, setHoveredId] = useState(null);
+  const [selectedSegmentId, setSelectedSegmentId] = useState(null);
+
+  const onHover = useCallback((event) => {
+    const feature = event.features?.[0];
+    setHoveredId(feature?.properties?.id || null);
+  }, []);
 
   const {
     viewport,
@@ -72,14 +86,30 @@ const Map = ({ isAuth = false }) => {
   }, []);
 
   const handleToggleRoadSegment = async (longitude, latitude) => {
-    console.log(longitude, latitude);
-    if (visibleRoadSegment && visibleRoadSegment.longitude === longitude && visibleRoadSegment.latitude === latitude) {
+    const mapContainer = mapRef?.current?.getMap()?.getContainer();
+
+    if (
+      visibleRoadSegment &&
+      visibleRoadSegment.longitude === longitude &&
+      visibleRoadSegment.latitude === latitude
+    ) {
       setVisibleRoadSegment(null);
       setRoadSegment([]);
     } else {
-      const data = await getRoadSegments({ longitude, latitude });
-      setRoadSegment(data?.data);
-      setVisibleRoadSegment({ longitude, latitude, data });
+      setIsLoadingSegment(true);
+
+      if (mapContainer) mapContainer.style.cursor = "progress";
+
+      try {
+        const data = await getRoadSegments({ longitude, latitude });
+        setRoadSegment(data?.data);
+        setVisibleRoadSegment({ longitude, latitude, data });
+      } catch (error) {
+        console.error("Failed to fetch road segments:", error);
+      } finally {
+        setIsLoadingSegment(false);
+        if (mapContainer) mapContainer.style.cursor = "default";
+      }
     }
   };
 
@@ -108,7 +138,7 @@ const Map = ({ isAuth = false }) => {
     } catch (err) {
       notify('Create camera failure!', 'fail');
     }
-  }
+  };
 
   return (
     <div className="relative h-full w-full">
@@ -162,6 +192,8 @@ const Map = ({ isAuth = false }) => {
         mapboxAccessToken={MAP_BOX_API}
         transitionDuration={200}
         onMove={handleViewportChange}
+        interactiveLayerIds={['road-segment-layer']}
+        onMouseMove={onHover}
         onClick={(event) => {
           const { lng, lat } = event.lngLat;
           if (focusedInput === 'start') {
@@ -169,6 +201,16 @@ const Map = ({ isAuth = false }) => {
           } else if (focusedInput === 'end') {
             setEndMarker({ longitude: lng, latitude: lat });
           }
+
+          const features = event.features || [];
+          const roadSegmentFeature = features.find(f => f.layer.id === 'road-segment-layer');
+
+          if (roadSegmentFeature) {
+            const clickedId = roadSegmentFeature.properties.id;
+            setSelectedSegmentId(prev => prev === clickedId ? null : clickedId); // toggle selection
+            return;
+          }
+
         }}
         onContextMenu={(event) => {
           event.preventDefault();
@@ -181,6 +223,7 @@ const Map = ({ isAuth = false }) => {
             latitude: lat,
           });
         }}
+
       >
         {contextMenu && (
           <ContextMenu
@@ -193,7 +236,10 @@ const Map = ({ isAuth = false }) => {
               visibleRoadSegment.latitude === contextMenu.latitude &&
               visibleRoadSegment.longitude === contextMenu.longitude
             }
-            onClose={() => setContextMenu(null)}
+            onClose={() => {
+              setContextMenu(null);
+              setRoadSegment([]);
+            }}
           />
         )}
 
@@ -230,6 +276,9 @@ const Map = ({ isAuth = false }) => {
           reports={reports}
           cameras={cameras}
           roadSegments={roadSegment}
+          hoveredId={hoveredId}
+          selectedSegmentId={selectedSegmentId}
+          setSelectedSegmentId={setSelectedSegmentId}
           selectedReport={selectedReport}
           setSelectedReport={setSelectedReport}
           zoom={zoom}
@@ -242,6 +291,8 @@ const Map = ({ isAuth = false }) => {
           onGeolocate={handleGeolocate}
         />
       </ReactMapGL>
+
+      {isLoadingSegment && <MapLoadingOverlay />}
     </div>
   );
 };

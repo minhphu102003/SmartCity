@@ -4,8 +4,8 @@ import { toast } from "react-toastify";
 let isRefreshingV2 = false;
 
 const instanceV2 = axios.create({
-  baseURL: "http://localhost:8000/api/v2",
-// baseURL:"https://danahub-backend-4ccd2faffe40.herokuapp.com/api/v2",
+  // baseURL: "http://localhost:8000/api/v2",
+baseURL:"https://danahub-backend-4ccd2faffe40.herokuapp.com/api/v2",
 });
 
 instanceV2.interceptors.response.use(
