@@ -1,14 +1,20 @@
-import { useEffect, useState, useRef } from 'react';
-import { Marker, Source, Layer, Popup } from 'react-map-gl';
+import { useEffect, useState, useContext } from 'react';
+import { Marker } from 'react-map-gl';
 import {
   faLocationDot,
   faMapMarkerAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import MapIcon from '../icons/MapIcon';
-import { faCar, faWater, faBell } from '@fortawesome/free-solid-svg-icons';
 import PlacesMarkers from './PlacesMarkers';
-import * as turf from '@turf/turf';
 import CameraMarker from './CameraMarker';
+import RoadSegmentLayer from './RoadSegmentLayer';
+import ReportMarkers from './ReportMarkers';
+import RadiusLayers from './RadiusLayers';
+import { CameraPopup, EditRoadSegmentPopup } from '../popup';
+import { getCircleGeoJSON } from "../../utils/geoUtils";
+import { updateRoadSegment } from '../../services/roadSegment';
+import { recalculateGroundwaterLevel } from '../../utils/normalized';
+import MethodContext from '../../context/methodProvider';
 
 const MapMarkers = ({
   userLocation,
@@ -20,23 +26,21 @@ const MapMarkers = ({
   selectedReport,
   setSelectedReport,
   zoom,
-  roadSegments
+  roadSegments,
+  hoveredId,
+  selectedSegmentId,
+  setSelectedSegmentId
 }) => {
   const [geojsonData, setGeojsonData] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
-  const popupRef = useRef(null);
+  const [editingSegmentData, setEditingSegmentData] = useState({
+    id: null,
+    roadName: '',
+    raiseHeight: '',
+  });
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (popupRef.current && !popupRef.current.contains(e.target)) {
-        setSelectedCamera(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  const { notify } = useContext(MethodContext);
+
 
   useEffect(() => {
     const newGeoJSON = reports.map((report) => ({
@@ -45,18 +49,6 @@ const MapMarkers = ({
     }));
     setGeojsonData(newGeoJSON);
   }, [reports]);
-
-  const getCircleGeoJSON = (longitude, latitude, radiusInKm = 0.1) => {
-    const center = turf.point([longitude, latitude]);
-    const radius = radiusInKm;
-    const options = { steps: 64, units: 'kilometers' };
-    const circle = turf.circle(center, radius, options);
-    return circle;
-  };
-
-  const getScaledSize = (zoom, base = 14, min = 24, max = 60) => {
-    return Math.max(min, Math.min(max, base * zoom));
-  };
 
   return (
     <>
@@ -84,29 +76,50 @@ const MapMarkers = ({
         </Marker>
       )}
 
-      {roadSegments.length > 0 && (
-        <Source
-          id="road-segments"
-          type="geojson"
-          data={{
-            type: "FeatureCollection",
-            features: roadSegments.map((segment) => ({
-              type: "Feature",
-              geometry: segment.roadSegmentLine,
-              properties: {},
-            })),
-          }}
-        >
-          <Layer
-            id="road-segment-layer"
-            type="line"
-            paint={{
-              "line-color": "#FFA500",
-              "line-width": 4,
-            }}
+      <RoadSegmentLayer roadSegments={roadSegments} hoveredId={hoveredId} />
+
+      {selectedSegmentId && (() => {
+        const segment = roadSegments.find(s => s._id === selectedSegmentId);
+        if (!segment) return null;
+
+        const handleSave = async () => {
+          if (!segment) return;
+
+          const updatedRoadName = editingSegmentData.roadName;
+          const raiseHeight = parseFloat(editingSegmentData.raiseHeight);
+
+          const nearRiver = segment.near_river;
+
+          const newGroundwaterLevel = recalculateGroundwaterLevel(nearRiver, raiseHeight);
+
+          const updateData = {
+            roadName: updatedRoadName,
+            groundwater_level: newGroundwaterLevel,
+          };
+
+          try {
+            await updateRoadSegment(segment._id, updateData);
+
+            notify('Updated road segment successfully', 'success');
+          } catch (error) {
+            notify('Updated road segment failure', 'fail');
+          }
+
+          setSelectedSegmentId(null);
+          setEditingSegmentData({ id: null, roadName: '', raiseHeight: '' });
+        };
+
+        return (
+          <EditRoadSegmentPopup
+            segment={segment}
+            editingData={editingSegmentData}
+            setEditingData={setEditingSegmentData}
+            onSave={handleSave}
+            onClose={() => setSelectedSegmentId(null)}
           />
-        </Source>
-      )}
+        );
+      })()}
+
 
       {places && <PlacesMarkers places={places} />}
 
@@ -121,113 +134,22 @@ const MapMarkers = ({
         ))
       }
 
-      {selectedCamera && (
-        <Popup
-          longitude={selectedCamera.longitude}
-          latitude={selectedCamera.latitude}
-          closeOnClick={false}
-          onClose={() => setSelectedCamera(null)}
-          offset={[0, -20]}
-        >
-          <div ref={popupRef} className="w-[300px] h-[200px] relative">
-            <button
-              onClick={() => setSelectedCamera(null)}
-              className="absolute top-1 right-1 text-gray-600 hover:text-red-500 font-bold z-10 bg-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer"
-              aria-label="Close popup"
-            >
-              ×
-            </button>
-            <iframe
-              src={`${selectedCamera.link.replace('watch?v=', 'embed/')}?autoplay=1`}
-              title="Camera Video"
-              allow="autoplay"
-              allowFullScreen
-              className="w-full h-full rounded-md"
-            />
-          </div>
-        </Popup>
-      )}
+      <CameraPopup
+        camera={selectedCamera}
+        onClose={() => setSelectedCamera(null)}
+      />
 
-      {reports.length > 0 &&
-        reports.map((report) => {
-          const type = report?.typeReport?.toLowerCase() || '';
-          let iconColor = 'text-blue-600';
-          let borderColor = 'border-blue-600';
-          let icon = faWater;
+      <ReportMarkers
+        reports={reports}
+        selectedReport={selectedReport}
+        setSelectedReport={setSelectedReport}
+        zoom={zoom}
+      />
 
-          if (type.startsWith('t')) {
-            iconColor = 'text-red-600';
-            borderColor = 'border-red-600';
-            icon = faCar;
-          } else if (type.startsWith('c')) {
-            iconColor = 'text-yellow-600';
-            borderColor = 'border-yellow-600';
-            icon = faBell;
-          }
-
-          return (
-            <Marker
-              key={report.reportId}
-              longitude={report.longitude}
-              latitude={report.latitude}
-            >
-              <div
-                onClick={() =>
-                  setSelectedReport(
-                    selectedReport?.reportId === report.reportId
-                      ? null
-                      : report
-                  )
-                }
-                className="cursor-pointer"
-              >
-                {selectedReport?.reportId === report.reportId ? (
-                  <img
-                    src={report.img || '/placeholder.jpg'}
-                    alt="Report"
-                    className={`rounded-md border-2 ${borderColor} shadow-lg`}
-                    style={{
-                      width: `${getScaledSize(zoom, 15, 80, 200)}px`,
-                      height: `${getScaledSize(zoom, 15, 80, 200)}px`,
-                      objectFit: 'cover',
-                    }}
-                  />
-                ) : (
-                  <MapIcon
-                    icon={icon}
-                    className={`${iconColor}`}
-                    style={{
-                      fontSize: `${getScaledSize(zoom, 2, 16, 48)}px`,
-                    }}
-                  />
-                )}
-              </div>
-            </Marker>
-          );
-        })}
-
-      {geojsonData.map((geo, index) => {
-        const type = reports[index]?.typeReport?.toLowerCase() || '';
-        let fillColor = 'rgba(0, 0, 255, 0.3)';
-        if (type.startsWith('t')) {
-          fillColor = 'rgba(255, 0, 0, 0.3)';
-        } else if (type.startsWith('c')) {
-          fillColor = 'rgba(255, 255, 0, 0.3)';
-        }
-
-        return (
-          <Source key={geo.id} id={geo.id} type="geojson" data={geo.data}>
-            <Layer
-              id={geo.id}
-              type="fill"
-              paint={{
-                'fill-color': fillColor,
-                'fill-opacity': 0.5,
-              }}
-            />
-          </Source>
-        );
-      })}
+      <RadiusLayers
+        geojsonData={geojsonData}
+        reports={reports}
+      />
     </>
   );
 };
