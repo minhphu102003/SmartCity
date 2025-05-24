@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PATHS } from '../../constants';
@@ -47,6 +47,8 @@ const AuthButton = ({ onSelectLocation, shouldShake, latestMessage }) => {
       setNotificationList(notifications);
     } catch (error) {
       console.error('Failed to fetch notifications', error);
+      setNotificationCount(0);
+      setNotificationList([]);
     }
   };
 

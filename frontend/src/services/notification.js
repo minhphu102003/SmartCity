@@ -42,14 +42,21 @@ export const createNotification = async (data) => {
     const token = authData?.token;
 
     const formData = new FormData();
-    formData.append("message", data.message);
-    formData.append("latitude", data.latitude);
-    formData.append("longitude", data.longitude);
-    if (data.img) {
-      console.log('true');
+    formData.append("title", data.title || '');
+    formData.append("message", data.message || '');
+    formData.append("latitude", data.latitude.toString());
+    formData.append("longitude", data.longitude.toString());
+    if (data.img instanceof File) {
+      console.log("Appending image:", data.img.name);
       formData.append("img", data.img);
+    } else {
+      console.warn("No valid image found");
     }
-    console.log(formData);
+
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ':', pair[1]);
+    }
+
     const response = await request.post(NOTIFICATION_ENDPOINT, formData, {
       headers: {
         'x-access-token': token,

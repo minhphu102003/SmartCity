@@ -1,5 +1,5 @@
-import { useEffect, useState, useContext } from 'react';
-import { Marker } from 'react-map-gl';
+import React, { useEffect, useState, useContext } from 'react';
+import { Marker, Source, Layer } from 'react-map-gl';
 import {
   faLocationDot,
   faMapMarkerAlt,
@@ -15,6 +15,8 @@ import { getCircleGeoJSON } from "../../utils/geoUtils";
 import { updateRoadSegment } from '../../services/roadSegment';
 import { recalculateGroundwaterLevel } from '../../utils/normalized';
 import MethodContext from '../../context/methodProvider';
+import buffer from '@turf/buffer';
+import { lineString } from '@turf/helpers';
 
 const MapMarkers = ({
   userLocation,
@@ -29,7 +31,8 @@ const MapMarkers = ({
   roadSegments,
   hoveredId,
   selectedSegmentId,
-  setSelectedSegmentId
+  setSelectedSegmentId,
+  predictions,
 }) => {
   const [geojsonData, setGeojsonData] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
@@ -75,6 +78,49 @@ const MapMarkers = ({
           <MapIcon icon={faMapMarkerAlt} className="text-3xl text-red-500" />
         </Marker>
       )}
+
+      {predictions.map((predict) => {
+        const lineCoords = predict.coordinates.map(({ lng, lat }) => [lng, lat]);
+        const lineFeature = lineString(lineCoords);
+        const buffered = buffer(lineFeature, 0.0002, { units: 'degrees' });
+
+        return (
+          <React.Fragment key={predict.id}>
+
+            <Source type="geojson" data={buffered}>
+              <Layer
+                id={`buffer-${predict.id}`}
+                type="fill"
+                paint={{
+                  'fill-color': '#FFA500',
+                  'fill-opacity': 0.5,
+                }}
+              />
+            </Source>
+
+            <Source
+              type="geojson"
+              data={{
+                type: 'Feature',
+                geometry: {
+                  type: 'LineString',
+                  coordinates: lineCoords,
+                },
+              }}
+            >
+              <Layer
+                id={`prediction-line-${predict.id}`}
+                type="line"
+                paint={{
+                  'line-color': '#FFA500',
+                  'line-width': 4,
+                  'line-dasharray': [2, 2],
+                }}
+              />
+            </Source>
+          </React.Fragment>
+        );
+      })}
 
       <RoadSegmentLayer roadSegments={roadSegments} hoveredId={hoveredId} />
 

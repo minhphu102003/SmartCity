@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Bell, XCircle } from "lucide-react"; 
+import { Bell, XCircle } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { updateNotification } from '../../services/notification';
@@ -12,10 +12,9 @@ const Notifications = ({ onClose, onSelectLocation, notificationList = [], setNo
   const [readNotifications, setReadNotifications] = useState({});
 
   const sortedNotifications = [...notificationList].sort((a, b) => b.timestamp - a.timestamp);
-  console.log(notificationList);
   const handleReadNotification = async (timestamp, id, title) => {
     try {
-      await updateNotification(id, { title: title ?? 'Traffic Jam notification' ,  status: "READ" });
+      await updateNotification(id, { title: title ?? 'Traffic Jam notification', status: "READ" });
 
       setReadNotifications((prev) => ({ ...prev, [timestamp]: true }));
 
@@ -61,41 +60,44 @@ const Notifications = ({ onClose, onSelectLocation, notificationList = [], setNo
       </div>
 
       <ul className="space-y-2 max-h-72 overflow-y-auto">
-        {sortedNotifications.map((notif) => (
-          <li
-            key={notif.timestamp.toString()}  
-            className={`flex items-center p-3 rounded-lg cursor-pointer border ${
-              readNotifications[notif.timestamp.toString()] || notif.status !== "PENDING"
-                ? "bg-gray-100 border-gray-200"
-                : "bg-blue-50 border-blue-300"
-            } hover:bg-gray-200 transition-all`}
-            onClick={ async ()  => {
-              if (notif?._id) {
-                await handleReadNotification(notif.timestamp.toString() , notif?._id, notif?.title); 
-              }
-              if (typeof onSelectLocation === "function") {
-                onSelectLocation(
-                  notif.latitude,
-                  notif.longitude,
-                  notif?.content || notif?.message
-                );
-              }
-            }}
-          >
-            <div className="mr-3">
-              {readNotifications[notif.timestamp.toString()] || notif.status !== "PENDING" ? (
-                <XCircle className="w-6 h-6 text-red-500" />
-              ) : (
-                <Bell className="w-6 h-6 text-blue-500" />
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">{notif.title || 'Traffic Jam notification'}</p>
-              <p className="text-xs text-gray-500">{notif?.content || notif?.message}</p>
-              <p className="text-xs text-gray-400">{dayjs(notif.timestamp).fromNow()}</p>
-            </div>
-          </li>
-        ))}
+        {sortedNotifications.length === 0 ? (
+          <li className="text-center text-gray-500 py-4">No notifications available</li>
+        ) : (
+          sortedNotifications.map((notif) => (
+            <li
+              key={notif.timestamp.toString()}
+              className={`flex items-center p-3 rounded-lg cursor-pointer border ${readNotifications[notif.timestamp.toString()] || notif.status !== "PENDING"
+                  ? "bg-gray-100 border-gray-200"
+                  : "bg-blue-50 border-blue-300"
+                } hover:bg-gray-200 transition-all`}
+              onClick={async () => {
+                if (notif?._id) {
+                  await handleReadNotification(notif.timestamp.toString(), notif?._id, notif?.title);
+                }
+                if (typeof onSelectLocation === "function") {
+                  onSelectLocation(
+                    notif.latitude,
+                    notif.longitude,
+                    notif?.content || notif?.message
+                  );
+                }
+              }}
+            >
+              <div className="mr-3">
+                {readNotifications[notif.timestamp.toString()] || notif.status !== "PENDING" ? (
+                  <XCircle className="w-6 h-6 text-red-500" />
+                ) : (
+                  <Bell className="w-6 h-6 text-blue-500" />
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{notif.title || 'Traffic Jam notification'}</p>
+                <p className="text-xs text-gray-500">{notif?.content || notif?.message}</p>
+                <p className="text-xs text-gray-400">{dayjs(notif.timestamp).fromNow()}</p>
+              </div>
+            </li>
+          ))
+        )}
       </ul>
     </motion.div>
   );
