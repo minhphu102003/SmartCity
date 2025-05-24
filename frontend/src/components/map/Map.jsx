@@ -61,7 +61,7 @@ const Map = ({ isAuth = false }) => {
     handleGeolocate,
   } = useMapViewport();
 
-  const { cameras, reports, shouldShake, latestMessage, refetchCameras } =
+  const { cameras, reports, shouldShake, latestMessage, predictions,  refetchCameras } =
     useFloodData(userLocation);
 
   const {
@@ -282,6 +282,7 @@ const Map = ({ isAuth = false }) => {
           selectedReport={selectedReport}
           setSelectedReport={setSelectedReport}
           zoom={zoom}
+          predictions={predictions}
         />
 
         <NavigationControl position="bottom-right" />

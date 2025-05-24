@@ -16,6 +16,7 @@ export const useMapHandlers = (contextMenu) => {
 
   const handleSubmitNotification = async (data) => {
     try {
+      console.log(data)
       const response = await createNotification(data);
       console.log('Notification created:', response);
       toast.success('Notification created successfully!');

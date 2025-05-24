@@ -17,6 +17,8 @@ const EditRoadSegmentPopup = ({
     });
   }, [segment, setEditingData]);
 
+  console.log(segment._id);
+
   if (!segment) return null;
 
   const [lng, lat] = segment.roadSegmentLine.coordinates[0];
