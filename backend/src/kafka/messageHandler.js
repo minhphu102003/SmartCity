@@ -1,8 +1,9 @@
-import CameraReport from '../api/v1/models/cameraReport.js';
-import AccountReport from '../api/v1/models/accountReport.js';
-import { buildNotificationMessage } from '../api/shared/utils/notification.js';
-import { notifyUsersInRange } from '../api/shared/utils/notifyUsersInRange.js';
-import { NOTIFICATION_FIELDS, NOTIFICATION_TYPES } from './constants.js';
+import CameraReport from "../api/v1/models/cameraReport.js";
+import AccountReport from "../api/v1/models/accountReport.js";
+import Notification from "../api/v1/models/notification.js";
+import { buildNotificationMessage } from "../api/shared/utils/notification.js";
+import { notifyUsersInRange } from "../api/shared/utils/notifyUsersInRange.js";
+import { NOTIFICATION_FIELDS, NOTIFICATION_TYPES } from "./constants.js";
 
 export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
   const {
@@ -50,7 +51,7 @@ export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
       img,
     });
   } else if (type === NOTIFICATION_TYPES.USER_REPORT) {
-    console.log('debug');
+    console.log("debug");
     if (reportId) {
       await AccountReport.findByIdAndUpdate(reportId, {
         analysisStatus: true,
@@ -76,10 +77,10 @@ export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
       longitude,
       img,
     });
-    
   } else if (type === NOTIFICATION_TYPES.CREATE_NOTIFICATION) {
-    const { type, ...notification } = data;
-    notification.typeReport = NOTIFICATION_TYPES.CREATE_NOTIFICATION;
-    sendMessageToFrontend(notification);
+    const { type, ...notificationData } = data;
+
+    notificationData.typeReport = NOTIFICATION_TYPES.CREATE_NOTIFICATION;
+    sendMessageToFrontend(notificationData);
   }
 };

@@ -38,6 +38,8 @@ const Camera = () => {
         setSelectedCity={setSelectedCity}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        camera={cameras}
+        loading={loading}
       />
 
       <div className="px-20">
@@ -69,7 +71,6 @@ const Camera = () => {
         )}
       </div>
 
-      {/* Camera Detail Modal */}
       <CameraDetailModal
         isOpen={!!selectedCameraDetail}
         onClose={handleCloseDetail}

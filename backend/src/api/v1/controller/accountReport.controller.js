@@ -19,6 +19,7 @@ export const getAccountReports = async (req, res) => {
       endDate,
       analysisStatus,
       hasReview,
+      guest,
     } = req.query;
 
     const query = {};
@@ -55,10 +56,21 @@ export const getAccountReports = async (req, res) => {
     );
 
     let filteredReports = reportsWithVirtuals;
+
     if (hasReview === "true") {
-      filteredReports = reportsWithVirtuals.filter(
+      filteredReports = filteredReports.filter(
         (r) => Array.isArray(r.reviews) && r.reviews.length > 0
       );
+    }
+
+    if (guest === "true") {
+      filteredReports = filteredReports.filter((report) => {
+        const hasReview = Array.isArray(report.reviews) && report.reviews.length > 0;
+        const noApprove = report.reviews.every(
+          (review) => review.status !== "APPROVE"
+        );
+        return hasReview && noApprove;
+      });
     }
 
     const totalReports = filteredReports.length;

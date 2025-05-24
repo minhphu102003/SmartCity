@@ -23,7 +23,8 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime"
 import FullscreenIcon from "@mui/icons-material/Fullscreen"
 import ShareIcon from "@mui/icons-material/Share"
 import { Flag } from 'lucide-react'
-import { vi } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale';
+import { useReverseGeocode } from '../../hooks/useReverseGeocode';
 
 
 const StyledCard = styled(motion(Card))(({ theme }) => ({
@@ -122,14 +123,18 @@ const getCongestionLabel = (level) => {
 
 const ReportCard = ({ report, onReport }) => {
   const { user, content, images, status, createdAt, location, congestionLevel } = report
-  const theme = useTheme()
+  const theme = useTheme();
+
+  const [lat, lng] = location.split(',').map(Number);
+
+  const { address, loading } = useReverseGeocode(lat, lng);
 
   const timeAgo = formatDistanceToNow(new Date(createdAt), {
     addSuffix: true,
-    locale: vi,
+    locale: enUS,
   })
 
-  const formattedDate = format(new Date(createdAt), 'PPpp', { locale: vi })
+  const formattedDate = format(new Date(createdAt), 'PPpp', { locale: enUS })
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -143,7 +148,7 @@ const ReportCard = ({ report, onReport }) => {
   return (
     <StyledCard initial="hidden" animate="visible" variants={cardVariants}>
       <CardContent sx={{ p: 3 }}>
-       
+
         <Box className="flex items-center justify-between mb-4">
           <Box className="flex items-center">
             <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.2 }}>
@@ -241,8 +246,8 @@ const ReportCard = ({ report, onReport }) => {
                   }}
                 >
                   <Tooltip title="View full size">
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       sx={{ color: "white" }}
                       onClick={() => window.open(image, '_blank')}
                     >
@@ -262,7 +267,9 @@ const ReportCard = ({ report, onReport }) => {
             <Tooltip title="View on map">
               <InfoItem>
                 <LocationOnIcon />
-                <Typography variant="body2">{location}</Typography>
+                <Typography variant="body2">
+                  {loading ? 'Loading address...' : address}
+                </Typography>
               </InfoItem>
             </Tooltip>
             <Tooltip title="Share report">
@@ -271,7 +278,7 @@ const ReportCard = ({ report, onReport }) => {
               </IconButton>
             </Tooltip>
           </Box>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          {/* <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="contained"
               color="error"
@@ -288,7 +295,7 @@ const ReportCard = ({ report, onReport }) => {
             >
               Report
             </Button>
-          </motion.div>
+          </motion.div> */}
         </Box>
       </CardContent>
     </StyledCard>

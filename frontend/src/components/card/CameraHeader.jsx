@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { Search, MapPin, ChevronDown, Camera } from "lucide-react"
 import { CITIES } from "../../constants"
 
-const CameraHeader = ({ selectedCity, setSelectedCity, searchTerm, setSearchTerm }) => {
+const CameraHeader = ({ selectedCity, setSelectedCity, searchTerm, setSearchTerm, cameras, loading }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   return (
@@ -19,26 +19,24 @@ const CameraHeader = ({ selectedCity, setSelectedCity, searchTerm, setSearchTerm
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-2">
           <Camera className="h-6 w-6 text-blue-400" />
-          <h2 className="text-lg font-semibold text-white">Camera Giám Sát</h2>
+          <h2 className="text-lg font-semibold text-white">Surveillance Cameras</h2>
         </div>
 
 
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          {/* Search Input with Animation */}
           <motion.div whileHover={{ scale: 1.02 }} className="relative flex-1 min-w-[200px]">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-gray-400" />
             </div>
             <input
               type="text"
-              placeholder="Tìm kiếm camera..."
+              placeholder="Search cameras..."
               className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-700/70 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-700 transition-all duration-200 border border-gray-600"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </motion.div>
 
-          {/* Custom Dropdown */}
           <div className="relative">
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -51,9 +49,8 @@ const CameraHeader = ({ selectedCity, setSelectedCity, searchTerm, setSearchTerm
                 <span className="truncate">{selectedCity}</span>
               </div>
               <ChevronDown
-                className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
-                  isDropdownOpen ? "transform rotate-180" : ""
-                }`}
+                className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? "transform rotate-180" : ""
+                  }`}
               />
             </motion.button>
 
@@ -73,9 +70,8 @@ const CameraHeader = ({ selectedCity, setSelectedCity, searchTerm, setSearchTerm
                       setSelectedCity(city)
                       setIsDropdownOpen(false)
                     }}
-                    className={`flex items-center w-full px-4 py-2.5 text-left text-sm hover:bg-blue-500/10 transition-colors duration-150 ${
-                      selectedCity === city ? "bg-blue-500/20 text-blue-400" : "text-white"
-                    }`}
+                    className={`flex items-center w-full px-4 py-2.5 text-left text-sm hover:bg-blue-500/10 transition-colors duration-150 ${selectedCity === city ? "bg-blue-500/20 text-blue-400" : "text-white"
+                      }`}
                   >
                     {selectedCity === city && <div className="w-1 h-4 bg-blue-500 rounded-full mr-2"></div>}
                     {city}
@@ -95,19 +91,19 @@ const CameraHeader = ({ selectedCity, setSelectedCity, searchTerm, setSearchTerm
         className="mt-4 pt-4 border-t border-gray-700 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center"
       >
         <div className="flex flex-col items-center">
-          <span className="text-xs text-gray-400">Tổng Camera</span>
-          <span className="text-lg font-semibold text-white">5</span>
+          <span className="text-xs text-gray-400">Total Cameras</span>
+          <span className="text-lg font-semibold text-white">{loading ? 'loading...' : cameras.length}</span>
         </div>
         <div className="flex flex-col items-center">
-          <span className="text-xs text-gray-400">Đang Hoạt Động</span>
+          <span className="text-xs text-gray-400">Active</span>
           <span className="text-lg font-semibold text-green-400">4</span>
         </div>
         <div className="flex flex-col items-center">
-          <span className="text-xs text-gray-400">Bảo Trì</span>
+          <span className="text-xs text-gray-400">Under Maintenance</span>
           <span className="text-lg font-semibold text-amber-400">0</span>
         </div>
         <div className="flex flex-col items-center">
-          <span className="text-xs text-gray-400">Ngưng Hoạt Động</span>
+          <span className="text-xs text-gray-400">Inactive</span>
           <span className="text-lg font-semibold text-red-400">1</span>
         </div>
       </motion.div>

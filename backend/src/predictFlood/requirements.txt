@@ -5,3 +5,4 @@ geopandas
 overturemaps
 requests
 sklearn
+joblib
