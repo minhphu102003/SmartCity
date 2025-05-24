@@ -18,7 +18,7 @@ export const getCamerasByRoadSegment = async (req, res) => {
     const { id } = req.params;
     try {
         const cameras = await Camera.find({ roadSegment_id: id });
-        const flatCameras = cameras.map(flatCameraDate); // Flatten each camera data
+        const flatCameras = cameras.map(flatCameraDate);
         res.json({ success: true, data: flatCameras });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

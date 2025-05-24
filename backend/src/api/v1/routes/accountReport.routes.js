@@ -34,15 +34,11 @@ router.use((req, res, next) => {
   next();
 });
 
-// ? Ok test xong
-router.get("/", [getAccountReportValidator], getAccountReports);
-router.get("/:id", [validateById], getAccountReportById);
-router.post("/", handleMultipleUploads, [validateWithToken, createAccountReportValidator], veriFyToken, createAccountReport); // ? Đã test
-router.put("/:id",[handleMultipleUploads], [validateById, validateWithToken, updateAccountReportValidator], veriFyToken, isAdminOrOwner, updateAccountReport); // Test cả 2 role done, Xóa thành công ảnh trên server
-router.delete("/:id", [validateById, validateWithToken], [veriFyToken, isAdmin], deleteAccountReport);
-
-router.use(handleValidationErrors);
-
+router.get("/", [getAccountReportValidator, handleValidationErrors], getAccountReports);
+router.get("/:id", [validateById, handleValidationErrors], getAccountReportById);
+router.post("/", handleMultipleUploads, [validateWithToken, createAccountReportValidator, handleValidationErrors], veriFyToken, createAccountReport); // ? Đã test
+router.put("/:id",[handleMultipleUploads], [validateById, validateWithToken, updateAccountReportValidator, handleValidationErrors], veriFyToken, isAdminOrOwner, updateAccountReport); // Test cả 2 role done, Xóa thành công ảnh trên server
+router.delete("/:id", [validateById, validateWithToken, handleValidationErrors], [veriFyToken, isAdmin], deleteAccountReport);
 
 export default router;
 

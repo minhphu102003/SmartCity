@@ -10,9 +10,9 @@ import renderRoutes from "./routes/renderRoutes.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import cameraReportRoutes from "./routes/cameraReport.routes.js";
 import roadSegmentRoutes from './routes/roadSegment.routes.js';
+import predictRoute from "./routes/predict.route.js";
 
 const router = Router();
-
 
 router.use("/auth", authRoutes);
 router.use("/place",placeRoutes);
@@ -25,4 +25,6 @@ router.use("/routes",renderRoutes);
 router.use("/notification",notificationRoutes);
 router.use("/camera-report",cameraReportRoutes);
 router.use("/road-segment",roadSegmentRoutes);
+router.use("/predictions", predictRoute);
+
 export default router;

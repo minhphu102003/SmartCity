@@ -18,7 +18,6 @@ import { styled } from "@mui/material/styles"
 import { motion } from "framer-motion"
 import SearchIcon from "@mui/icons-material/Search"
 import FilterListIcon from "@mui/icons-material/FilterList"
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline"
 import TuneIcon from "@mui/icons-material/Tune"
 
 
@@ -55,16 +54,6 @@ const StyledSelect = styled(Select)(({ theme }) => ({
   },
 }))
 
-const StyledButton = styled(motion(Button))(({ theme }) => ({
-  borderRadius: theme.spacing(3),
-  padding: theme.spacing(1, 3),
-  boxShadow: "0 4px 10px rgba(63, 81, 181, 0.2)",
-  transition: "all 0.3s ease",
-  "&:hover": {
-    boxShadow: "0 6px 15px rgba(63, 81, 181, 0.3)",
-  },
-}))
-
 const REPORT_TYPES = [
   { value: '', label: 'All Types' },
   { value: 'TRAFFIC_JAM', label: 'Traffic Jam' },
@@ -72,10 +61,9 @@ const REPORT_TYPES = [
   { value: 'FLOOD', label: 'Flood' }
 ];
 
-const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus, onCreateReport }) => {
+const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedStatus }) => {
   const theme = useTheme()
 
-  
   const containerVariants = {
     hidden: { opacity: 0, y: -20 },
     visible: {
@@ -93,18 +81,6 @@ const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedSt
     hidden: { opacity: 0, y: -10 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   }
-
-  const handleCreateClick = () => {
-    // You can add form validation or data preparation here
-    onCreateReport({
-      description: '',
-      typeReport: 'TRAFFIC_JAM',
-      congestionLevel: 'POSSIBLE_CONGESTION',
-      longitude: 108.206012143132, // Default longitude for Da Nang
-      latitude: 16.0754966720008,  // Default latitude for Da Nang
-      images: []
-    });
-  };
 
   return (
     <StyledPaper initial="hidden" animate="visible" variants={containerVariants}>
@@ -133,26 +109,7 @@ const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedSt
             flex: { md: 1 },
           }}
         >
-          <motion.div variants={itemVariants} style={{ width: "100%" }}>
-            <StyledTextField
-              label="Search Reports"
-              variant="outlined"
-              size="small"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              fullWidth
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-              placeholder="Search by description or location..."
-            />
-          </motion.div>
-
-          <motion.div variants={itemVariants} style={{ width: "100%", maxWidth: { sm: "200px" } }}>
+          <motion.div variants={itemVariants} style={{ width: "30%", maxWidth: { sm: "200px" } }}>
             <FormControl size="small" fullWidth>
               <InputLabel id="status-select-label">
                 <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -188,21 +145,6 @@ const ReportHeader = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedSt
             </FormControl>
           </motion.div>
         </Box>
-
-        <motion.div variants={itemVariants}>
-          <Tooltip title="Create new incident report">
-            <StyledButton
-              variant="contained"
-              color="primary"
-              onClick={handleCreateClick}
-              startIcon={<AddCircleOutlineIcon />}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Create Report
-            </StyledButton>
-          </Tooltip>
-        </motion.div>
       </Box>
     </StyledPaper>
   )

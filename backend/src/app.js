@@ -16,6 +16,15 @@ import {
   sendMessageToFrontend,
 } from "./api/v1/websockets/websocketManager.js";
 import { errorHandler } from "./api/shared/middlewares/errorHandler.js";
+import { spawn } from "child_process";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const pythonPath = path.join(__dirname, "predictFlood/pipeline/scheduler.py");
 
 const app = express();
 
@@ -52,6 +61,11 @@ const preload = async () => {
 };
 
 await preload();
+
+// const pythonProcess = spawn("python", [pythonPath], {
+//   stdio: "inherit",
+// });
+
 app.use((req, res, next) => {
   req.cachedCameras = cachedCameras;
   req.cachedReports = cachedReports;
