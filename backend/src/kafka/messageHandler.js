@@ -1,11 +1,18 @@
 import CameraReport from "../api/v1/models/cameraReport.js";
 import AccountReport from "../api/v1/models/accountReport.js";
-import Notification from "../api/v1/models/notification.js";
 import { buildNotificationMessage } from "../api/shared/utils/notification.js";
 import { notifyUsersInRange } from "../api/shared/utils/notifyUsersInRange.js";
 import { NOTIFICATION_FIELDS, NOTIFICATION_TYPES } from "./constants.js";
+import {
+  isValidLocation,
+  addToCache,
+} from "../api/shared/utils/cacheHelpers.js";
 
-export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
+export const handleKafkaMessage = async (
+  data,
+  cachedReportsForRouting,
+  sendMessageToFrontend
+) => {
   const {
     type,
     latitude,
@@ -31,6 +38,16 @@ export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
       timestamp,
     });
     await report.save();
+
+    if (isValidLocation(latitude, longitude)) {
+      addToCache(cachedReportsForRouting, {
+        latitude,
+        longitude,
+        type,
+        typeReport,
+        timestamp,
+      });
+    }
 
     const notificationMessage = buildNotificationMessage(
       type,
@@ -67,6 +84,16 @@ export const handleKafkaMessage = async (data, sendMessageToFrontend) => {
       longitude,
       img
     );
+
+    if (isValidLocation(latitude, longitude)) {
+      addToCache(cachedReportsForRouting, {
+        latitude,
+        longitude,
+        type,
+        typeReport,
+        timestamp,
+      });
+    }
 
     sendMessageToFrontend(notificationMessage);
 

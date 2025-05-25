@@ -44,8 +44,21 @@ app.use(
 );
 app.use("/uploads", express.static(UPLOAD_DIRECTORY));
 
+// const pythonProcess = spawn("python", [pythonPath], {
+//   stdio: "inherit",
+// });
+
 let cachedCameras = [];
 let cachedReports = [];
+let cachedReportsForRouting = [];
+
+app.server = app.listen(app.get("port"), () => {
+  console.log(`Server is running on port ${app.get("port")}`);
+  initializeWebSocket(app.server);
+});
+
+startKafkaConsumer(process.env.KAFKA_TOPIC_CONSUMER, cachedReportsForRouting, sendMessageToFrontend);
+startVideoUploadConsumer(process.env.KAFKA_TOPIC_VIDEO_UPLOAD);
 
 const preload = async () => {
   try {
@@ -62,23 +75,12 @@ const preload = async () => {
 
 await preload();
 
-// const pythonProcess = spawn("python", [pythonPath], {
-//   stdio: "inherit",
-// });
-
 app.use((req, res, next) => {
   req.cachedCameras = cachedCameras;
   req.cachedReports = cachedReports;
+  req.cachedReportsForRouting = cachedReportsForRouting;
   next();
 });
-
-app.server = app.listen(app.get("port"), () => {
-  console.log(`Server is running on port ${app.get("port")}`);
-  initializeWebSocket(app.server);
-});
-
-startKafkaConsumer(process.env.KAFKA_TOPIC_CONSUMER, sendMessageToFrontend);
-startVideoUploadConsumer(process.env.KAFKA_TOPIC_VIDEO_UPLOAD);
 
 app.use("/api/v1", v1Routes);
 app.use("/api/v2", v2Routes);

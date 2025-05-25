@@ -10,13 +10,11 @@ export const getUserProfile = async (req, res) => {
       return res.status(404).json({ message: "No account found" });
     }
 
-    // Tìm thông tin người dùng từ collection User
     const user = await User.findOne({ account_id: account_id }).select("email phone");
     if (!user) {
       return res.status(404).json({ message: "No user information found" });
     }
 
-    // Gộp thông tin tài khoản và người dùng
     res.status(200).json({
       success: true,
       message: "User profile fetched successfully",
@@ -34,23 +32,19 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
-// Get account details by ID
 export const getAccountDetailsHandler = async (req, res) => {
   const accountId = req.params.id;
 
   try {
-    // Find the account by ID and populate roles only
     const account = await Account.findById(accountId)
-      .populate("roles", "name"); // Populate role names
+      .populate("roles", "name");
 
     if (!account) {
       return res.status(404).json({ success: false, message: "Account not found." });
     }
 
-    // Find the user document that references this account
-    const user = await User.findOne({ account_id: accountId }, "email phone"); // Select only email and phone fields
+    const user = await User.findOne({ account_id: accountId }, "email phone");
 
-    // Build the flattened response structure with account and user details
     return res.status(200).json({
       success: true,
       data: {
@@ -59,8 +53,8 @@ export const getAccountDetailsHandler = async (req, res) => {
         roles: account.roles.map(role => role.name),
         createdAt: account.createdAt,
         updatedAt: account.updatedAt,
-        email: user ? user.email : null,  // Flattened email
-        phone: user ? user.phone : null,  // Flattened phone
+        email: user ? user.email : null, 
+        phone: user ? user.phone : null,  
       },
     });
   } catch (error) {
@@ -82,8 +76,8 @@ export const updateAccountDetailsHandler = async (req, res) => {
       return res.status(403).json({ success: false, message: "You are not authorized to update this account." });
     }
 
-    delete updateData.roles; // Do not allow role updates through this endpoint
-    delete updateData.password; // Do not allow password updates through this endpoint
+    delete updateData.roles; 
+    delete updateData.password;
 
     const user = await User.findOne({ account_id: accountId });
 
@@ -117,24 +111,19 @@ export const updateAccountDetailsHandler = async (req, res) => {
 };
 
 
-// Delete account by ID
 export const deleteAccountHandler = async (req, res) => {
   const accountId = req.params.id;
 
   try {
-    // Find the account by ID
     const account = await Account.findById(accountId);
     if (!account) {
       return res.status(404).json({ success: false, message: "Account not found." });
     }
 
-    // Optionally delete associated user data if necessary
     const deletedUsers = await User.deleteMany({ account_id: accountId });
 
-    // Delete the account
     await Account.findByIdAndDelete(accountId);
     
-    // Return the deleted account information
     return res.status(200).json({
       success: true,
       message: "Account deleted successfully.",
@@ -142,7 +131,7 @@ export const deleteAccountHandler = async (req, res) => {
         accountId: account._id,
         username: account.username,
       },
-      deletedUsers: deletedUsers.deletedCount // Return count of deleted users, if needed
+      deletedUsers: deletedUsers.deletedCount
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

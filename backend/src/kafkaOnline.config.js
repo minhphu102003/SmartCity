@@ -5,9 +5,9 @@ import { handleImageUploadConsumer } from './kafka/videoUploadConsumer.js';
 
 export { produceMessage, consumeMessages, readConfig };
 
-export const startKafkaConsumer = async (topic, sendMessageToFrontend) => {
+export const startKafkaConsumer = async (topic, cachedReportsForRouting, sendMessageToFrontend) => {
   await consumeMessages(topic, 'express-group1', async (data) => {
-    await handleKafkaMessage(data, sendMessageToFrontend);
+    await handleKafkaMessage(data, cachedReportsForRouting, sendMessageToFrontend);
   });
 };
 
