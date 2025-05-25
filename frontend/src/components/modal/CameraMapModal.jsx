@@ -21,22 +21,23 @@ const CameraMapModal = ({ camera, onClose, isVisible }) => {
       {isVisible && (
         <motion.div
           key="camera-modal"
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
         >
           <motion.div
             key="camera-modal-inner"
-            className="relative w-[90vw] h-[80vh] bg-white rounded-lg shadow-lg"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            className="relative w-[95vw] max-w-4xl h-[85vh] bg-white rounded-xl shadow-2xl overflow-hidden"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <button
               onClick={onClose}
-              className="absolute top-2 right-2 z-10 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+              className="absolute top-4 right-4 z-10 px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600 transition-colors duration-200 shadow-sm hover:shadow-md"
             >
               Close
             </button>
@@ -64,11 +65,18 @@ const CameraMapModal = ({ camera, onClose, isVisible }) => {
                   closeOnClick={false}
                   onClose={() => setSelectedCamera(null)}
                   offset={[0, -20]}
+                  className="z-10"
                 >
-                  <div className="w-[300px] h-[200px] relative">
+                  <motion.div
+                    className="w-[320px] h-[220px] bg-white rounded-lg shadow-lg relative overflow-hidden"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  >
                     <button
                       onClick={() => setSelectedCamera(null)}
-                      className="absolute top-1 right-1 text-gray-600 hover:text-red-500 font-bold z-10 bg-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer"
+                      className="absolute top-2 right-2 text-gray-600 hover:text-red-500 font-bold z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm hover:shadow-md transition-colors duration-200"
                       aria-label="Close popup"
                     >
                       ×
@@ -80,7 +88,7 @@ const CameraMapModal = ({ camera, onClose, isVisible }) => {
                       allowFullScreen
                       className="w-full h-full rounded-md"
                     />
-                  </div>
+                  </motion.div>
                 </Popup>
               )}
             </ReactMapGL>

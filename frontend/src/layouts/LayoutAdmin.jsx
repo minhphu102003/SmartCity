@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SideBarAdmin } from "../components/SideBar";
+import { SideBarAdmin } from "../components/sideBar";
 import { TopBar } from '../components/topBar';
 
 const AdminLayout = ({ children }) => {
