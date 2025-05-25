@@ -7,6 +7,7 @@ const useRoutes = (startMarker, endMarker) => {
   const [geoJsonRoutes, setGeoJsonRoutes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [congestionPoints, setCongestionPoints] = useState([]);
 
   useEffect(() => {
     if (!startMarker || !endMarker) return;
@@ -19,13 +20,30 @@ const useRoutes = (startMarker, endMarker) => {
         const end = `${endMarker.longitude},${endMarker.latitude}`;
         const response = await fetchRoutes(start, end);
         const fetchedRoutes = response?.data?.routes || [];
+        const reports = response?.data?.reports || [];
+        const congestionData = reports.map((r) => [r.longitude, r.latitude]);
+        setCongestionPoints(congestionData);
+        const newRoutes = response?.data?.newRoutes1 || [];
         if (!fetchedRoutes.length) {
           console.warn('Không tìm thấy tuyến đường nào.');
           return;
         }
-        setRoutes(fetchedRoutes);
 
-        const geoJsonData = fetchedRoutes
+        let combinedRoutes = [];
+
+        if (reports.length > 0) {
+          combinedRoutes = [
+            ...newRoutes.map((r) => ({ ...r, recommended: true })),
+            ...fetchedRoutes.map((r) => ({ ...r, recommended: false })),
+          ];
+        } else {
+          combinedRoutes = [
+            ...fetchedRoutes.map((r) => ({ ...r, recommended: true })),
+          ];
+        }
+        setRoutes(combinedRoutes);
+
+        const geoJsonData = combinedRoutes
           .filter((route) => route.geometry)
           .map((route) => {
             const decodedCoordinates = polyline.decode(route.geometry);
@@ -33,17 +51,17 @@ const useRoutes = (startMarker, endMarker) => {
 
             return {
               type: 'Feature',
-              properties: { recommended: route.recommended },
+              properties: {
+                recommended: route.recommended,
+              },
               geometry: {
                 type: 'LineString',
-                coordinates: decodedCoordinates.map((coord) => [
-                  coord[1],
-                  coord[0],
-                ]),
+                coordinates: decodedCoordinates.map(([lat, lng]) => [lng, lat]),
               },
             };
           })
           .filter(Boolean);
+
         setGeoJsonRoutes(geoJsonData);
       } catch (err) {
         setError('Lỗi khi gọi API tìm đường');
@@ -61,8 +79,14 @@ const useRoutes = (startMarker, endMarker) => {
     setError(null);
   }, []);
 
-  return { routes, geoJsonRoutes, loading, error, resetRoutes };
-
+  return {
+    routes,
+    geoJsonRoutes,
+    loading,
+    error,
+    congestionPoints,
+    resetRoutes,
+  };
 };
 
 export default useRoutes;

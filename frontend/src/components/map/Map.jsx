@@ -116,7 +116,7 @@ const Map = ({ isAuth = false }) => {
   const { isWeatherModalOpen, setIsWeatherModalOpen, weatherData } =
     useWeatherModal(userLocation);
 
-  const { routes, geoJsonRoutes, resetRoutes } = useRoutes(
+  const { routes, geoJsonRoutes, congestionPoints, resetRoutes } = useRoutes(
     startMarker,
     endMarker
   );
@@ -266,7 +266,7 @@ const Map = ({ isAuth = false }) => {
           />
         )}
 
-        <RouteLayers geoJsonRoutes={geoJsonRoutes} />
+        <RouteLayers geoJsonRoutes={geoJsonRoutes} congestionPoints={congestionPoints} />
 
         <MapMarkers
           userLocation={userLocation}

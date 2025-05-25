@@ -1,9 +1,6 @@
 import polyline from "polyline";
 import axios from "axios";
-import CameraReport from "../models/cameraReport.js";
-import AccountReport from "../models/accountReport.js";
 
-// Helper function to call OSRM API and fetch route data
 export const fetchOSRMData = async (start, end, vehicleType) => {
   const osrmUrl = `https://router.project-osrm.org/route/v1/${vehicleType}/${start};${end}?alternatives=true&steps=true`;
   const osrmResponse = await axios.get(osrmUrl);
@@ -11,59 +8,9 @@ export const fetchOSRMData = async (start, end, vehicleType) => {
 };
 
 
-// Helper function to format reports into a unified structure
-const mergeReports = (cameraReports, accountReports) => {
-  // Extract and format camera reports
-  const formattedCameraReports = cameraReports.map((report) => ({
-    trafficVolume: report.trafficVolume,
-    congestionLevel: report.congestionLevel,
-    typeReport: report.typeReport,
-    img: report.img[0].img, // Lấy hình ảnh
-    timestamp: report.timestamp,
-    latitude: report.camera_id?.location?.coordinates[1], // Lấy latitude từ camera_id
-    longitude: report.camera_id?.location?.coordinates[0], // Lấy longitude từ camera_id
-  }));
-  // Extract and format account reports with placeholder for trafficVolume
-  const formattedAccountReports = accountReports.map((report) => ({
-    trafficVolume: null,
-    congestionLevel: report.congestionLevel,
-    typeReport: report.typeReport,
-    img: report.listImg[0].img, // `img` is formatted in processReportsForRoadSegment
-    timestamp: report.timestamp,
-    latitude: report.location?.coordinates[1],
-    longitude: report.location?.coordinates[0],
-  }));
-
-  return [...formattedCameraReports, ...formattedAccountReports];
-};
-
-// Lấy các báo cáo gần đây trong 5 phút qua từ MongoDB 
-export const getRecentAccountReports = async (fiveMinutesAgo) => {
-  try {
-    return await AccountReport.find({
-      timestamp: { $gte: fiveMinutesAgo },
-    });
-  } catch (error) {
-    console.error("Error fetching recent account reports:", error);
-    throw error;
-  }
-};
-
-export const getRecentCameraReports = async (fiveMinutesAgo) => {
-  try {
-    return await CameraReport.find({
-      timestamp: { $gte: fiveMinutesAgo },
-    })
-      .populate("camera_id", "location") // Populate thông tin location từ camera_id
-      .sort({ timestamp: -1 }); // Sắp xếp theo thời gian giảm dần
-  } catch (error) {
-    console.error("Error fetching recent camera reports:", error);
-    throw error;
-  }
-};
-
 const calculateDistanceToLineManual = (pointCoords, lineCoords) => {
-  const DEG_TO_METERS = 111320; 
+  const MAX_DISTANCE = 1e6;
+  const DEG_TO_METERS = 111320;
   const [x0, y0] = pointCoords;
   const [[x1, y1], [x2, y2]] = lineCoords;
 
@@ -75,21 +22,65 @@ const calculateDistanceToLineManual = (pointCoords, lineCoords) => {
   const y2Meters = y2 * DEG_TO_METERS;
 
   const ABx = x2Meters - x1Meters;
-  const ABy = y2Meters - y1Meters; 
+  const ABy = y2Meters - y1Meters;
   const APx = x0Meters - x1Meters;
   const APy = y0Meters - y1Meters;
 
-  const dotProduct = APx * ABx + APy * ABy; 
-  const lengthSquared = ABx * ABx + ABy * ABy; 
+  const lengthSquared = ABx * ABx + ABy * ABy;
+
+  if (lengthSquared === 0) {
+    const distance = Math.sqrt(
+      (x0Meters - x1Meters) ** 2 + (y0Meters - y1Meters) ** 2
+    );
+    return distance;
+  }
+
+  const dotProduct = APx * ABx + APy * ABy;
   const t = Math.max(0, Math.min(1, dotProduct / lengthSquared));
 
-  const nearestX = x1Meters + t * ABx; 
-  const nearestY = y1Meters + t * ABy; 
+  const nearestX = x1Meters + t * ABx;
+  const nearestY = y1Meters + t * ABy;
 
   const distance = Math.sqrt(
     (x0Meters - nearestX) ** 2 + (y0Meters - nearestY) ** 2
   );
-  return distance; 
+  return isFinite(distance) ? distance : MAX_DISTANCE;
+};
+
+export const calculateMinDistanceFromPointToGeometry = (pointCoords, polylineString) => {
+  const MAX_DISTANCE = 1e6;
+
+  let latLngPairs;
+  try {
+    latLngPairs = polyline.decode(polylineString);
+  } catch (e) {
+    return MAX_DISTANCE;
+  }
+
+  if (!Array.isArray(latLngPairs) || latLngPairs.length < 2) {
+    return MAX_DISTANCE;
+  }
+
+  const lineCoords = latLngPairs.map(([lat, lng]) => [lng, lat]);
+  let minDistance = MAX_DISTANCE;
+
+  for (let i = 0; i < lineCoords.length - 1; i++) {
+    const segment = [lineCoords[i], lineCoords[i + 1]];
+    if (
+      segment[0][0] === segment[1][0] &&
+      segment[0][1] === segment[1][1]
+    ) {
+      continue;
+    }
+
+    const distance = calculateDistanceToLineManual(pointCoords, segment);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+    }
+  }
+
+  return minDistance;
 };
 
 export const findAlternativeRoutes = async (route, fiveMinutesAgo, end) => {
@@ -108,7 +99,6 @@ export const findAlternativeRoutes = async (route, fiveMinutesAgo, end) => {
     const stack = [];
     let foundFirstReport = false;
 
-    // Xử lý từng bước của route
     for (const step of steps) {
       const coordinates = polyline.decode(step.geometry);
       for (let i = 0; i < coordinates.length - 1; i++) {

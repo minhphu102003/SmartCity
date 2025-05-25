@@ -12,7 +12,6 @@ const EditRoadSegmentPopup = ({
   useEffect(() => {
     setEditingData({
       id: segment._id,
-      roadName: segment.roadName || '',
       raiseHeight: segment.raiseHeight || '',
     });
   }, [segment, setEditingData]);
@@ -34,20 +33,6 @@ const EditRoadSegmentPopup = ({
         <h4 className="font-bold text-base">Edit Road Segment</h4>
 
         <p>Groundwater Level: {segment.groundwater_level}</p>
-
-        <label className="block text-sm font-medium">Road Name</label>
-        <input
-          type="text"
-          value={editingData.roadName}
-          onChange={(e) =>
-            setEditingData((prev) => ({
-              ...prev,
-              roadName: e.target.value,
-            }))
-          }
-          className="w-full border p-1 rounded"
-          placeholder="Enter road name"
-        />
 
         <label className="block text-sm font-medium">Raise Height (cm)</label>
         <input
