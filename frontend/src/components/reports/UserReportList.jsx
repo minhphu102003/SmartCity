@@ -87,7 +87,7 @@ const UserReportList = () => {
                     <div className="text-sm text-blue-600">Filtered Results</div>
                   </div>
                   <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center transform transition-all duration-200 hover:scale-105">
-                    <div className="text-2xl font-bold text-green-700">{reports.length}</div>
+                    <div className="text-2xl font-bold text-green-700">{pagination.total}</div>
                     <div className="text-sm text-green-600">Total Reports</div>
                   </div>
                 </div>

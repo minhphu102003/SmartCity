@@ -24,6 +24,7 @@ const useDashboardStats = () => {
       setLoading(prev => ({ ...prev, user: true }));
       try {
         const result = await getListUser();
+        console.log(result);
         if (result?.success) {
           setStats(prev => ({ ...prev, userCount: result.total }));
         }
@@ -36,7 +37,6 @@ const useDashboardStats = () => {
       setLoading(prev => ({ ...prev, report: true }));
       try {
         const result = await getAccountReport({ limit: 50 });
-        console.log(result);
         setStats(prev => ({ ...prev, reportCount: result?.total || 0 }));
       } finally {
         setLoading(prev => ({ ...prev, report: false }));

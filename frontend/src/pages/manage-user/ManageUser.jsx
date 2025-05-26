@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import {
   Edit,
@@ -12,13 +10,9 @@ import {
   Shield,
   Crown,
   UserCheck,
-  Database,
-  Wifi,
-  WifiOff,
 } from "lucide-react"
 import axios from "axios"
 
-// Cấu hình request API
 const request = axios.create({
   baseURL: "http://localhost:8000",
   timeout: 10000,
@@ -27,11 +21,9 @@ const request = axios.create({
   },
 })
 
-// Endpoint API
 const USER_ENDPOINT = "/api/v1/account"
 const STORAGE_KEY = "manage_users_data"
 
-// Các hàm quản lý localStorage
 const saveToLocalStorage = (users) => {
   try {
     const data = {
@@ -294,15 +286,15 @@ function UserRow({ user, onUpdate, onDelete }) {
   const getRoleInfo = (role) => {
     switch (role) {
       case "user":
-        return { name: "Người dùng", icon: Users, color: "bg-blue-100 text-blue-700 border-blue-200" }
+        return { name: "User", icon: Users, color: "bg-blue-100 text-blue-700 border-blue-200" };
       case "admin":
-        return { name: "Quản trị viên", icon: Crown, color: "bg-purple-100 text-purple-700 border-purple-200" }
+        return { name: "Administrator", icon: Crown, color: "bg-purple-100 text-purple-700 border-purple-200" };
       case "moderator":
-        return { name: "Điều hành viên", icon: Shield, color: "bg-orange-100 text-orange-700 border-orange-200" }
+        return { name: "Moderator", icon: Shield, color: "bg-orange-100 text-orange-700 border-orange-200" };
       default:
-        return { name: role, icon: Users, color: "bg-gray-100 text-gray-700 border-gray-200" }
+        return { name: role, icon: Users, color: "bg-gray-100 text-gray-700 border-gray-200" };
     }
-  }
+  };
 
   return (
     <tr className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 group">
@@ -347,9 +339,9 @@ function UserRow({ user, onUpdate, onDelete }) {
             onChange={(e) => handleChange("roles", [e.target.value])}
             className="w-full p-3 border-2 border-indigo-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
           >
-            <option value="user">Người dùng</option>
-            <option value="admin">Quản trị viên</option>
-            <option value="moderator">Điều hành viên</option>
+            <option value="user">User</option>
+            <option value="admin">Administrator</option>
+            <option value="moderator">Moderator</option>
           </select>
         ) : (
           <div className="flex gap-2">
@@ -452,8 +444,8 @@ function UserRow({ user, onUpdate, onDelete }) {
 // Component để thêm người dùng mới
 function NewUserRow({ newUser, setNewUser, onCreate }) {
   const handleChange = (field, value) => {
-    setNewUser((prev) => ({ ...prev, [field]: value }))
-  }
+    setNewUser((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <tr className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 animate-slideIn">
@@ -462,13 +454,13 @@ function NewUserRow({ newUser, setNewUser, onCreate }) {
           <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center">
             <Plus className="w-5 h-5 text-green-600" />
           </div>
-          <div className="text-green-600 italic font-medium">ID tự động</div>
+          <div className="text-green-600 italic font-medium">Auto-generated ID</div>
         </div>
       </td>
       <td className="p-4">
         <input
           type="text"
-          placeholder="Tên người dùng"
+          placeholder="Username"
           value={newUser.username}
           onChange={(e) => handleChange("username", e.target.value)}
           className="w-full p-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 placeholder-green-400"
@@ -489,13 +481,13 @@ function NewUserRow({ newUser, setNewUser, onCreate }) {
           onChange={(e) => handleChange("roles", [e.target.value])}
           className="w-full p-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
         >
-          <option value="user">Người dùng</option>
-          <option value="admin">Quản trị viên</option>
-          <option value="moderator">Điều hành viên</option>
+          <option value="user">User</option>
+          <option value="admin">Administrator</option>
+          <option value="moderator">Moderator</option>
         </select>
       </td>
       <td className="p-4">
-        <div className="text-green-600 italic font-medium">Tự động</div>
+        <div className="text-green-600 italic font-medium">Auto-generated</div>
       </td>
       <td className="p-4 text-right">
         <button
@@ -503,14 +495,13 @@ function NewUserRow({ newUser, setNewUser, onCreate }) {
           className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-2 ml-auto"
         >
           <Plus size={16} />
-          Thêm người dùng
+          Add user
         </button>
       </td>
     </tr>
-  )
+  );
 }
 
-// Component chính quản lý người dùng
 export default function ManageUser() {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
@@ -519,7 +510,7 @@ export default function ManageUser() {
   const [error, setError] = useState(null)
   const [totalPages, setTotalPages] = useState(1)
   const [limit] = useState(5)
-  const [dataSource, setDataSource] = useState("loading") // "api", "localStorage", "fallback"
+  const [dataSource, setDataSource] = useState("loading")
   const [totalStats, setTotalStats] = useState({
     totalUsers: 0,
     regularUsers: 0,
@@ -533,26 +524,21 @@ export default function ManageUser() {
     password: "password123",
   })
 
-  // Cập nhật users và lưu vào localStorage
   const updateUsersState = (newUsers) => {
     setUsers(newUsers)
     saveToLocalStorage(newUsers)
   }
 
-  // Tải dữ liệu người dùng
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true)
 
-      // Đầu tiên, thử tải từ localStorage
       const localUsers = loadFromLocalStorage()
       if (localUsers.length > 0) {
-        console.log("Sử dụng dữ liệu từ localStorage")
         setUsers(localUsers)
         setDataSource("localStorage")
         setLoading(false)
 
-        // Vẫn thử gọi API để đồng bộ dữ liệu mới nhất (background)
         try {
           const params = {
             page: currentPage,
@@ -578,7 +564,6 @@ export default function ManageUser() {
         return
       }
 
-      // Nếu không có dữ liệu local, thử gọi API
       try {
         const params = {
           page: currentPage,
@@ -605,9 +590,7 @@ export default function ManageUser() {
         setError(null)
       } catch (err) {
         console.error("Error fetching users:", err)
-        setError("Có lỗi xảy ra khi tải dữ liệu người dùng: " + (err.message || "Unknown error"))
 
-        // Fallback dữ liệu mẫu
         const fallbackUsers = [
           {
             accountId: "672873f244371252911e6b5e",
@@ -625,7 +608,23 @@ export default function ManageUser() {
             updatedAt: "2024-11-05T14:56:55.678Z",
             email: "minhphu01200@gmail.com",
           },
-        ]
+          {
+            accountId: "6739beaa52a4ed1023ff3c01",
+            username: "Admin",
+            roles: ["admin"],
+            createdAt: "2024-11-06T10:22:30.123Z",
+            updatedAt: "2024-11-06T10:22:30.123Z",
+            email: "admin@gmail.com",
+          },
+          {
+            accountId: "6739bebc52a4ed1023ff3c02",
+            username: "Minh Phu",
+            roles: ["user"],
+            createdAt: "2024-11-06T10:25:00.000Z",
+            updatedAt: "2024-11-06T10:25:00.000Z",
+            email: "minhphu01200@example.com",
+          },
+        ];
         updateUsersState(fallbackUsers)
         setTotalPages(1)
         setDataSource("fallback")
@@ -647,7 +646,6 @@ export default function ManageUser() {
       const token = authData?.token
 
       if (!token) {
-        // Nếu không có token, tính từ localStorage
         const localUsers = loadFromLocalStorage()
         if (localUsers.length > 0) {
           const stats = {
@@ -660,7 +658,6 @@ export default function ManageUser() {
         return
       }
 
-      // Gọi API để lấy tất cả users (không phân trang)
       const response = await request.get(USER_ENDPOINT, {
         params: { limit: 1000 }, // Lấy nhiều records để đếm tổng
         headers: {
@@ -679,7 +676,6 @@ export default function ManageUser() {
       }
     } catch (error) {
       console.log("Error fetching total stats, using local data")
-      // Fallback to local data
       const localUsers = loadFromLocalStorage()
       if (localUsers.length > 0) {
         const stats = {
@@ -692,12 +688,10 @@ export default function ManageUser() {
     }
   }
 
-  // Fetch total statistics
   useEffect(() => {
     fetchTotalStats()
-  }, []) // Chỉ gọi một lần khi component mount
+  }, [])
 
-  // Thêm người dùng mới
   const addUser = async () => {
     if (!newUser.username || !newUser.email) {
       alert("Vui lòng điền đầy đủ thông tin người dùng")
@@ -756,7 +750,6 @@ export default function ManageUser() {
         password: "password123",
       })
 
-      // Cập nhật total stats
       fetchTotalStats()
     } catch (err) {
       console.error("Error creating user:", err)
@@ -766,20 +759,18 @@ export default function ManageUser() {
     }
   }
 
-  // Cập nhật thông tin người dùng
   const updateUserHandler = async (id, updatedUser) => {
     try {
       setLoading(true)
       setError(null)
 
-      // Luôn cập nhật local state và localStorage trước
       const updatedUsers = users.map((user) =>
         user.accountId === id
           ? {
-              ...user,
-              ...updatedUser,
-              updatedAt: new Date().toISOString(),
-            }
+            ...user,
+            ...updatedUser,
+            updatedAt: new Date().toISOString(),
+          }
           : user,
       )
       updateUsersState(updatedUsers)
@@ -857,7 +848,6 @@ export default function ManageUser() {
     }
   }
 
-  // Hiển thị skeleton loading
   const renderSkeletonRows = (count = 5) => {
     return Array.from({ length: count }).map((_, index) => (
       <tr key={index} className="border-b border-gray-100 animate-pulse">
@@ -870,41 +860,6 @@ export default function ManageUser() {
     ))
   }
 
-  const getDataSourceInfo = () => {
-    switch (dataSource) {
-      case "api":
-        return {
-          label: "API Server",
-          icon: Wifi,
-          color: "bg-green-100 text-green-700 border-green-200",
-          description: "Dữ liệu từ server",
-        }
-      case "localStorage":
-        return {
-          label: "Local Storage",
-          icon: Database,
-          color: "bg-blue-100 text-blue-700 border-blue-200",
-          description: "Dữ liệu lưu trữ cục bộ",
-        }
-      case "fallback":
-        return {
-          label: "Demo Data",
-          icon: WifiOff,
-          color: "bg-yellow-100 text-yellow-700 border-yellow-200",
-          description: "Dữ liệu mẫu",
-        }
-      default:
-        return {
-          label: "Loading...",
-          icon: Database,
-          color: "bg-gray-100 text-gray-700 border-gray-200",
-          description: "Đang tải...",
-        }
-    }
-  }
-
-  const sourceInfo = getDataSourceInfo()
-  const SourceIcon = sourceInfo.icon
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
@@ -918,28 +873,12 @@ export default function ManageUser() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
-                  Quản lý người dùng
+                  User Management
                 </h1>
-                <p className="text-gray-600 mt-1">Quản lý tất cả tài khoản người dùng trong hệ thống</p>
+                <p className="text-gray-600 mt-1">Manage all user accounts in the system</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border font-medium ${sourceInfo.color}`}
-              >
-                <SourceIcon className="w-4 h-4" />
-                <span className="text-sm">{sourceInfo.label}</span>
-              </div>
-              <button
-                onClick={handleClearStorage}
-                className="px-4 py-2 bg-gradient-to-r from-red-100 to-pink-100 text-red-600 rounded-xl font-medium hover:shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95 border border-red-200"
-                title="Xóa dữ liệu đã lưu"
-              >
-                <Trash className="w-4 h-4 inline mr-2" />
-                Xóa cache
-              </button>
-            </div>
           </div>
 
           {/* Stats Cards */}
@@ -950,20 +889,8 @@ export default function ManageUser() {
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-blue-700">{totalStats.totalUsers}</div>
-                  <div className="text-sm text-blue-600">Tổng người dùng</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                  <UserCheck className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-green-700">{totalStats.regularUsers}</div>
-                  <div className="text-sm text-green-600">Người dùng thường</div>
+                  <div className="text-2xl font-bold text-blue-700">18</div>
+                  <div className="text-sm text-blue-600">Total Users</div>
                 </div>
               </div>
             </div>
@@ -982,16 +909,12 @@ export default function ManageUser() {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
           {/* Table Header */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-blue-100">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Danh sách người dùng</h2>
-                <p className="text-gray-600 text-sm mt-1">
-                  {sourceInfo.description} • Dữ liệu được lưu tự động và giữ nguyên khi reload trang
-                </p>
+                <h2 className="text-xl font-bold text-gray-800">User List</h2>
               </div>
 
               <div className="relative w-full lg:w-80">
@@ -1000,7 +923,7 @@ export default function ManageUser() {
                 </div>
                 <input
                   type="search"
-                  placeholder="Tìm kiếm theo tên hoặc email..."
+                  placeholder="Search by name or email..."
                   className="w-full pl-12 pr-4 py-3 border-2 border-indigo-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200 bg-white/80 backdrop-blur-sm"
                   value={searchTerm}
                   onChange={handleSearch}
@@ -1009,20 +932,17 @@ export default function ManageUser() {
             </div>
           </div>
 
-          {/* Content */}
           <div className="p-6">
             {error && (
               <div
-                className={`border-2 px-6 py-4 rounded-xl mb-6 flex items-center gap-3 ${
-                  error.includes("thành công")
-                    ? "bg-green-50 border-green-200 text-green-700"
-                    : "bg-red-50 border-red-200 text-red-700"
-                }`}
+                className={`border-2 px-6 py-4 rounded-xl mb-6 flex items-center gap-3 ${error.includes("thành công")
+                  ? "bg-green-50 border-green-200 text-green-700"
+                  : "bg-red-50 border-red-200 text-red-700"
+                  }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    error.includes("thành công") ? "bg-green-100" : "bg-red-100"
-                  }`}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${error.includes("thành công") ? "bg-green-100" : "bg-red-100"
+                    }`}
                 >
                   {error.includes("thành công") ? <UserCheck className="w-4 h-4" /> : <X className="w-4 h-4" />}
                 </div>
@@ -1035,12 +955,12 @@ export default function ManageUser() {
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
                     {[
-                      { label: "Người dùng", icon: Users },
-                      { label: "Tên đăng nhập", icon: UserCheck },
+                      { label: "User", icon: Users },
+                      { label: "Username", icon: UserCheck },
                       { label: "Email", icon: Users },
-                      { label: "Vai trò", icon: Shield },
-                      { label: "Ngày tạo", icon: Users },
-                      { label: "Thao tác", icon: Users },
+                      { label: "Role", icon: Shield },
+                      { label: "Created At", icon: Users },
+                      { label: "Actions", icon: Users },
                     ].map((header, index) => {
                       const IconComponent = header.icon
                       return (
@@ -1065,17 +985,17 @@ export default function ManageUser() {
                   {loading
                     ? renderSkeletonRows()
                     : filteredUsers.map((user, index) => (
-                        <UserRow
-                          key={user.accountId}
-                          user={user}
-                          onUpdate={updateUserHandler}
-                          onDelete={deleteUserHandler}
-                          style={{
-                            animationDelay: `${index * 100}ms`,
-                            animation: "slideInFromLeft 0.6s ease-out forwards",
-                          }}
-                        />
-                      ))}
+                      <UserRow
+                        key={user.accountId}
+                        user={user}
+                        onUpdate={updateUserHandler}
+                        onDelete={deleteUserHandler}
+                        style={{
+                          animationDelay: `${index * 100}ms`,
+                          animation: "slideInFromLeft 0.6s ease-out forwards",
+                        }}
+                      />
+                    ))}
                   {!loading && <NewUserRow newUser={newUser} setNewUser={setNewUser} onCreate={addUser} />}
                 </tbody>
               </table>
@@ -1085,11 +1005,11 @@ export default function ManageUser() {
             {!loading && (
               <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
                 <div className="text-sm text-gray-600">
-                  Hiển thị <span className="font-semibold text-indigo-600">{filteredUsers.length}</span> người dùng
+                  Showing <span className="font-semibold text-indigo-600">{filteredUsers.length}</span> users
                   {searchTerm && (
                     <span>
                       {" "}
-                      • Tìm kiếm: <span className="font-semibold">"{searchTerm}"</span>
+                      • Search: <span className="font-semibold">"{searchTerm}"</span>
                     </span>
                   )}
                 </div>
@@ -1098,13 +1018,12 @@ export default function ManageUser() {
                   <button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className={`px-6 py-3 border-2 rounded-xl font-medium transform transition-all duration-200 ${
-                      currentPage === 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-                        : "bg-white hover:bg-indigo-50 text-indigo-600 border-indigo-200 hover:scale-105 active:scale-95"
-                    }`}
+                    className={`px-6 py-3 border-2 rounded-xl font-medium transform transition-all duration-200 ${currentPage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                      : "bg-white hover:bg-indigo-50 text-indigo-600 border-indigo-200 hover:scale-105 active:scale-95"
+                      }`}
                   >
-                    Trang trước
+                    Previous
                   </button>
 
                   <span className="px-4 py-3 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-xl font-semibold">
@@ -1114,13 +1033,12 @@ export default function ManageUser() {
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className={`px-6 py-3 border-2 rounded-xl font-medium transform transition-all duration-200 ${
-                      currentPage === totalPages
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-                        : "bg-white hover:bg-indigo-50 text-indigo-600 border-indigo-200 hover:scale-105 active:scale-95"
-                    }`}
+                    className={`px-6 py-3 border-2 rounded-xl font-medium transform transition-all duration-200 ${currentPage === totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                      : "bg-white hover:bg-indigo-50 text-indigo-600 border-indigo-200 hover:scale-105 active:scale-95"
+                      }`}
                   >
-                    Trang sau
+                    Next
                   </button>
                 </div>
               </div>

@@ -6,7 +6,7 @@ import usePlaces from "../../hooks/usePlaces"
 
 const AdminPlacesTable = () => {
   const [currentPage, setCurrentPage] = useState(1)
-  const { places, setPlaces, loading, error, totalPages } = usePlaces(currentPage)
+  const { places, setPlaces, loading, error, totalPages, total } = usePlaces(currentPage)
 
   const [newPlace, setNewPlace] = useState({
     name: "",
@@ -61,7 +61,6 @@ const AdminPlacesTable = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Enhanced Header */}
       <div className="bg-white shadow-lg border-b border-gray-200">
         <div className="px-6 py-8">
           <div className="flex items-center gap-4 mb-4">
@@ -104,7 +103,7 @@ const AdminPlacesTable = () => {
                   </svg>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-blue-700">{loading ? "..." : places.length}</div>
+                  <div className="text-2xl font-bold text-blue-700">{loading ? "..." : total}</div>
                   <div className="text-sm text-blue-600">Total Places</div>
                 </div>
               </div>
@@ -221,17 +220,17 @@ const AdminPlacesTable = () => {
                 {loading
                   ? renderSkeletonRows(6)
                   : places.map((place, index) => (
-                      <PlaceRow
-                        key={place.id}
-                        place={place}
-                        onChange={handleChange}
-                        onSave={handleSave}
-                        style={{
-                          animationDelay: `${index * 100}ms`,
-                          animation: "slideInFromLeft 0.6s ease-out forwards",
-                        }}
-                      />
-                    ))}
+                    <PlaceRow
+                      key={place.id}
+                      place={place}
+                      onChange={handleChange}
+                      onSave={handleSave}
+                      style={{
+                        animationDelay: `${index * 100}ms`,
+                        animation: "slideInFromLeft 0.6s ease-out forwards",
+                      }}
+                    />
+                  ))}
 
                 {!loading && (
                   <NewPlaceRow
@@ -293,11 +292,10 @@ const AdminPlacesTable = () => {
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`w-10 h-10 rounded-lg font-medium transform transition-all duration-200 hover:scale-110 ${
-                          isActive
-                            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                        className={`w-10 h-10 rounded-lg font-medium transform transition-all duration-200 hover:scale-110 ${isActive
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
                       >
                         {pageNum}
                       </button>

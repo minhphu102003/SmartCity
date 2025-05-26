@@ -8,6 +8,7 @@ const usePlaces = (page = 1, radius = 500, limit = 10) => {
   const [error, setError] = useState(null);
   const [totalPages, setTotalPages] = useState(1);
   const [location, setLocation] = useState(null);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     const fetchPlaces = async () => {
@@ -26,6 +27,7 @@ const usePlaces = (page = 1, radius = 500, limit = 10) => {
             setLoading(true);
             const response = await getNearestPlaces(latitude, longitude, radius, null, limit, page);
             const data = response?.data?.data || [];
+            setTotal(response?.data?.total);
             setPlaces(data);
             if (response?.data?.totalPages) {
               setTotalPages(response.data.totalPages);
@@ -69,6 +71,7 @@ const usePlaces = (page = 1, radius = 500, limit = 10) => {
 
   return {
     places,
+    total,
     setPlaces,
     loading,
     error,
