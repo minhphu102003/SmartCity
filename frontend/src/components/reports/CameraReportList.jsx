@@ -5,7 +5,7 @@ import CameraReportItem from "./CameraReportItem"
 import { Pagination } from "../common"
 
 const CameraReportList = () => {
-  const { data, loading, error, currentPage, totalPages, setCurrentPage } = useCameraReports(1, 10)
+  const { data, loading, error, currentPage, totalPages, totalCount, setCurrentPage } = useCameraReports(1, 10)
 
   if (loading) {
     return (
@@ -273,7 +273,7 @@ const CameraReportList = () => {
                   </svg>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-emerald-700">{data.length}</div>
+                  <div className="text-xl font-bold text-emerald-700">{totalCount}</div>
                   <div className="text-sm text-emerald-600">Total Reports</div>
                 </div>
               </div>

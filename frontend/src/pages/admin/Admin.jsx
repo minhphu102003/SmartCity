@@ -36,7 +36,6 @@ const Dashboard = () => {
             title={stats.userCount.toLocaleString()}
             subtitle="User"
             progress="0.75"
-            increase="+14%"
             icon={<FaUserClock className="text-2xl text-green-500" />}
           />
         </div>
@@ -46,7 +45,6 @@ const Dashboard = () => {
             title={stats.reportCount.toLocaleString()}
             subtitle="User Report"
             progress="0.50"
-            increase="+21%"
             icon={<MdOutlineReportGmailerrorred className="text-2xl text-green-500" />}
           />
         </div>
@@ -56,7 +54,6 @@ const Dashboard = () => {
             title={stats.placeCount.toLocaleString()}
             subtitle="Places"
             progress="0.30"
-            increase="+5%"
             icon={<FaPlaceOfWorship className="text-2xl text-green-500" />}
           />
         </div>
@@ -66,7 +63,6 @@ const Dashboard = () => {
             title={stats.cameraCount.toLocaleString()}
             subtitle="Camera"
             progress="0.50"
-            increase="+21%"
             icon={<MdOutlineReportGmailerrorred className="text-2xl text-green-500" />}
           />
         </div>

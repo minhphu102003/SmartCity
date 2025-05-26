@@ -9,7 +9,7 @@ const CameraRow = ({ camera, address, onEdit, onDelete, onView }) => {
     <motion.tr
       className="align-top cursor-pointer bg-white hover:bg-gray-50 transition-colors duration-200"
       onClick={toggleExpand}
-      whileHover={{ scale: 1.01 }}
+      whileHover={{ scale: 1.00 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
       <td className="border border-gray-200 px-4 py-3" style={{ maxWidth: '150px' }}>
