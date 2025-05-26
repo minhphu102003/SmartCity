@@ -9,3 +9,4 @@ export {default as RequiredAdmin} from './admin/RequireAdmin';
 export {default as ManagePlace} from './manage-places/ManagePlace';
 export {default as ManageReport} from './manage-report/ManageReport';
 export {default as ManageCamera } from './manage-camera/ManageCamera';
+export {default as ManageUser } from './manage-user/ManageUser';

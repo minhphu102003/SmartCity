@@ -1,5 +1,5 @@
 import { LayoutAuth, LayoutAdmin } from '../layouts/index';
-import { Home, LogIn, Register, Camera, Admin, CustomMap, Report, ManagePlace, ManageReport, ManageCamera } from '../pages/index';
+import { Home, LogIn, Register, Camera, Admin, CustomMap, Report, ManagePlace, ManageReport, ManageCamera, ManageUser } from '../pages/index';
 import { PATHS } from '../constants';
 import MyProfile from '../pages/myPage/MyProfile';
 
@@ -38,6 +38,12 @@ const router = [
       path: PATHS.CREATE_CAMERA,
       layout: LayoutAdmin,
       component: ManageCamera,
+      requireAdmin: true,
+    },
+    {
+      path: PATHS.MANAGE_USERS,
+      layout: LayoutAdmin,
+      component: ManageUser,
       requireAdmin: true,
     }
   ];
