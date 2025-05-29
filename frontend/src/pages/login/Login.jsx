@@ -124,7 +124,7 @@ const LogIn = () => {
       >
         <img
           className="h-full w-full object-fit"
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQA2cxDsQBnpXracds8wRvY_hY52kRjVkGHrg&s"
+          src={require('../../assets/images/login-logo.jpg')}
           alt="ảnh smart city"
         />
       </motion.div>

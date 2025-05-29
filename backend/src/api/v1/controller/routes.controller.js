@@ -10,9 +10,9 @@ export const findRoutesHandler = async (req, res) => {
   try {
     const { start, end, vehicleType = "drive" } = req.query;
 
-    // req.cachedReportsForRouting = filterValidReports(
-    //   req.cachedReportsForRouting
-    // );
+    req.cachedReportsForRouting = filterValidReports(
+      req.cachedReportsForRouting
+    );
 
     const interceptedRoutes = [];
     const routes = await fetchOSRMData(start, end, vehicleType);

@@ -36,7 +36,7 @@ const useDashboardStats = () => {
     const fetchReports = async () => {
       setLoading(prev => ({ ...prev, report: true }));
       try {
-        const result = await getAccountReport({ limit: 50 });
+        const result = await getAccountReport({ limit: 50, analysisStatus: true });
         setStats(prev => ({ ...prev, reportCount: result?.total || 0 }));
       } finally {
         setLoading(prev => ({ ...prev, report: false }));
