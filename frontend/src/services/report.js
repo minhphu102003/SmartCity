@@ -18,6 +18,7 @@ export const getRecentReports = async () => {
         const params = {
             startDate: tenMinutesAgo.toISOString(),
             limit: 50,
+            analysisStatus: true
         }
         const response = await request.get(REPORT_ENDPOINT, {
             params,

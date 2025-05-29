@@ -76,7 +76,7 @@ const SidebarComponent = () => {
         />
 
         {!isCollapsed && (
-          <p className="text-gray-500 px-4 mt-4 uppercase text-sm">Custom Notification</p>
+          <p className="text-gray-500 px-4 mt-4 uppercase text-sm">Custom Map</p>
         )}
         <SidebarItem
           title="Custom Map"

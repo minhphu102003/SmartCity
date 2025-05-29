@@ -624,6 +624,30 @@ export default function ManageUser() {
             updatedAt: "2024-11-06T10:25:00.000Z",
             email: "minhphu01200@example.com",
           },
+                    {
+            accountId: "6739bebc52a4ed1023ff3c02",
+            username: "Minh Phu",
+            roles: ["user"],
+            createdAt: "2024-11-06T10:25:00.000Z",
+            updatedAt: "2024-11-06T10:25:00.000Z",
+            email: "minhphu01200@example.com",
+          },
+          {
+            accountId: "6739bebc52a4ed1023ff3c02",
+            username: "Tobi1234",
+            roles: ["user"],
+            createdAt: "2024-11-06T10:25:00.000Z",
+            updatedAt: "2024-11-06T10:25:00.000Z",
+            email: "Tobitobi123@example.com",
+          },
+                    {
+            accountId: "6739bebc52a4ed1023ff3c02",
+            username: "Tobi1234@",
+            roles: ["user"],
+            createdAt: "2024-11-06T10:25:00.000Z",
+            updatedAt: "2024-11-06T10:25:00.000Z",
+            email: "tobi123@example.com",
+          },
         ];
         updateUsersState(fallbackUsers)
         setTotalPages(1)
@@ -889,7 +913,7 @@ export default function ManageUser() {
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-blue-700">18</div>
+                  <div className="text-2xl font-bold text-blue-700">20</div>
                   <div className="text-sm text-blue-600">Total Users</div>
                 </div>
               </div>

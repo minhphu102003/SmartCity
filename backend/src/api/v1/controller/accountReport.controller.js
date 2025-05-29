@@ -51,7 +51,7 @@ export const getAccountReports = async (req, res) => {
         },
       });
 
-    const reportsWithVirtuals = rawReports.map(doc =>
+    const reportsWithVirtuals = rawReports.map((doc) =>
       doc.toObject({ virtuals: true })
     );
 
@@ -65,11 +65,12 @@ export const getAccountReports = async (req, res) => {
 
     if (guest === "true") {
       filteredReports = filteredReports.filter((report) => {
-        const hasReview = Array.isArray(report.reviews) && report.reviews.length > 0;
-        const noApprove = report.reviews.every(
-          (review) => review.status !== "APPROVE"
+        const noReview =
+          !Array.isArray(report.reviews) || report.reviews.length === 0;
+        const allNotApproved = report.reviews?.every(
+          (review) => review.status !== "APPROVED"
         );
-        return hasReview && noApprove;
+        return noReview || allNotApproved;
       });
     }
 
